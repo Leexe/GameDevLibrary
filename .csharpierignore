@@ -1,0 +1,7 @@
+Assets/Plugins/**
+
+**/Library/**
+**/Temp/**
+**/obj/**
+**/Builds/**
+**/*.meta
