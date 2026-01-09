@@ -60,7 +60,7 @@ public class DialogueSFX : MonoBehaviour
 	private void SetSpeakingCharacter(string characterName)
 	{
 		_charactersTalking = true;
-		if (_vnDictionary.TryGetVoice(characterName, out VoiceSO voice))
+		if (_vnDictionary.VoicesMap.TryGetValue(characterName, out VoiceSO voice))
 		{
 			_currentCharacterVoice = voice;
 		}

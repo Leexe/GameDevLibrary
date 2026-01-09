@@ -65,7 +65,15 @@ public class DialogueController : MonoBehaviour
 	[FoldoutGroup("Debug")]
 	[Button]
 	[UsedImplicitly]
-	private void StartTestingStory()
+	private void TestingStory(string knotName)
+	{
+		DialogueEvents.StartStory(knotName);
+	}
+
+	[FoldoutGroup("Debug")]
+	[Button]
+	[UsedImplicitly]
+	private void StartBasicTest()
 	{
 		DialogueEvents.StartStory("Testing");
 	}

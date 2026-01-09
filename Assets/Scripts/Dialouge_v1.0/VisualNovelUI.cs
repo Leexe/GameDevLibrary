@@ -44,7 +44,7 @@ public class VisualNovelUI : MonoBehaviour
 
 	[FoldoutGroup("References/UI References")]
 	[SerializeField]
-	private CanvasGroup _canvasGroup;
+	private CanvasGroup _dialogueCanvasGroup;
 
 	[FoldoutGroup("References/UI References")]
 	[SerializeField]
@@ -77,7 +77,7 @@ public class VisualNovelUI : MonoBehaviour
 
 	[FoldoutGroup("Default Values/Animation")]
 	[SerializeField]
-	private Color _flashColor = Color.white;
+	private Color _flashColor = Color.indianRed;
 
 	// Private Variables
 	private Tween _canvasAlphaTween;
@@ -227,28 +227,28 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Fades in the story panel when dialogue begins.
+	/// Fades in the canvas panel when dialogue begins.
 	/// </summary>
 	/// <param name="knotName">Name of the Ink knot being started (unused for UI).</param>
 	private void EnableStoryPanel(string knotName)
 	{
 		float fadeDuration = 1f;
 		_canvasAlphaTween.Stop();
-		_canvasAlphaTween = Tween.Custom(_canvasGroup.alpha, 1, fadeDuration, newVal => _canvasGroup.alpha = newVal);
-		_canvasGroup.interactable = true;
-		_canvasGroup.blocksRaycasts = true;
+		_canvasAlphaTween = Tween.Custom(_dialogueCanvasGroup.alpha, 1, fadeDuration, newVal => _dialogueCanvasGroup.alpha = newVal);
+		_dialogueCanvasGroup.interactable = true;
+		_dialogueCanvasGroup.blocksRaycasts = true;
 	}
 
 	/// <summary>
-	/// Fades out the story panel when dialogue ends.
+	/// Fades out the canvas panel when dialogue ends.
 	/// </summary>
 	private void DisableStoryPanel()
 	{
 		float fadeDuration = 1f;
 		_canvasAlphaTween.Stop();
-		_canvasAlphaTween = Tween.Custom(_canvasGroup.alpha, 0, fadeDuration, newVal => _canvasGroup.alpha = newVal);
-		_canvasGroup.interactable = false;
-		_canvasGroup.blocksRaycasts = false;
+		_canvasAlphaTween = Tween.Custom(_dialogueCanvasGroup.alpha, 0, fadeDuration, newVal => _dialogueCanvasGroup.alpha = newVal);
+		_dialogueCanvasGroup.interactable = false;
+		_dialogueCanvasGroup.blocksRaycasts = false;
 	}
 
 	#endregion

@@ -7,10 +7,10 @@ public class BacklogController : MonoBehaviour
 {
 	[Header("References")]
 	[SerializeField]
-	private TextMeshProUGUI _text;
+	private TextMeshProUGUI _backlogText;
 
 	[SerializeField]
-	private CanvasGroup _canvas;
+	private CanvasGroup _backlogCanvas;
 
 	[Header("Data")]
 	[SerializeField]
@@ -32,8 +32,8 @@ public class BacklogController : MonoBehaviour
 		DialogueEvents.AddBlockingCondition(() => IsOpen);
 		InputManager.Instance.OnBacklogPerformed.AddListener(ToggleBacklog);
 
-		_canvas.alpha = 0f;
-		_canvas.blocksRaycasts = false;
+		_backlogCanvas.alpha = 0f;
+		_backlogCanvas.blocksRaycasts = false;
 		ClearText();
 	}
 
@@ -72,7 +72,7 @@ public class BacklogController : MonoBehaviour
 	{
 		_opacityTween.Stop();
 		_opacityTween = Tween.Custom(
-			_canvas,
+			_backlogCanvas,
 			0f,
 			1f,
 			_tweenDuration,
@@ -81,14 +81,14 @@ public class BacklogController : MonoBehaviour
 				t.alpha = val;
 			}
 		);
-		_canvas.blocksRaycasts = true;
+		_backlogCanvas.blocksRaycasts = true;
 	}
 
 	private void CloseBacklog()
 	{
 		_opacityTween.Stop();
 		_opacityTween = Tween.Custom(
-			_canvas,
+			_backlogCanvas,
 			1f,
 			0f,
 			_tweenDuration,
@@ -97,7 +97,7 @@ public class BacklogController : MonoBehaviour
 				t.alpha = val;
 			}
 		);
-		_canvas.blocksRaycasts = false;
+		_backlogCanvas.blocksRaycasts = false;
 	}
 
 	private void AddToBacklog(string characterName, string backlog)
@@ -115,7 +115,7 @@ public class BacklogController : MonoBehaviour
 
 	private void UpdateText()
 	{
-		_text.text = string.Join("\n\n", _backlog);
+		_backlogText.text = string.Join("\n\n", _backlog);
 	}
 
 	private void ClearText()

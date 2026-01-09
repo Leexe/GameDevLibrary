@@ -17,12 +17,13 @@ public class VNCharacter : MonoBehaviour
 	[SerializeField]
 	private LayoutElement _layoutElement;
 
+	private Tween _alphaTween;
+	private Tween _colorTween;
+
 	// Private Variables
 	private Tween _positionTween;
-	private Tween _alphaTween;
-	private Tween _shakeTween;
 	private Tween _scaleTween;
-	private Tween _colorTween;
+	private Tween _shakeTween;
 
 	private void OnDisable()
 	{
@@ -330,6 +331,11 @@ public class VNCharacter : MonoBehaviour
 	[FoldoutGroup("Debug Animations")]
 	public void Flash(Color flashColor, float duration = 0.25f)
 	{
+		if (flashColor == _image.color)
+		{
+			return;
+		}
+
 		_colorTween.Complete();
 		Color originalColor = _image.color;
 		_colorTween = Tween
