@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
+// ReSharper disable UsageOfDefaultStructEquality
 
 public class AudioManager : PersistentMonoSingleton<AudioManager>
 {
