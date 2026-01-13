@@ -1189,9 +1189,7 @@ MonoBehaviour:
   _spawnInvincibility: 0
   _invincibilityTimeAfterDamage: 1
   _godMode: 0
-  OnInitiateHealth:
-    m_PersistentCalls:
-      m_Calls: []
+  <Health>k__BackingField: 0
   OnRegen:
     m_PersistentCalls:
       m_Calls: []
@@ -1514,6 +1512,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2179149101354755935, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
+      propertyPath: _fadeDuration
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 6403250747865434938, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: serializationData.Prefab
       value: 
@@ -1600,7 +1602,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: _toggleRegeneration
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9006496416770034254, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: serializationData.Prefab
@@ -2652,6 +2654,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: _enableEventChannel
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
+      propertyPath: _toggleRegeneration
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
+      propertyPath: _toggleInvincibilityFrames
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

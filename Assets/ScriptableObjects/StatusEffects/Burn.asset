@@ -57,7 +57,7 @@ MonoBehaviour:
   _damagePerTick: 3
   _damageOnExpire: 0
   _buildUpDecay: 0.8
-  _buildUpFreeze: 0.1
+  _buildUpFreeze: 0.5
   _iconPrefab: {fileID: 3202527474812664118, guid: 2db63b8c8e2a76940ad14fabc98de737, type: 3}
   _statusTriggeredSfx:
     Guid:
