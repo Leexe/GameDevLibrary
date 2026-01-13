@@ -16,19 +16,12 @@ MonoBehaviour:
     SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects:
-    - {fileID: 21300000, guid: 589aa1853336343628e822fa869cb66f, type: 3}
-    - {fileID: 21300000, guid: 29d1c59899f8a4e02a439e19445cb010, type: 3}
     - {fileID: 21300000, guid: ed7b8cf4a55664f2eab4050b4d1b63e6, type: 3}
     - {fileID: 21300000, guid: 60be7bf236c9f48ac82b24057a8841a9, type: 3}
-    - {fileID: 21300000, guid: 03247b9469a554fd291ff826dee16612, type: 3}
-    - {fileID: 21300000, guid: 6293b43dab15a4b32b9121c5d2169b50, type: 3}
-    - {fileID: 21300000, guid: e76525f206ad442e3b2cbfa808880028, type: 3}
-    - {fileID: 21300000, guid: 35f0ec4b358514508a7140757f8c7d26, type: 3}
     - {fileID: 21300000, guid: a829466917bf5463c9ad1588fb1a59cb, type: 3}
     - {fileID: 21300000, guid: 7cc699699776f4856ba60202ed56f74a, type: 3}
     - {fileID: 11400000, guid: cde9b4e654ab64b5b9db41874f688e45, type: 2}
     - {fileID: 11400000, guid: 2a676a825ff4244288d0c362cf2874b5, type: 2}
-    - {fileID: 11400000, guid: 585d188e9757749df94f2993e689fde9, type: 2}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -95,13 +88,13 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 12
-      Data: 10
+      Data: 6
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: player
+      Data: dude
     - Name: $v
       Entry: 10
       Data: 0
@@ -113,7 +106,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: player_freaky
+      Data: dude_concentrated
     - Name: $v
       Entry: 10
       Data: 1
@@ -125,7 +118,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: dude
+      Data: dude_smile
     - Name: $v
       Entry: 10
       Data: 2
@@ -137,7 +130,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: dude_concentrated
+      Data: dude_laugh
     - Name: $v
       Entry: 10
       Data: 3
@@ -149,10 +142,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: girl
+      Data: player
     - Name: $v
       Entry: 10
-      Data: 4
+      Data: 1
     - Name: 
       Entry: 8
       Data: 
@@ -161,58 +154,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: girl_eyes_closed
+      Data: player_laugh
     - Name: $v
       Entry: 10
-      Data: 5
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: girl_eyes_lowered
-    - Name: $v
-      Entry: 10
-      Data: 6
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: samurai
-    - Name: $v
-      Entry: 10
-      Data: 7
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: dude_smile
-    - Name: $v
-      Entry: 10
-      Data: 8
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: dude_laugh
-    - Name: $v
-      Entry: 10
-      Data: 9
+      Data: 3
     - Name: 
       Entry: 8
       Data: 
@@ -247,7 +192,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 12
-      Data: 3
+      Data: 2
     - Name: 
       Entry: 7
       Data: 
@@ -256,7 +201,7 @@ MonoBehaviour:
       Data: dude
     - Name: $v
       Entry: 10
-      Data: 10
+      Data: 4
     - Name: 
       Entry: 8
       Data: 
@@ -268,19 +213,7 @@ MonoBehaviour:
       Data: player
     - Name: $v
       Entry: 10
-      Data: 11
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: girl
-    - Name: $v
-      Entry: 10
-      Data: 12
+      Data: 5
     - Name: 
       Entry: 8
       Data: 

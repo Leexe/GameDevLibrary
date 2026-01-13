@@ -8,8 +8,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Handles the visual novel UI presentation layer.
-/// Subscribes to DialogueEvents for decoupled communication with DialogueController.
+///     Handles the visual novel UI presentation layer.
+///     Subscribes to DialogueEvents for decoupled communication with DialogueController.
 /// </summary>
 public class VisualNovelUI : MonoBehaviour
 {
@@ -79,15 +79,59 @@ public class VisualNovelUI : MonoBehaviour
 	[SerializeField]
 	private Color _flashColor = Color.indianRed;
 
-	// Private Variables
-	private Tween _canvasAlphaTween;
 	private readonly Dictionary<string, VNCharacter> _activeCharacters = new();
 	private Dictionary<string, Action<VNCharacter, string[]>> _animationHandlers;
+
+	// Private Variables
+	private Tween _canvasAlphaTween;
 	private DialogueEvents DialogueEvents => DialogueEvents.Instance;
 
 	private void Awake()
 	{
 		InitializeAnimationHandlers();
+	}
+
+	private void OnEnable()
+	{
+		DialogueEvents.OnStartStory += EnableStoryPanel;
+		DialogueEvents.OnDisplayDialogue += ChangeStoryText;
+		DialogueEvents.OnCharacterUpdate += UpdateCharacter;
+		DialogueEvents.OnCharacterAnimation += PlayAnimation;
+		DialogueEvents.OnCharacterRemove += RemoveCharacter;
+		DialogueEvents.OnNameUpdate += ChangeNameText;
+		DialogueEvents.OnBackgroundUpdate += ChangeBackground;
+		DialogueEvents.OnEndStory += DisableStoryPanel;
+		DialogueEvents.OnEndStory += RemoveAllCharacters;
+		DialogueEvents.OnAllCharacterRemove += RemoveAllCharacters;
+		DialogueEvents.OnTypewriterSkip += SkipTypewriter;
+
+		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
+		// GameManager.Instance.OnGamePaused.AddListener(PauseTypewriter);
+		// GameManager.Instance.OnGameResume.AddListener(ResumeTypewriter);
+
+		_typewriter.onTextShowed.AddListener(DialogueEvents.TypewriterFinished);
+	}
+
+	private void OnDisable()
+	{
+		DialogueEvents.OnStartStory -= EnableStoryPanel;
+		DialogueEvents.OnDisplayDialogue -= ChangeStoryText;
+		DialogueEvents.OnCharacterUpdate -= UpdateCharacter;
+		DialogueEvents.OnCharacterAnimation -= PlayAnimation;
+		DialogueEvents.OnCharacterRemove -= RemoveCharacter;
+		DialogueEvents.OnNameUpdate -= ChangeNameText;
+		DialogueEvents.OnBackgroundUpdate -= ChangeBackground;
+		DialogueEvents.OnEndStory -= DisableStoryPanel;
+		DialogueEvents.OnEndStory -= RemoveAllCharacters;
+		DialogueEvents.OnAllCharacterRemove -= RemoveAllCharacters;
+		DialogueEvents.OnTypewriterSkip -= SkipTypewriter;
+
+		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
+		// if (GameManager.Instance)
+		// {
+		// 	GameManager.Instance.OnGamePaused.RemoveListener(PauseTypewriter);
+		// 	GameManager.Instance.OnGameResume.RemoveListener(ResumeTypewriter);
+		// }
 	}
 
 	private void InitializeAnimationHandlers()
@@ -152,139 +196,10 @@ public class VisualNovelUI : MonoBehaviour
 		return defaultValue;
 	}
 
-	private void OnEnable()
-	{
-		DialogueEvents.OnStartStory += EnableStoryPanel;
-		DialogueEvents.OnDisplayDialogue += ChangeStoryText;
-		DialogueEvents.OnCharacterUpdate += UpdateCharacter;
-		DialogueEvents.OnCharacterAnimation += PlayAnimation;
-		DialogueEvents.OnCharacterRemove += RemoveCharacter;
-		DialogueEvents.OnNameUpdate += ChangeNameText;
-		DialogueEvents.OnBackgroundUpdate += ChangeBackground;
-		DialogueEvents.OnEndStory += DisableStoryPanel;
-		DialogueEvents.OnEndStory += RemoveAllCharacters;
-		DialogueEvents.OnAllCharacterRemove += RemoveAllCharacters;
-		DialogueEvents.OnTypewriterSkip += SkipTypewriter;
-
-		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
-		// GameManager.Instance.OnGamePaused.AddListener(PauseTypewriter);
-		// GameManager.Instance.OnGameResume.AddListener(ResumeTypewriter);
-
-		_typewriter.onTextShowed.AddListener(DialogueEvents.TypewriterFinished);
-	}
-
-	private void OnDisable()
-	{
-		DialogueEvents.OnStartStory -= EnableStoryPanel;
-		DialogueEvents.OnDisplayDialogue -= ChangeStoryText;
-		DialogueEvents.OnCharacterUpdate -= UpdateCharacter;
-		DialogueEvents.OnCharacterAnimation -= PlayAnimation;
-		DialogueEvents.OnCharacterRemove -= RemoveCharacter;
-		DialogueEvents.OnNameUpdate -= ChangeNameText;
-		DialogueEvents.OnBackgroundUpdate -= ChangeBackground;
-		DialogueEvents.OnEndStory -= DisableStoryPanel;
-		DialogueEvents.OnEndStory -= RemoveAllCharacters;
-		DialogueEvents.OnAllCharacterRemove -= RemoveAllCharacters;
-		DialogueEvents.OnTypewriterSkip -= SkipTypewriter;
-
-		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
-		// if (GameManager.Instance)
-		// {
-		// 	GameManager.Instance.OnGamePaused.RemoveListener(PauseTypewriter);
-		// 	GameManager.Instance.OnGameResume.RemoveListener(ResumeTypewriter);
-		// }
-	}
-
-	#region UI Updates
-
-	/// <summary>
-	/// Updates the speaker name display.
-	/// Shows the name panel if a name is provided, hides it otherwise.
-	/// </summary>
-	/// <param name="speakerName">Speaker name to display, or empty/null to hide.</param>
-	private void ChangeNameText(string speakerName)
-	{
-		if (string.IsNullOrEmpty(speakerName))
-		{
-			_namePanel.SetActive(false);
-		}
-		else
-		{
-			_namePanel.SetActive(true);
-			_nameText.text = speakerName;
-		}
-	}
-
-	/// <summary>
-	/// Displays a line of dialogue using the typewriter effect.
-	/// </summary>
-	/// <param name="characterName">The name of the character speaking.</param>
-	/// <param name="line">The dialogue line to display.</param>
-	private void ChangeStoryText(string characterName, string line)
-	{
-		ChangeNameText(characterName);
-		_typewriter.ShowText(line);
-	}
-
-	/// <summary>
-	/// Fades in the canvas panel when dialogue begins.
-	/// </summary>
-	/// <param name="knotName">Name of the Ink knot being started (unused for UI).</param>
-	private void EnableStoryPanel(string knotName)
-	{
-		float fadeDuration = 1f;
-		_canvasAlphaTween.Stop();
-		_canvasAlphaTween = Tween.Custom(_dialogueCanvasGroup.alpha, 1, fadeDuration, newVal => _dialogueCanvasGroup.alpha = newVal);
-		_dialogueCanvasGroup.interactable = true;
-		_dialogueCanvasGroup.blocksRaycasts = true;
-	}
-
-	/// <summary>
-	/// Fades out the canvas panel when dialogue ends.
-	/// </summary>
-	private void DisableStoryPanel()
-	{
-		float fadeDuration = 1f;
-		_canvasAlphaTween.Stop();
-		_canvasAlphaTween = Tween.Custom(_dialogueCanvasGroup.alpha, 0, fadeDuration, newVal => _dialogueCanvasGroup.alpha = newVal);
-		_dialogueCanvasGroup.interactable = false;
-		_dialogueCanvasGroup.blocksRaycasts = false;
-	}
-
-	#endregion
-
-	#region Typewriter
-
-	/// <summary>
-	/// Skips the current typewriter animation to show full text immediately.
-	/// </summary>
-	private void SkipTypewriter()
-	{
-		_typewriter.SkipTypewriter();
-	}
-
-	/// <summary>
-	/// Pauses the typewriter animation. Called when game is paused.
-	/// </summary>
-	private void PauseTypewriter()
-	{
-		_typewriter.SetTypewriterSpeed(0f);
-	}
-
-	/// <summary>
-	/// Resumes the typewriter animation. Called when game is unpaused.
-	/// </summary>
-	private void ResumeTypewriter()
-	{
-		_typewriter.SetTypewriterSpeed(1f);
-	}
-
-	#endregion
-
 	#region Background Sprite
 
 	/// <summary>
-	/// Updates the background image.
+	///     Updates the background image.
 	/// </summary>
 	/// <param name="backgroundKey">The key for the background sprite.</param>
 	private void ChangeBackground(string backgroundKey)
@@ -306,18 +221,119 @@ public class VisualNovelUI : MonoBehaviour
 
 	#endregion
 
+	#region UI Updates
+
+	/// <summary>
+	///     Updates the speaker name display.
+	///     Shows the name panel if a name is provided, hides it otherwise.
+	/// </summary>
+	/// <param name="speakerName">Speaker name to display, or empty/null to hide.</param>
+	private void ChangeNameText(string speakerName)
+	{
+		if (string.IsNullOrEmpty(speakerName))
+		{
+			_namePanel.SetActive(false);
+		}
+		else
+		{
+			_namePanel.SetActive(true);
+			_nameText.text = speakerName;
+		}
+	}
+
+	/// <summary>
+	///     Displays a line of dialogue using the typewriter effect.
+	/// </summary>
+	/// <param name="characterName">The name of the character speaking.</param>
+	/// <param name="line">The dialogue line to display.</param>
+	private void ChangeStoryText(string characterName, string line)
+	{
+		ChangeNameText(characterName);
+		_typewriter.ShowText(line);
+	}
+
+	/// <summary>
+	///     Fades in the canvas panel when dialogue begins.
+	/// </summary>
+	/// <param name="knotName">Name of the Ink knot being started (unused for UI).</param>
+	private void EnableStoryPanel(string knotName)
+	{
+		float fadeDuration = 1f;
+		_canvasAlphaTween.Stop();
+		_canvasAlphaTween = Tween.Custom(
+			_dialogueCanvasGroup.alpha,
+			1,
+			fadeDuration,
+			newVal => _dialogueCanvasGroup.alpha = newVal
+		);
+		_dialogueCanvasGroup.interactable = true;
+		_dialogueCanvasGroup.blocksRaycasts = true;
+	}
+
+	/// <summary>
+	///     Fades out the canvas panel when dialogue ends.
+	/// </summary>
+	private void DisableStoryPanel()
+	{
+		float fadeDuration = 1f;
+		_canvasAlphaTween.Stop();
+		_canvasAlphaTween = Tween.Custom(
+			_dialogueCanvasGroup.alpha,
+			0,
+			fadeDuration,
+			newVal => _dialogueCanvasGroup.alpha = newVal
+		);
+		_dialogueCanvasGroup.interactable = false;
+		_dialogueCanvasGroup.blocksRaycasts = false;
+	}
+
+	#endregion
+
+	#region Typewriter
+
+	/// <summary>
+	///     Skips the current typewriter animation to show full text immediately.
+	/// </summary>
+	private void SkipTypewriter()
+	{
+		_typewriter.SkipTypewriter();
+	}
+
+	/// <summary>
+	///     Pauses the typewriter animation. Called when game is paused.
+	/// </summary>
+	private void PauseTypewriter()
+	{
+		_typewriter.SetTypewriterSpeed(0f);
+	}
+
+	/// <summary>
+	///     Resumes the typewriter animation. Called when game is unpaused.
+	/// </summary>
+	private void ResumeTypewriter()
+	{
+		_typewriter.SetTypewriterSpeed(1f);
+	}
+
+	#endregion
+
 	#region Character Sprite
 
 	/// <summary>
-	/// Updates a character's state, including spawning, moving, or changing sprite.
+	///     Updates a character's state, including spawning, moving, or changing sprite.
 	/// </summary>
 	/// <param name="characterName">Name of the character.</param>
-	/// <param name="position">Target screen position (left, right, center).</param>
+	/// <param name="characterPosition">Target screen position (left, right, center).</param>
 	/// <param name="spriteKey">Key for the new sprite, or null/empty to keep current.</param>
 	/// <param name="fadeDuration">Duration for fade transitions.</param>
-	private void UpdateCharacter(string characterName, CharacterPosition position, string spriteKey, float fadeDuration)
+	private void UpdateCharacter(
+		string characterName,
+		CharacterPosition characterPosition,
+		string spriteKey,
+		float fadeDuration
+	)
 	{
-		Transform targetParent = GetPositionTransform(position);
+		Transform targetParent = GetLayoutParentTransform(characterPosition);
 
 		// Snapshot positions of existing characters in target group before layout changes
 		Dictionary<VNCharacter, Vector3> positionSnapshots = SnapshotLayoutGroupPositions(targetParent);
@@ -343,7 +359,7 @@ public class VisualNovelUI : MonoBehaviour
 			AnimateLayoutGroupCharacters(positionSnapshots, fadeDuration);
 
 			// Slide character from the side
-			float slideOffset = CharacterPosition.Right == position ? _slideOffset : -_slideOffset;
+			float slideOffset = CharacterPosition.Right == characterPosition ? _slideOffset : -_slideOffset;
 			character.SlideIn(slideOffset, fadeDuration);
 			character.FadeIn(fadeDuration);
 		}
@@ -373,7 +389,7 @@ public class VisualNovelUI : MonoBehaviour
 		}
 
 		// Handle flipping based on position
-		if (position == CharacterPosition.Right)
+		if (characterPosition == CharacterPosition.Right)
 		{
 			character.transform.localScale = new Vector3(
 				-Mathf.Abs(character.transform.localScale.x),
@@ -381,7 +397,7 @@ public class VisualNovelUI : MonoBehaviour
 				character.transform.localScale.z
 			);
 		}
-		else if (position == CharacterPosition.Left)
+		else if (characterPosition == CharacterPosition.Left)
 		{
 			character.transform.localScale = new Vector3(
 				Mathf.Abs(character.transform.localScale.x),
@@ -405,7 +421,7 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Plays an animation on a specific character.
+	///     Plays an animation on a specific character.
 	/// </summary>
 	/// <param name="characterName">Name of the character.</param>
 	/// <param name="animationID">Animation name (e.g. shake, hop).</param>
@@ -435,7 +451,7 @@ public class VisualNovelUI : MonoBehaviour
 	#region Clean Up
 
 	/// <summary>
-	/// Removes a specific character from the screen.
+	///     Removes a specific character from the screen.
 	/// </summary>
 	/// <param name="characterName">Name of the character to remove.</param>
 	/// <param name="fadeDuration">Duration of fade out.</param>
@@ -457,7 +473,7 @@ public class VisualNovelUI : MonoBehaviour
 			// Animate remaining characters
 			AnimateLayoutGroupCharacters(snapshots, fadeDuration);
 
-			// Slide out, fade out, and destroy
+			// Fade out the character
 			float slideOffset = layoutGroup == _rightSpriteTransform ? _slideOffset : -_slideOffset;
 			character.SlideOut(slideOffset, fadeDuration);
 			character.FadeOutAndDestroy(fadeDuration);
@@ -465,7 +481,7 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Cleans up all character sprites from the screen
+	///     Cleans up all character sprites from the screen
 	/// </summary>
 	/// <param name="fadeDuration">How long it takes to fade out and delete all characters</param>
 	private void RemoveAllCharacters(float fadeDuration)
@@ -519,7 +535,7 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Cleans up all character sprites from the screen using the default fade duration.
+	///     Cleans up all character sprites from the screen using the default fade duration.
 	/// </summary>
 	private void RemoveAllCharacters()
 	{
@@ -531,7 +547,7 @@ public class VisualNovelUI : MonoBehaviour
 	#region Position
 
 	/// <summary>
-	/// Captures the current positions of all characters in a layout group.
+	///     Captures the current positions of all characters in a layout group.
 	/// </summary>
 	/// <param name="layoutGroup">The layout group transforms snapshot.</param>
 	/// <returns>Dictionary mapping characters to their current positions.</returns>
@@ -550,7 +566,7 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Animates all characters from their snap-shotted positions to their new layout positions.
+	///     Animates all characters from their snap-shotted positions to their new layout positions.
 	/// </summary>
 	/// <param name="snapshots">Dictionary of characters and their old positions.</param>
 	/// <param name="duration">Duration of the tween animation.</param>
@@ -561,13 +577,13 @@ public class VisualNovelUI : MonoBehaviour
 			return;
 		}
 
-		// Get the layout group from the first character
+		// Get the layout group from the first character in snapshots
 		Transform layoutGroup = null;
 		foreach (KeyValuePair<VNCharacter, Vector3> character in snapshots)
 		{
 			if (character.Key != null)
 			{
-				layoutGroup = character.Key.transform.parent;
+				layoutGroup = GetLayoutGroupParent(character.Key);
 				break;
 			}
 		}
@@ -592,11 +608,11 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Helper to get the Transform corresponding to a CharacterPosition enum.
+	///     Helper to get the Transform corresponding to a CharacterPosition enum.
 	/// </summary>
 	/// <param name="position">The position enum value.</param>
 	/// <returns>The transform for that position.</returns>
-	private Transform GetPositionTransform(CharacterPosition position)
+	private Transform GetLayoutParentTransform(CharacterPosition position)
 	{
 		return position switch
 		{
@@ -607,7 +623,7 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Get the layout group parent from a VNCharacter.
+	///     Get the layout group parent from a VNCharacter.
 	/// </summary>
 	/// <param name="character">The character to get the layout group parent from.</param>
 	/// <returns>The layout group parent.</returns>

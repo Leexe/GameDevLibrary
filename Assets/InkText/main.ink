@@ -1,12 +1,10 @@
 === Testing ===
 
 #nm_none
-"Uhhhhhhh... FMCL." #chl_player+pop #nm_Player #d_player
-"Don't say that, you look fine." #chr_girl+bounce #nm_Girl #d_girl
-"Don't talk to this guy babe, he's a player." #chr_dude+bounce #nm_Dude #chr_girl_eyes_lowered+shakevertical #d_dude
-"AHHHH" #chl_player_freaky+shake #chl_dude_concentrated #nm_Player #chr_girl_eyes_closed+shake #d_player
-
-... #chr_player_clear #chl_dude_laugh+bounce #nm_none
+"Hello, I'm the Player" #chl_player+pop #nm_Player #d_player
+"I'm another character to the right" #chl_player+bounce #nm_Dude #chr_dude_laugh+shakevertical #d_dude
+The other character strikes the player character. #chl_player+shake #chc_dude_concentrated #nm_Player #d_player
+The left character disappears... #chr_player_clear #chl_dude_laugh+bounce #nm_none
 End #nm_none
 -> END
 
@@ -17,7 +15,7 @@ End #nm_none
 Spawning Character #chc_player
 
 Testing Standard Shake. #an_player_shake
-Testing Inline Syntax (Sprite Change + Shake). #chc_player_freaky+shake
+Testing Inline Syntax (Sprite Change + Shake). #chc_player_laugh+shake
 
 Testing Hop with Parameters (Height 20, Duration 0.5s). #an_player_hop_20_0.5
 Testing Reverse Hop. #an_player_reversehop
@@ -41,8 +39,8 @@ Testing dialogue voice system.
 "Hello! This line should play player's voice." #d_player
 "Another line from player with voice." #d_player
 
-#chr_girl #nm_Girl
-"Hi there! This is the Girl speaking." #d_girl
+#chr_player #nm_Character1
+"Hi there! This is a character speaking." #d_player
 
 #nm_none
 This is narration. No voice should play here.
