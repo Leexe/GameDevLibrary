@@ -4,39 +4,37 @@ using UnityEngine.InputSystem;
 
 public class InputManager : PersistentMonoSingleton<InputManager>
 {
-	public InputActionAsset InputActions;
-
-	private InputAction _movementAction;
-	private InputAction _movement2Action;
-	private InputAction _kickAction;
-	private InputAction _punchAction;
-	private InputAction _grabAction;
-	private InputAction _continueStoryAction;
-	private InputAction _backlogAction;
-	private InputAction _escapeAction;
-
-	private InputActionMap _playerActionMap;
-	private InputActionMap _uiActionMap;
-	private InputActionMap _visualNovelActionMap;
-
 	private const string PlayerActionMap = "Player";
 	private const string UIActionMap = "UI";
 	private const string VisualNovelActionMap = "VisualNovel";
+	public InputActionAsset InputActions;
 
 	[HideInInspector]
 	public UnityEvent<Vector2> OnMovement;
 
 	[HideInInspector]
-	public UnityEvent<Vector2> OnMovement2;
+	public UnityEvent OnJumpPerformed;
 
 	[HideInInspector]
-	public UnityEvent OnPunchPerformed;
+	public UnityEvent OnDashPerformed;
 
 	[HideInInspector]
-	public UnityEvent OnKickPerformed;
+	public UnityEvent OnShootingPerformed;
 
 	[HideInInspector]
-	public UnityEvent OnGrabPerformed;
+	public UnityEvent OnShootingReleased;
+
+	[HideInInspector]
+	public UnityEvent OnReloadPerformed;
+
+	[HideInInspector]
+	public UnityEvent OnCrouchPerformed;
+
+	[HideInInspector]
+	public UnityEvent OnCrouchRelease;
+
+	[HideInInspector]
+	public UnityEvent OnChangeGun;
 
 	[HideInInspector]
 	public UnityEvent OnContinueStoryPerformed;
@@ -50,12 +48,32 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	[HideInInspector]
 	public UnityEvent OnAnyInputPerformed;
 
+	private InputAction _backlogAction;
+	private InputAction _changeGun;
+	private InputAction _continueStoryAction;
+	private InputAction _crouchAction;
+	private InputAction _dashAction;
+	private InputAction _escapeAction;
+	private InputAction _jumpAction;
+	private InputAction _movementAction;
+	private InputActionMap _playerActionMap;
+	private InputAction _reloadAction;
+	private InputAction _shootAction;
+	private InputActionMap _uiActionMap;
+	private InputActionMap _visualNovelActionMap;
+
 	protected override void Awake()
 	{
 		base.Awake();
 		EnablePlayerInput();
 		EnableUIInput();
 		SetupInputActions();
+	}
+
+	private void Update()
+	{
+		UpdateInputs();
+		CheckAnyInput();
 	}
 
 	private void OnEnable()
@@ -70,23 +88,13 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 
 	private void OnDestroy()
 	{
-		if (_movementAction != null)
+		if (_movementAction == null)
 		{
-			_movementAction.performed -= OnMovementPerformed;
-			_movementAction.canceled -= OnMovementCanceled;
+			return;
 		}
 
-		if (_movement2Action != null)
-		{
-			_movement2Action.performed -= OnMovementPerformed;
-			_movement2Action.canceled -= OnMovementCanceled;
-		}
-	}
-
-	private void Update()
-	{
-		UpdateInputs();
-		CheckAnyInput();
+		_movementAction.performed -= OnMovementPerformed;
+		_movementAction.canceled -= OnMovementCanceled;
 	}
 
 	#region Input Setup
@@ -101,6 +109,13 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		_movementAction.performed += OnMovementPerformed;
 		_movementAction.canceled += OnMovementCanceled;
 
+		_jumpAction = InputActions.FindAction("Jump");
+		_dashAction = InputActions.FindAction("Dash");
+		_shootAction = InputActions.FindAction("Shoot");
+		_reloadAction = InputActions.FindAction("Reload");
+		_crouchAction = InputActions.FindAction("Crouch");
+		_changeGun = InputActions.FindAction("ChangeGun");
+
 		_continueStoryAction = InputActions.FindAction("ContinueStory");
 		_escapeAction = InputActions.FindAction("Escape");
 		_backlogAction = InputActions.FindAction("Backlog");
@@ -111,6 +126,16 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		AddEventToAction(_continueStoryAction, ref OnContinueStoryPerformed);
 		AddEventToAction(_escapeAction, ref OnEscapePerformed);
 		AddEventToAction(_backlogAction, ref OnBacklogPerformed);
+
+		AddEventToAction(_jumpAction, ref OnJumpPerformed);
+		AddEventToAction(_dashAction, ref OnDashPerformed);
+		AddEventToAction(_shootAction, ref OnShootingPerformed);
+		AddEventToAction(_reloadAction, ref OnReloadPerformed);
+		AddEventToAction(_crouchAction, ref OnCrouchPerformed);
+		AddEventToAction(_changeGun, ref OnChangeGun);
+
+		AddEventToActionRelease(_shootAction, ref OnShootingReleased);
+		AddEventToActionRelease(_crouchAction, ref OnCrouchRelease);
 	}
 
 	private void CheckAnyInput()
@@ -162,7 +187,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Checks if the input action is currently held down and invokes the UnityEvent.
+	///     Checks if the input action is currently held down and invokes the UnityEvent.
 	/// </summary>
 	/// <param name="inputAction">The input action to check.</param>
 	/// <param name="unityEvent">The UnityEvent to trigger.</param>
@@ -175,7 +200,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Checks if the input action was released this frame and invokes the UnityEvent.
+	///     Checks if the input action was released this frame and invokes the UnityEvent.
 	/// </summary>
 	/// <param name="inputAction">The input action to check.</param>
 	/// <param name="unityEvent">The UnityEvent to trigger.</param>

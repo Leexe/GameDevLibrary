@@ -5,16 +5,6 @@ using UnityEngine.Events;
 public class HealthEventChannelSO : ScriptableObject
 {
 	/// <summary>
-	/// Event triggered when health is initialized. Parameters: currentHealth, maxHealth
-	/// </summary>
-	public UnityAction<float, float> OnInitiateHealth;
-
-	public void RaiseInitiateHealth(float currentHealth, float maxHealth)
-	{
-		OnInitiateHealth?.Invoke(currentHealth, maxHealth);
-	}
-
-	/// <summary>
 	/// Event triggered when health is regenerated. Parameters: delta (amount regenerated), currentHealth, maxHealth
 	/// </summary>
 	public UnityAction<float, float, float> OnRegen;
