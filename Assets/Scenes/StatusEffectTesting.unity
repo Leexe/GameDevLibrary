@@ -992,7 +992,7 @@ MonoBehaviour:
   _sprintAcceleration: 3
   _timeTilSprint: 0.01
   _sprintExpireTime: 0.1
-  _runningTreshold: 5
+  _runningThreshold: 5
   _slideConditionalSpeedMult: 0.05
   _slideForceMax: 2
   _slideSpeedMultBuffer: 0.1
@@ -1030,9 +1030,9 @@ MonoBehaviour:
   _jumpHangInterval: 0.3
   _maxJumps: 2
   _allowWallRun: 1
-  _wallRunInitalHorVelocityMult: 0.5
-  _wallRunInitalVertVelocityMult: 0.5
-  _wallRunInitalVelocityMax: 6
+  _wallRunInitialHorVelocityMult: 0.5
+  _wallRunInitialVertVelocityMult: 0.5
+  _wallRunInitialVelocityMax: 6
   _wallRunVelocityThreshold: 11
   _wallRunVelocityExitThreshold: 6
   _wallRunHeightThreshold: 2
