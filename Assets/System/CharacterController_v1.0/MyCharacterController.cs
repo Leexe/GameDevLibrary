@@ -929,6 +929,8 @@ public class MyCharacterController : MonoBehaviour, ICharacterController
 
 	#endregion
 
+	#region Movement Helpers
+
 	// Crouches the player
 	private void CrouchPlayer()
 	{
@@ -1007,8 +1009,6 @@ public class MyCharacterController : MonoBehaviour, ICharacterController
 	{
 		_sprintTimer = 0f;
 	}
-
-	#region Handle Methods
 
 	private Vector3 HandleGravity(Vector3 currentVelocity, float deltaTime)
 	{
