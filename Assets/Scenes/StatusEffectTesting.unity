@@ -857,7 +857,6 @@ GameObject:
   - component: {fileID: 748385069}
   - component: {fileID: 748385068}
   - component: {fileID: 748385071}
-  - component: {fileID: 748385070}
   - component: {fileID: 748385072}
   - component: {fileID: 748385074}
   - component: {fileID: 748385073}
@@ -949,26 +948,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &748385070
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 748385066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b13df49885e4640ad872d161789a6dce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StaminaSystem
-  _maxStaminaCharges: 3
-  _staminaBaseRechargeRate: 2
-  OnStaminaRecharging:
-    m_PersistentCalls:
-      m_Calls: []
-  OnStaminaRecharged:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &748385071
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -983,7 +962,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MyCharacterController
   _motor: {fileID: 748385068}
   _meshRoot: {fileID: 915196686}
-  _staminaSystem: {fileID: 748385070}
   _baseMovespeed: 8
   _stableAcceleration: 15
   _stableDeceleration: 1.2
@@ -992,7 +970,12 @@ MonoBehaviour:
   _sprintAcceleration: 3
   _timeTilSprint: 0.01
   _sprintExpireTime: 0.1
-  _runningTreshold: 5
+  _runningThreshold: 5
+  _airBaseSpeedMult: 1
+  _airAcceleration: 7
+  _airDeceleration: 0.5
+  _airControlRate: 5
+  _drag: 0.01
   _slideConditionalSpeedMult: 0.05
   _slideForceMax: 2
   _slideSpeedMultBuffer: 0.1
@@ -1004,11 +987,10 @@ MonoBehaviour:
   _slidingDragSmoothing: 3
   _slideBuildUpSmoothing: 1
   _slideSlowDown: 0.85
-  _airBaseSpeedMult: 1
-  _airAcceleration: 7
-  _airDeceleration: 0.5
-  _airControlRate: 5
-  _drag: 0.01
+  _crouchSpeedMult: 0.5
+  _crouchTransitionTime: 0.1
+  _crouchCapsuleHeightMult: 0.5
+  _crouchCapsuleYOffsetMult: 0.5
   _dashForce: 35
   _dashVelocityToDecreaseMult: 0.5
   _dashEndVelocityMult: 0.65
@@ -1030,9 +1012,9 @@ MonoBehaviour:
   _jumpHangInterval: 0.3
   _maxJumps: 2
   _allowWallRun: 1
-  _wallRunInitalHorVelocityMult: 0.5
-  _wallRunInitalVertVelocityMult: 0.5
-  _wallRunInitalVelocityMax: 6
+  _wallRunInitialHorVelocityMult: 0.5
+  _wallRunInitialVertVelocityMult: 0.5
+  _wallRunInitialVelocityMax: 6
   _wallRunVelocityThreshold: 11
   _wallRunVelocityExitThreshold: 6
   _wallRunHeightThreshold: 2
@@ -1046,17 +1028,15 @@ MonoBehaviour:
   _wallJumpCooldown: 0.4
   _restrictAirRotationTime: 1
   _airRotationMult: 1
-  _crouchSpeedMult: 0.5
-  _crouchTransitionTime: 0.1
-  _crouchCapsuleHeightMult: 0.5
-  _crouchCapsuleYOffsetMult: 0.5
+  _wallCheckDistance: 0.5
+  _maxStaminaCharges: 3
+  _staminaBaseRechargeRate: 2
   _baseGravity: {x: 0, y: -30, z: 0}
   _gravityFallingMult: 1.15
   _gravityJumpHangMult: 0.9
   _defaultCapsuleRadius: 0.5
   _defaultCapsuleHeight: 2
   _defaultCapsuleYOffset: 1
-  _wallCheckDistance: 0.5
   _ignoredLayers:
     serializedVersion: 2
     m_Bits: 256
@@ -1109,6 +1089,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnAirJumpsRefresh:
+    m_PersistentCalls:
+      m_Calls: []
+  OnStaminaRecharging:
+    m_PersistentCalls:
+      m_Calls: []
+  OnStaminaRecharged:
     m_PersistentCalls:
       m_Calls: []
 --- !u!114 &748385072

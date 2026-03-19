@@ -1,12 +1,12 @@
 fileFormatVersion: 2
-guid: 0f93e105c8732429780682580297edf6
+guid: 0bc02fe2a29e27eba0edcef904c5a201
 AssetOrigin:
   serializedVersion: 1
   productId: 341308
   packageName: Text Animator for Unity | UI Toolkit and Text Mesh Pro
-  packageVersion: 3.1.1
+  packageVersion: 3.5.0
   assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Libraries/Editor/Febucci.TextAnimatorForUnity.Editor.dll
-  uploadId: 836418
+  uploadId: 874282
 PluginImporter:
   externalObjects: {}
   serializedVersion: 3
@@ -14,7 +14,7 @@ PluginImporter:
   executionOrder: {}
   defineConstraints: []
   isPreloaded: 0
-  isOverridable: 0
+  isOverridable: 1
   isExplicitlyReferenced: 0
   validateReferences: 1
   platformData:
