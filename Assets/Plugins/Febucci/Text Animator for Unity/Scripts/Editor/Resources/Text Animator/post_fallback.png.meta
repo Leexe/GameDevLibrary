@@ -1,5 +1,13 @@
 fileFormatVersion: 2
 guid: da14d47b759f04ab8af4b4b77a6f1cf8
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341308
+  packageName: Text Animator for Unity | UI Toolkit and Text Mesh Pro
+  packageVersion: 3.5.0
+  assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Scripts/Editor/Resources/Text
+    Animator/post_fallback.png
+  uploadId: 874282
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,6 +101,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites: []
@@ -115,11 +136,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 341308
-  packageName: Text Animator for Unity | UI Toolkit and Text Mesh Pro
-  packageVersion: 3.5.0
-  assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Scripts/Editor/Resources/Text
-    Animator/post_fallback.png
-  uploadId: 874282
