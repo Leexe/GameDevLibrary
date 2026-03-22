@@ -93,7 +93,7 @@ public class DialogueSFX : MonoBehaviour
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.AmbienceMap,
-			ambience => AudioManager.Instance.SwitchAmbienceTrack(ambience),
+			ambience => AudioManager.Instance.SwitchAmbience(ambience),
 			"Ambience"
 		);
 	}
@@ -106,7 +106,7 @@ public class DialogueSFX : MonoBehaviour
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.MusicMap,
-			music => AudioManager.Instance.SwitchMusicTrack(music),
+			music => AudioManager.Instance.SwitchMusic(music),
 			"Music"
 		);
 	}
