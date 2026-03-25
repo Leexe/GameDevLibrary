@@ -1,29 +1,30 @@
 using System.Collections.Generic;
-using Animancer;
 using UnityEngine;
 
 public class DialogueChoicesController : MonoBehaviour
 {
 	[SerializeField]
+	private DialogueController _dialogueController;
+
+	[SerializeField]
 	private GameObject _dialogueBoxPrefab;
 
 	private readonly List<DialogueChoiceBox> _choiceBoxes = new();
+	private DialogueState _dialogueState;
 
 	private void OnEnable()
 	{
-		GameManager.Instance.Dialogue.OnDisplayChoices += DisplayChoices;
-		GameManager.Instance.Dialogue.OnChoiceSelect += HideChoices;
-		GameManager.Instance.Dialogue.OnStartStory += HideChoices;
+		_dialogueState = _dialogueController.DialogueState;
+		_dialogueState.OnDisplayChoices += DisplayChoices;
+		_dialogueState.OnChoiceSelect += HideChoices;
+		_dialogueState.OnStartStory += HideChoices;
 	}
 
 	private void OnDisable()
 	{
-		if (GameManager.Instance)
-		{
-			GameManager.Instance.Dialogue.OnDisplayChoices -= DisplayChoices;
-			GameManager.Instance.Dialogue.OnChoiceSelect -= HideChoices;
-			GameManager.Instance.Dialogue.OnStartStory -= HideChoices;
-		}
+		_dialogueState.OnDisplayChoices -= DisplayChoices;
+		_dialogueState.OnChoiceSelect -= HideChoices;
+		_dialogueState.OnStartStory -= HideChoices;
 	}
 
 	private void DisplayChoices(List<string> choices)

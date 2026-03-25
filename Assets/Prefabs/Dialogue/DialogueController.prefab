@@ -49,7 +49,7 @@ GameObject:
   - component: {fileID: 1657187705774646229}
   - component: {fileID: 4357006527621079623}
   - component: {fileID: 5793672468084525755}
-  - component: {fileID: 6211392493920743854}
+  - component: {fileID: 6974393313256331556}
   m_Layer: 0
   m_Name: Hidden Dialogue
   m_TagString: Untagged
@@ -250,7 +250,7 @@ MonoBehaviour:
   onMessage:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &6211392493920743854
+--- !u!114 &6974393313256331556
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -259,9 +259,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 335692666182653546}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a116fd153b6aa4cea9ee1aa854602d5a, type: 3}
+  m_Script: {fileID: 11500000, guid: ae7fb73dd6c8b415a9c1eea828c4d412, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HiddenTypewriter
+  _dialogueController: {fileID: 4496430893499754350}
   _hiddenTypewriter: {fileID: 5793672468084525755}
 --- !u!1 &616905194644350493
 GameObject:
@@ -587,7 +588,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 19149694699234360}
-  - component: {fileID: 3605788739418412638}
+  - component: {fileID: 9070351621724248635}
   m_Layer: 0
   m_Name: Dialogue SFX
   m_TagString: Untagged
@@ -614,7 +615,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3605788739418412638
+--- !u!114 &9070351621724248635
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -623,11 +624,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2353611480832604152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc6aa0a06d72e473eb6dd5718d9a1917, type: 3}
+  m_Script: {fileID: 11500000, guid: a5b5fee1ca0a34755bea4afc74c63297, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSFX
+  _dialogueController: {fileID: 4496430893499754350}
   _hiddenTypewriter: {fileID: 5793672468084525755}
-  _vnDictionary: {fileID: 11400000, guid: 391d02018765b41f4ae5cb69b61197ea, type: 2}
+  _vnDictionary: {fileID: 11400000, guid: 69438eb58cf3a43199336230d6e29349, type: 2}
+  _fadeDuration: 1
 --- !u!1 &2473196004849829492
 GameObject:
   m_ObjectHideFlags: 0
@@ -750,7 +753,7 @@ GameObject:
   - component: {fileID: 8951058819519685841}
   - component: {fileID: 6748709315100956854}
   m_Layer: 0
-  m_Name: Canvas
+  m_Name: Dialogue Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1104,7 +1107,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5712334658052267068}
   - component: {fileID: 50073986713103443}
-  - component: {fileID: 5981872112526668754}
+  - component: {fileID: 849637547787202336}
   m_Layer: 0
   m_Name: Backlog
   m_TagString: Untagged
@@ -1145,7 +1148,7 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &5981872112526668754
+--- !u!114 &849637547787202336
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1154,9 +1157,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3943014778284223105}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b00a6b0a9b0214c78953adb458c8557f, type: 3}
+  m_Script: {fileID: 11500000, guid: 551f75d000f5144f78e212cd73a2b240, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BacklogController
+  _dialogueController: {fileID: 4496430893499754350}
   _backlogText: {fileID: 6185752053319999967}
   _backlogCanvas: {fileID: 50073986713103443}
   _maxBacklog: 50
@@ -1362,7 +1366,7 @@ GameObject:
   - component: {fileID: 8263139031873674974}
   - component: {fileID: 6324184216006114400}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: Name Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1830,7 +1834,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4242510407201314251}
-  - component: {fileID: 3070966405875215060}
+  - component: {fileID: 8279626773835838548}
   m_Layer: 0
   m_Name: Visual Novel UI
   m_TagString: Untagged
@@ -1860,7 +1864,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3070966405875215060
+--- !u!114 &8279626773835838548
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1869,11 +1873,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 6873413251739985224}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5414f15d177f4fdabbdfc1f16ef7988, type: 3}
+  m_Script: {fileID: 11500000, guid: eec51d2cdb99e41b59ad526615d05f92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VisualNovelUI
+  _dialogueController: {fileID: 4496430893499754350}
   _typewriter: {fileID: 1186690133704978293}
-  _visualNovelDictionary: {fileID: 11400000, guid: 391d02018765b41f4ae5cb69b61197ea, type: 2}
+  _visualNovelDictionary: {fileID: 11400000, guid: 69438eb58cf3a43199336230d6e29349, type: 2}
   _characterPrefab: {fileID: 6477682457468806699, guid: 074b4cd2895de4266bd3802bf7e001e0, type: 3}
   _leftSpriteTransform: {fileID: 5813942347806033913}
   _centerSpriteTransform: {fileID: 368189074489385404}
@@ -1882,12 +1887,14 @@ MonoBehaviour:
   _dialogueCanvasGroup: {fileID: 6748709315100956854}
   _namePanel: {fileID: 616905194644350493}
   _nameText: {fileID: 6324184216006114400}
-  _backgroundImage: {fileID: 7623127733725759237}
+  _backgroundImage: {fileID: 4717657879626835893}
+  _canvasFadeInDuration: 0.5
+  _canvasFadeOutDuration: 1
   _defaultFadeOutDuration: 1
   _defaultShakeOffset: 20
   _defaultAnimationDuration: 0.7
   _slideOffset: 100
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
+  _flashColor: {r: 0.8039216, g: 0.3607843, b: 0.3607843, a: 1}
 --- !u!1 &7228143630980288931
 GameObject:
   m_ObjectHideFlags: 0
@@ -1897,7 +1904,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2382799599912282527}
-  - component: {fileID: 1602053013862944836}
+  - component: {fileID: 4496430893499754350}
   m_Layer: 0
   m_Name: DialogueController
   m_TagString: Untagged
@@ -1921,7 +1928,7 @@ Transform:
   - {fileID: 3609838196282669805}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1602053013862944836
+--- !u!114 &4496430893499754350
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1930,7 +1937,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7228143630980288931}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5092991c7716342aeb9cc60c1b65af5d, type: 3}
+  m_Script: {fileID: 11500000, guid: 241e8dfcddb474bb4b92e3a4a19cf6c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueController
   _inkJson: {fileID: 4900000, guid: b559dc927914b4159abbbb4531b75d01, type: 3}

@@ -7,6 +7,9 @@ public class BacklogController : MonoBehaviour
 {
 	[Header("References")]
 	[SerializeField]
+	private DialogueController _dialogueController;
+
+	[SerializeField]
 	private TextMeshProUGUI _backlogText;
 
 	[SerializeField]
@@ -20,7 +23,7 @@ public class BacklogController : MonoBehaviour
 	private float _tweenDuration = 0.25f;
 
 	private readonly List<string> _backlog = new();
-	private DialogueEvents DialogueEvents => DialogueEvents.Instance;
+	private DialogueState _dialogueState;
 	private Tween _opacityTween;
 	private bool _isOpen;
 
@@ -28,8 +31,9 @@ public class BacklogController : MonoBehaviour
 
 	private void OnEnable()
 	{
-		DialogueEvents.OnDisplayDialogue += AddToBacklog;
-		DialogueEvents.AddBlockingCondition(() => IsOpen);
+		_dialogueState = _dialogueController.DialogueState;
+		_dialogueState.OnDisplayDialogue += AddToBacklog;
+		_dialogueState.AddBlockingCondition(() => IsOpen);
 		InputManager.Instance.OnBacklogPerformed.AddListener(ToggleBacklog);
 
 		_backlogCanvas.alpha = 0f;
@@ -39,8 +43,8 @@ public class BacklogController : MonoBehaviour
 
 	private void OnDisable()
 	{
-		DialogueEvents.OnDisplayDialogue -= AddToBacklog;
-		DialogueEvents.RemoveBlockingCondition(() => IsOpen);
+		_dialogueState.OnDisplayDialogue -= AddToBacklog;
+		_dialogueState.RemoveBlockingCondition(() => IsOpen);
 
 		if (InputManager.Instance)
 		{

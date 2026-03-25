@@ -4,18 +4,19 @@ using UnityEngine;
 public class HiddenTypewriter : MonoBehaviour
 {
 	[SerializeField]
+	private DialogueController _dialogueController;
+
+	[SerializeField]
 	private TypewriterComponent _hiddenTypewriter;
 
 	private DialogueState _dialogueState;
 
 	private void OnEnable()
 	{
-		_dialogueState = GameManager.Instance.Dialogue;
+		_dialogueState = _dialogueController.DialogueState;
 		_dialogueState.OnDisplayDialogue += ChangeStoryText;
-
-		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
-		GameManager.Instance.OnGamePause.AddListener(PauseTypewriter);
-		GameManager.Instance.OnGameUnpause.AddListener(ResumeTypewriter);
+		_dialogueState.OnPause += PauseTypewriter;
+		_dialogueState.OnUnpause += ResumeTypewriter;
 	}
 
 	private void OnDisable()
@@ -23,12 +24,8 @@ public class HiddenTypewriter : MonoBehaviour
 		if (_dialogueState != null)
 		{
 			_dialogueState.OnDisplayDialogue -= ChangeStoryText;
-		}
-
-		if (GameManager.Instance != null)
-		{
-			GameManager.Instance.OnGamePause.RemoveListener(PauseTypewriter);
-			GameManager.Instance.OnGameUnpause.RemoveListener(ResumeTypewriter);
+			_dialogueState.OnPause -= PauseTypewriter;
+			_dialogueState.OnUnpause -= ResumeTypewriter;
 		}
 	}
 

@@ -1,10 +1,18 @@
+using FMODUnity;
 using TMPro;
 using UnityEngine;
 
 public class DialogueChoiceBox : MonoBehaviour
 {
 	[SerializeField]
+	private DialogueController _dialogueController;
+
+	[SerializeField]
 	private TextMeshProUGUI _choiceBoxText;
+
+	[Tooltip("Optional click sound effect. Leave empty for no sound.")]
+	[SerializeField]
+	private EventReference _clickSfx;
 
 	private int _choiceIndex;
 
@@ -20,7 +28,11 @@ public class DialogueChoiceBox : MonoBehaviour
 
 	public void OnChoicePressed()
 	{
-		AudioManager.Instance.PlayOneShot(FMODEvents.Instance.ButtonClick_Sfx);
-		GameManager.Instance.Dialogue.OnChoiceSelect(_choiceIndex);
+		if (!_clickSfx.IsNull)
+		{
+			AudioManager.Instance.PlayOneShot(_clickSfx);
+		}
+
+		_dialogueController.DialogueState.UpdateChoiceSelected(_choiceIndex);
 	}
 }

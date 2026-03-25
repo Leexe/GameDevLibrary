@@ -13,6 +13,11 @@ using UnityEngine.UI;
 /// </summary>
 public class VisualNovelUI : MonoBehaviour
 {
+	[FoldoutGroup("References/Game References")]
+	[SerializeField]
+	private DialogueController _dialogueController;
+
+
 	[TitleGroup("References")]
 	[FoldoutGroup("References/Game References")]
 	[SerializeField]
@@ -101,7 +106,7 @@ public class VisualNovelUI : MonoBehaviour
 
 	private void OnEnable()
 	{
-		_dialogueState = GameManager.Instance.Dialogue;
+		_dialogueState = _dialogueController.DialogueState;
 		_dialogueState.OnStartStory += EnableStoryPanel;
 		_dialogueState.OnDisplayDialogue += ChangeStoryText;
 		_dialogueState.OnCharacterUpdate += UpdateCharacter;
@@ -113,9 +118,8 @@ public class VisualNovelUI : MonoBehaviour
 		_dialogueState.OnEndStory += RemoveAllCharacters;
 		_dialogueState.OnAllCharacterRemove += RemoveAllCharacters;
 		_dialogueState.OnTypewriterSkip += SkipTypewriter;
-
-		GameManager.Instance.OnGamePause.AddListener(PauseTypewriter);
-		GameManager.Instance.OnGameUnpause.AddListener(ResumeTypewriter);
+		_dialogueState.OnPause += PauseTypewriter;
+		_dialogueState.OnUnpause += ResumeTypewriter;
 
 		_typewriter.onTextShowed.AddListener(_dialogueState.TypewriterFinished);
 	}
@@ -133,12 +137,8 @@ public class VisualNovelUI : MonoBehaviour
 		_dialogueState.OnEndStory -= RemoveAllCharacters;
 		_dialogueState.OnAllCharacterRemove -= RemoveAllCharacters;
 		_dialogueState.OnTypewriterSkip -= SkipTypewriter;
-
-		if (GameManager.Instance)
-		{
-			GameManager.Instance.OnGamePause.RemoveListener(PauseTypewriter);
-			GameManager.Instance.OnGameUnpause.RemoveListener(ResumeTypewriter);
-		}
+		_dialogueState.OnPause -= PauseTypewriter;
+		_dialogueState.OnUnpause -= ResumeTypewriter;
 	}
 
 	private void InitializeAnimationHandlers()

@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using Febucci.TextAnimatorCore.Text;
 using Febucci.TextAnimatorForUnity;
 using FMODUnity;
 using PrimeTween;
@@ -6,6 +9,10 @@ using UnityEngine;
 
 public class DialogueSFX : MonoBehaviour
 {
+	[FoldoutGroup("References")]
+	[SerializeField]
+	private DialogueController _dialogueController;
+
 	[FoldoutGroup("References")]
 	[SerializeField]
 	private TypewriterComponent _hiddenTypewriter;
@@ -22,12 +29,12 @@ public class DialogueSFX : MonoBehaviour
 	private bool _charactersTalking;
 	private VoiceSO _currentCharacterVoice;
 	private DialogueState _dialogueState;
-	private float _volume = 1f;
 	private Tween _fadeOutTween;
+	private float _volume = 1f;
 
 	private void OnEnable()
 	{
-		_dialogueState = GameManager.Instance.Dialogue;
+		_dialogueState = _dialogueController.DialogueState;
 		_hiddenTypewriter.onCharacterVisible.AddListener(PlayVoice);
 		_dialogueState.OnStartDialogue += ResetVoiceState;
 		_dialogueState.OnEndStory += FadeOutVoice;
@@ -51,8 +58,8 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Resets the voice state at the start of each new line.
-	/// Called before tags are processed.
+	///     Resets the voice state at the start of each new line.
+	///     Called before tags are processed.
 	/// </summary>
 	private void ResetVoiceState()
 	{
@@ -68,7 +75,7 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Fades out the voice volume.
+	///     Fades out the voice volume.
 	/// </summary>
 	private void FadeOutVoice()
 	{
@@ -76,8 +83,8 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Called when a #d_characterName tag is encountered.
-	/// Enables voice playback for this line.
+	///     Called when a #d_characterName tag is encountered.
+	///     Enables voice playback for this line.
 	/// </summary>
 	private void SetSpeakingCharacter(string characterName)
 	{
@@ -89,9 +96,9 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Plays a voice sample for the current character.
+	///     Plays a voice sample for the current character.
 	/// </summary>
-	private void PlayVoice(Febucci.TextAnimatorCore.Text.CharacterData characterData)
+	private void PlayVoice(CharacterData characterData)
 	{
 		if (_charactersTalking && _currentCharacterVoice != null)
 		{
@@ -100,7 +107,7 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Plays a sound effect by key lookup.
+	///     Plays a sound effect by key lookup.
 	/// </summary>
 	private void PlaySFX(string key)
 	{
@@ -108,7 +115,7 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Plays/switches ambience by key lookup.
+	///     Plays/switches ambience by key lookup.
 	/// </summary>
 	private void PlayAmbience(string key)
 	{
@@ -117,6 +124,7 @@ public class DialogueSFX : MonoBehaviour
 			AudioManager.Instance.StopAmbience();
 			return;
 		}
+
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.AmbienceMap,
@@ -126,7 +134,7 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Plays/switches music by key lookup.
+	///     Plays/switches music by key lookup.
 	/// </summary>
 	private void PlayMusic(string key)
 	{
@@ -135,6 +143,7 @@ public class DialogueSFX : MonoBehaviour
 			AudioManager.Instance.StopMusic();
 			return;
 		}
+
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.MusicMap,
@@ -144,12 +153,12 @@ public class DialogueSFX : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Generic helper to look up audio in a dictionary and execute a play action.
+	///     Generic helper to look up audio in a dictionary and execute a play action.
 	/// </summary>
 	private void PlayAudioFromDictionary(
 		string key,
-		System.Collections.Generic.Dictionary<string, EventReference> audioMap,
-		System.Action<EventReference> playAction,
+		Dictionary<string, EventReference> audioMap,
+		Action<EventReference> playAction,
 		string debugContext
 	)
 	{

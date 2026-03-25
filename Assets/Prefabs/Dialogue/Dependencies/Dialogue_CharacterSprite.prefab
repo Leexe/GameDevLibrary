@@ -85,7 +85,7 @@ GameObject:
   m_Component:
   - component: {fileID: 462698593264857351}
   - component: {fileID: 3126890387745756920}
-  - component: {fileID: 7113001663631934274}
+  - component: {fileID: 7632173998982690187}
   m_Layer: 0
   m_Name: Dialogue_CharacterSprite
   m_TagString: Untagged
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &7113001663631934274
+--- !u!114 &7632173998982690187
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -143,7 +143,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6477682457468806699}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd5416a31284940a091111a6f8e1402e, type: 3}
+  m_Script: {fileID: 11500000, guid: ec64fe4d9b53840dda6bb00320d0b9b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VNCharacter
   _image: {fileID: 3910391314466856373}

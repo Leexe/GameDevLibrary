@@ -4,26 +4,14 @@ using UnityEngine.InputSystem;
 
 public class InputManager : PersistentMonoSingleton<InputManager>
 {
-	// References
-	public InputActionAsset InputActions;
-
-	// Actions
-	private InputAction _backlogAction;
-	private InputAction _changeGun;
-	private InputAction _continueStoryAction;
-	private InputAction _crouchAction;
-	private InputAction _dashAction;
-	private InputAction _escapeAction;
-	private InputAction _jumpAction;
-	private InputAction _movementAction;
-	private InputActionMap _playerActionMap;
-	private InputAction _reloadAction;
-	private InputAction _shootAction;
-	private InputActionMap _uiActionMap;
-
 	// Action Maps
 	private const string PlayerActionMap = "Player";
+	private const string VisualNovelActionMap = "VisualNovel";
+
 	private const string UIActionMap = "UI";
+
+	// References
+	public InputActionAsset InputActions;
 
 	// Events
 	[HideInInspector]
@@ -65,28 +53,52 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	[HideInInspector]
 	public UnityEvent OnAnyInputPerformed;
 
-	/** Start Methods **/
+	// Actions
+	private InputAction _backlogAction;
+	private InputAction _changeGun;
+	private InputAction _continueStoryAction;
+	private InputAction _crouchAction;
+	private InputAction _dashAction;
+	private InputAction _escapeAction;
+	private InputAction _jumpAction;
+	private InputAction _movementAction;
+	private InputActionMap _playerActionMap;
+	private InputAction _reloadAction;
+	private InputAction _shootAction;
+	private InputActionMap _uiActionMap;
 
+	/** Start Methods **/
 	protected override void Awake()
 	{
 		base.Awake();
-		EnablePlayerInput();
 		EnableUIInput();
 		SetupInputActions();
+	}
+
+	/** Update Methods **/
+	private void Update()
+	{
+		UpdateInputs();
+		CheckAnyInput();
 	}
 
 	private void OnEnable()
 	{
 		EnablePlayerInput();
+		EnableVisualNovelInput();
 	}
 
 	private void OnDisable()
 	{
 		DisablePlayerInput();
+		DisableVisualNovelInput();
 	}
 
 	private void SetupInputActions()
 	{
+		_continueStoryAction = InputActions.FindAction("ContinueStory");
+		_escapeAction = InputActions.FindAction("Escape");
+		_backlogAction = InputActions.FindAction("Backlog");
 		_movementAction = InputActions.FindAction("Movement");
 		_jumpAction = InputActions.FindAction("Jump");
 		_dashAction = InputActions.FindAction("Dash");
@@ -94,14 +106,6 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		_reloadAction = InputActions.FindAction("Reload");
 		_crouchAction = InputActions.FindAction("Crouch");
 		_changeGun = InputActions.FindAction("ChangeGun");
-	}
-
-	/** Update Methods **/
-
-	private void Update()
-	{
-		UpdateInputs();
-		CheckAnyInput();
 	}
 
 	private void UpdateInputs()
@@ -124,7 +128,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Checks for any input and invokes the event
+	///     Checks for any input and invokes the event
 	/// </summary>
 	private void CheckAnyInput()
 	{
@@ -148,7 +152,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Updates a Vector3 variable depending on a movement input action
+	///     Updates a Vector3 variable depending on a movement input action
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -159,7 +163,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Checks every update if the input was pressed and calls the unity event
+	///     Checks every update if the input was pressed and calls the unity event
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -172,7 +176,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Checks every update if the input was held down and calls the unity event
+	///     Checks every update if the input was held down and calls the unity event
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -185,7 +189,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Checks every update if the input was released and calls the unity event
+	///     Checks every update if the input was released and calls the unity event
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -198,7 +202,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Enable Player Input
+	///     Enable Player Input
 	/// </summary>
 	public void EnablePlayerInput()
 	{
@@ -206,7 +210,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Disable Player Input
+	///     Disable Player Input
 	/// </summary>
 	public void DisablePlayerInput()
 	{
@@ -214,7 +218,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Enable UI Input
+	///     Enable UI Input
 	/// </summary>
 	public void EnableUIInput()
 	{
@@ -222,10 +226,26 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Disable UI Input
+	///     Disable UI Input
 	/// </summary>
 	public void DisableUIInput()
 	{
 		InputActions.FindActionMap(UIActionMap).Disable();
+	}
+
+	/// <summary>
+	///     Enable VisualNovel Input
+	/// </summary>
+	public void EnableVisualNovelInput()
+	{
+		InputActions.FindActionMap(VisualNovelActionMap).Enable();
+	}
+
+	/// <summary>
+	///     Disable VisualNovel Input
+	/// </summary>
+	public void DisableVisualNovelInput()
+	{
+		InputActions.FindActionMap(VisualNovelActionMap).Disable();
 	}
 }
