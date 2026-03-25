@@ -21,6 +21,12 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  Sounds: []
-  Frequency: 1
-  PitchVariation: {x: 0.9, y: 1.1}
+  Sounds:
+  - Guid:
+      Data1: 161282764
+      Data2: 1229754463
+      Data3: 464710307
+      Data4: 1007240553
+    Path: event:/Title Screen/Button Click
+  Frequency: 3
+  PitchVariation: {x: 0.80851066, y: 1.1}
