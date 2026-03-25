@@ -111,18 +111,18 @@ public class VNCharacter : MonoBehaviour
 		_positionTween.Complete();
 
 		// Store the target position (current layout position)
-		Vector3 targetPosition = transform.position;
+		Vector3 targetPosition = _image.transform.position;
 
 		// Set starting position with offset
 		Vector3 startPosition = targetPosition + new Vector3(slideOffset, 0f, 0f);
-		transform.position = startPosition;
+		_image.transform.position = startPosition;
 
 		// Ignore layout during animation
 		_layoutElement.ignoreLayout = true;
 
 		// Start combined slide and fade animations
 		_positionTween = Tween
-			.Position(transform, targetPosition, duration, Ease.OutCubic)
+			.Position(_image.transform, targetPosition, duration, Ease.OutCubic)
 			.OnComplete(() => _layoutElement.ignoreLayout = false);
 	}
 
@@ -146,9 +146,9 @@ public class VNCharacter : MonoBehaviour
 		_layoutElement.ignoreLayout = true;
 
 		// Move to target
-		Vector3 targetPosition = transform.position + new Vector3(slideOffset, 0f, 0f);
+		Vector3 targetPosition = _image.transform.position + new Vector3(slideOffset, 0f, 0f);
 
-		_positionTween = Tween.Position(transform, targetPosition, duration, Ease.InCubic);
+		_positionTween = Tween.Position(_image.transform, targetPosition, duration, Ease.InCubic);
 	}
 
 	/// <summary>

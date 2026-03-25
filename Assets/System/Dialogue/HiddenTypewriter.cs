@@ -6,29 +6,30 @@ public class HiddenTypewriter : MonoBehaviour
 	[SerializeField]
 	private TypewriterComponent _hiddenTypewriter;
 
-	private DialogueEvents DialogueEvents => DialogueEvents.Instance;
+	private DialogueState _dialogueState;
 
 	private void OnEnable()
 	{
-		DialogueEvents.OnDisplayDialogue += ChangeStoryText;
+		_dialogueState = GameManager.Instance.Dialogue;
+		_dialogueState.OnDisplayDialogue += ChangeStoryText;
 
 		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
-		// GameManager.Instance.OnGamePaused.AddListener(PauseTypewriter);
-		// GameManager.Instance.OnGameResume.AddListener(ResumeTypewriter);
+		GameManager.Instance.OnGamePause.AddListener(PauseTypewriter);
+		GameManager.Instance.OnGameUnpause.AddListener(ResumeTypewriter);
 	}
 
 	private void OnDisable()
 	{
-		if (DialogueEvents != null)
+		if (_dialogueState != null)
 		{
-			DialogueEvents.OnDisplayDialogue -= ChangeStoryText;
+			_dialogueState.OnDisplayDialogue -= ChangeStoryText;
 		}
 
-		// if (GameManager.Instance != null)
-		// {
-		// 	GameManager.Instance.OnGamePaused.RemoveListener(PauseTypewriter);
-		// 	GameManager.Instance.OnGameResume.RemoveListener(ResumeTypewriter);
-		// }
+		if (GameManager.Instance != null)
+		{
+			GameManager.Instance.OnGamePause.RemoveListener(PauseTypewriter);
+			GameManager.Instance.OnGameUnpause.RemoveListener(ResumeTypewriter);
+		}
 	}
 
 	private void ChangeStoryText(string characterName, string line)

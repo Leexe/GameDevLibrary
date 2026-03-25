@@ -15,13 +15,8 @@ public enum CharacterPosition
 /// <summary>
 /// Central event hub for dialogue-related communication between systems.
 /// </summary>
-public class DialogueEvents : Singleton<DialogueEvents>
+public class DialogueState
 {
-	/// <summary>
-	/// Private constructor to prevent external instantiation.
-	/// </summary>
-	private DialogueEvents() { }
-
 	#region Visual Events
 
 	/// <summary>
@@ -269,13 +264,13 @@ public class DialogueEvents : Singleton<DialogueEvents>
 	/// <summary>
 	/// Event fired when choices should be displayed.
 	/// </summary>
-	public Action<List<Choice>> OnDisplayChoices;
+	public Action<List<string>> OnDisplayChoices;
 
 	/// <summary>
 	/// Displays a list of choices for the player to select.
 	/// </summary>
 	/// <param name="choiceList">List of Ink Choice objects to display.</param>
-	public void DisplayChoices(List<Choice> choiceList)
+	public void DisplayChoices(List<string> choiceList)
 	{
 		OnDisplayChoices?.Invoke(choiceList);
 	}

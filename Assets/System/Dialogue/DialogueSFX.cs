@@ -1,5 +1,6 @@
 using Febucci.TextAnimatorForUnity;
 using FMODUnity;
+using PrimeTween;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -13,29 +14,40 @@ public class DialogueSFX : MonoBehaviour
 	[SerializeField]
 	private VisualNovelDictionarySO _vnDictionary;
 
+	[FoldoutGroup("Voice Fade Out")]
+	[SerializeField]
+	private float _fadeDuration = 1f;
+
 	// Private Variables
 	private bool _charactersTalking;
 	private VoiceSO _currentCharacterVoice;
-	private DialogueEvents DialogueEvents => DialogueEvents.Instance;
+	private DialogueState _dialogueState;
+	private float _volume = 1f;
+	private Tween _fadeOutTween;
 
 	private void OnEnable()
 	{
+		_dialogueState = GameManager.Instance.Dialogue;
 		_hiddenTypewriter.onCharacterVisible.AddListener(PlayVoice);
-		DialogueEvents.OnStartDialogue += ResetVoiceState;
-		DialogueEvents.OnDialogueVoice += SetSpeakingCharacter;
-		DialogueEvents.OnPlaySFX += PlaySFX;
-		DialogueEvents.OnPlayAmbience += PlayAmbience;
-		DialogueEvents.OnPlayMusic += PlayMusic;
+		_dialogueState.OnStartDialogue += ResetVoiceState;
+		_dialogueState.OnEndStory += FadeOutVoice;
+		_dialogueState.OnDialogueVoice += SetSpeakingCharacter;
+		_dialogueState.OnPlaySFX += PlaySFX;
+		_dialogueState.OnPlayAmbience += PlayAmbience;
+		_dialogueState.OnPlayMusic += PlayMusic;
 	}
 
 	private void OnDisable()
 	{
 		_hiddenTypewriter.onCharacterVisible.RemoveListener(PlayVoice);
-		DialogueEvents.OnStartDialogue -= ResetVoiceState;
-		DialogueEvents.OnDialogueVoice -= SetSpeakingCharacter;
-		DialogueEvents.OnPlaySFX -= PlaySFX;
-		DialogueEvents.OnPlayAmbience -= PlayAmbience;
-		DialogueEvents.OnPlayMusic -= PlayMusic;
+		_dialogueState.OnStartDialogue -= ResetVoiceState;
+		_dialogueState.OnEndStory -= FadeOutVoice;
+		_dialogueState.OnDialogueVoice -= SetSpeakingCharacter;
+		_dialogueState.OnPlaySFX -= PlaySFX;
+		_dialogueState.OnPlayAmbience -= PlayAmbience;
+		_dialogueState.OnPlayMusic -= PlayMusic;
+
+		_fadeOutTween.Stop();
 	}
 
 	/// <summary>
@@ -51,6 +63,16 @@ public class DialogueSFX : MonoBehaviour
 
 		_charactersTalking = false;
 		_currentCharacterVoice = null;
+		_fadeOutTween.Stop();
+		_volume = 1f;
+	}
+
+	/// <summary>
+	/// Fades out the voice volume.
+	/// </summary>
+	private void FadeOutVoice()
+	{
+		_fadeOutTween = Tween.Custom(this, 1, 0, _fadeDuration, (target, value) => target._volume = value);
 	}
 
 	/// <summary>
@@ -73,7 +95,7 @@ public class DialogueSFX : MonoBehaviour
 	{
 		if (_charactersTalking && _currentCharacterVoice != null)
 		{
-			_currentCharacterVoice.PlayVoice(characterData.info.character);
+			_currentCharacterVoice.PlayVoice(characterData.info.character, _volume);
 		}
 	}
 
@@ -90,6 +112,11 @@ public class DialogueSFX : MonoBehaviour
 	/// </summary>
 	private void PlayAmbience(string key)
 	{
+		if (key == "none")
+		{
+			AudioManager.Instance.StopAmbience();
+			return;
+		}
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.AmbienceMap,
@@ -103,6 +130,11 @@ public class DialogueSFX : MonoBehaviour
 	/// </summary>
 	private void PlayMusic(string key)
 	{
+		if (key == "none")
+		{
+			AudioManager.Instance.StopMusic();
+			return;
+		}
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.MusicMap,

@@ -23,7 +23,8 @@ public class VoiceSO : SerializedScriptableObject
 	/// Plays a voice sample with random pitch variation.
 	/// </summary>
 	/// <param name="character">The character being displayed (used for frequency tracking).</param>
-	public void PlayVoice(char character)
+	/// <param name="volume">How loud the volume of the character should be</param>
+	public void PlayVoice(char character, float volume)
 	{
 		// Skip whitespace and punctuation for frequency counting
 		if (char.IsWhiteSpace(character) || char.IsPunctuation(character))
@@ -50,7 +51,7 @@ public class VoiceSO : SerializedScriptableObject
 		// Pick a sound from the list and play with mapped pitch
 		EventReference soundRef = Sounds[charHash % Sounds.Count];
 		float pitch = GetPitchFromMap(charHash);
-		AudioManager.Instance.PlayOneShotWithPitch(soundRef, pitch);
+		AudioManager.Instance.PlayOneShotWithPitch(soundRef, pitch, volume);
 	}
 
 	/// <summary>

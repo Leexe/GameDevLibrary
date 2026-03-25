@@ -59,6 +59,14 @@ public class VisualNovelUI : MonoBehaviour
 	private Image _backgroundImage;
 
 	[TitleGroup("Default Values")]
+	[FoldoutGroup("Default Values/Canvas Element")]
+	[SerializeField]
+	private float _canvasFadeInDuration = 0.5f;
+
+	[FoldoutGroup("Default Values/Canvas Element")]
+	[SerializeField]
+	private float _canvasFadeOutDuration = 1f;
+
 	[FoldoutGroup("Default Values/Animation")]
 	[SerializeField]
 	private float _defaultFadeOutDuration = 1f;
@@ -84,7 +92,7 @@ public class VisualNovelUI : MonoBehaviour
 
 	// Private Variables
 	private Tween _canvasAlphaTween;
-	private DialogueEvents DialogueEvents => DialogueEvents.Instance;
+	private DialogueState _dialogueState;
 
 	private void Awake()
 	{
@@ -93,45 +101,44 @@ public class VisualNovelUI : MonoBehaviour
 
 	private void OnEnable()
 	{
-		DialogueEvents.OnStartStory += EnableStoryPanel;
-		DialogueEvents.OnDisplayDialogue += ChangeStoryText;
-		DialogueEvents.OnCharacterUpdate += UpdateCharacter;
-		DialogueEvents.OnCharacterAnimation += PlayAnimation;
-		DialogueEvents.OnCharacterRemove += RemoveCharacter;
-		DialogueEvents.OnNameUpdate += ChangeNameText;
-		DialogueEvents.OnBackgroundUpdate += ChangeBackground;
-		DialogueEvents.OnEndStory += DisableStoryPanel;
-		DialogueEvents.OnEndStory += RemoveAllCharacters;
-		DialogueEvents.OnAllCharacterRemove += RemoveAllCharacters;
-		DialogueEvents.OnTypewriterSkip += SkipTypewriter;
+		_dialogueState = GameManager.Instance.Dialogue;
+		_dialogueState.OnStartStory += EnableStoryPanel;
+		_dialogueState.OnDisplayDialogue += ChangeStoryText;
+		_dialogueState.OnCharacterUpdate += UpdateCharacter;
+		_dialogueState.OnCharacterAnimation += PlayAnimation;
+		_dialogueState.OnCharacterRemove += RemoveCharacter;
+		_dialogueState.OnNameUpdate += ChangeNameText;
+		_dialogueState.OnBackgroundUpdate += ChangeBackground;
+		_dialogueState.OnEndStory += DisableStoryPanel;
+		_dialogueState.OnEndStory += RemoveAllCharacters;
+		_dialogueState.OnAllCharacterRemove += RemoveAllCharacters;
+		_dialogueState.OnTypewriterSkip += SkipTypewriter;
 
-		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
-		// GameManager.Instance.OnGamePaused.AddListener(PauseTypewriter);
-		// GameManager.Instance.OnGameResume.AddListener(ResumeTypewriter);
+		GameManager.Instance.OnGamePause.AddListener(PauseTypewriter);
+		GameManager.Instance.OnGameUnpause.AddListener(ResumeTypewriter);
 
-		_typewriter.onTextShowed.AddListener(DialogueEvents.TypewriterFinished);
+		_typewriter.onTextShowed.AddListener(_dialogueState.TypewriterFinished);
 	}
 
 	private void OnDisable()
 	{
-		DialogueEvents.OnStartStory -= EnableStoryPanel;
-		DialogueEvents.OnDisplayDialogue -= ChangeStoryText;
-		DialogueEvents.OnCharacterUpdate -= UpdateCharacter;
-		DialogueEvents.OnCharacterAnimation -= PlayAnimation;
-		DialogueEvents.OnCharacterRemove -= RemoveCharacter;
-		DialogueEvents.OnNameUpdate -= ChangeNameText;
-		DialogueEvents.OnBackgroundUpdate -= ChangeBackground;
-		DialogueEvents.OnEndStory -= DisableStoryPanel;
-		DialogueEvents.OnEndStory -= RemoveAllCharacters;
-		DialogueEvents.OnAllCharacterRemove -= RemoveAllCharacters;
-		DialogueEvents.OnTypewriterSkip -= SkipTypewriter;
+		_dialogueState.OnStartStory -= EnableStoryPanel;
+		_dialogueState.OnDisplayDialogue -= ChangeStoryText;
+		_dialogueState.OnCharacterUpdate -= UpdateCharacter;
+		_dialogueState.OnCharacterAnimation -= PlayAnimation;
+		_dialogueState.OnCharacterRemove -= RemoveCharacter;
+		_dialogueState.OnNameUpdate -= ChangeNameText;
+		_dialogueState.OnBackgroundUpdate -= ChangeBackground;
+		_dialogueState.OnEndStory -= DisableStoryPanel;
+		_dialogueState.OnEndStory -= RemoveAllCharacters;
+		_dialogueState.OnAllCharacterRemove -= RemoveAllCharacters;
+		_dialogueState.OnTypewriterSkip -= SkipTypewriter;
 
-		// Uncomment: Need to have this listener for the typewriter to follow the timescale correctly
-		// if (GameManager.Instance)
-		// {
-		// 	GameManager.Instance.OnGamePaused.RemoveListener(PauseTypewriter);
-		// 	GameManager.Instance.OnGameResume.RemoveListener(ResumeTypewriter);
-		// }
+		if (GameManager.Instance)
+		{
+			GameManager.Instance.OnGamePause.RemoveListener(PauseTypewriter);
+			GameManager.Instance.OnGameUnpause.RemoveListener(ResumeTypewriter);
+		}
 	}
 
 	private void InitializeAnimationHandlers()
@@ -209,8 +216,15 @@ public class VisualNovelUI : MonoBehaviour
 			return;
 		}
 
+		if (backgroundKey == "clear")
+		{
+			_backgroundImage.sprite = null;
+			_backgroundImage.color = Color.clear;
+			return;
+		}
 		if (_visualNovelDictionary.BackgroundSpriteMap.TryGetValue(backgroundKey, out Sprite bgSprite))
 		{
+			_backgroundImage.color = Color.white;
 			_backgroundImage.sprite = bgSprite;
 		}
 		else
@@ -258,12 +272,11 @@ public class VisualNovelUI : MonoBehaviour
 	/// <param name="knotName">Name of the Ink knot being started (unused for UI).</param>
 	private void EnableStoryPanel(string knotName)
 	{
-		float fadeDuration = 1f;
 		_canvasAlphaTween.Stop();
 		_canvasAlphaTween = Tween.Custom(
 			_dialogueCanvasGroup.alpha,
 			1,
-			fadeDuration,
+			_canvasFadeInDuration,
 			newVal => _dialogueCanvasGroup.alpha = newVal
 		);
 		_dialogueCanvasGroup.interactable = true;
@@ -275,13 +288,13 @@ public class VisualNovelUI : MonoBehaviour
 	/// </summary>
 	private void DisableStoryPanel()
 	{
-		float fadeDuration = 1f;
 		_canvasAlphaTween.Stop();
 		_canvasAlphaTween = Tween.Custom(
+			_dialogueCanvasGroup,
 			_dialogueCanvasGroup.alpha,
 			0,
-			fadeDuration,
-			newVal => _dialogueCanvasGroup.alpha = newVal
+			_canvasFadeOutDuration,
+			(group, newVal) => group.alpha = newVal
 		);
 		_dialogueCanvasGroup.interactable = false;
 		_dialogueCanvasGroup.blocksRaycasts = false;

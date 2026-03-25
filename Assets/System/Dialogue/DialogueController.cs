@@ -19,7 +19,7 @@ public class DialogueController : MonoBehaviour
 	[SerializeField]
 	private float _characterFadeDuration = 0.5f;
 
-	private DialogueEvents DialogueEvents => DialogueEvents.Instance;
+	private DialogueState _dialogueState;
 	private Story _story;
 	private bool _storyPlaying;
 	private bool _typewriterPlaying;
@@ -29,27 +29,74 @@ public class DialogueController : MonoBehaviour
 
 	private bool ChoicesAvailable => _story.currentChoices.Count > 0;
 
+	#region Unity Functions
+
 	private void Awake()
 	{
 		_story = new Story(_inkJson.text);
 		InitializeTagHandlers();
+		BindExternalFunctions();
+	}
+
+	private void BindExternalFunctions()
+	{
+		_story.BindExternalFunction(
+			"StartQuest",
+			(string questId) =>
+			{
+				return GameManager.Instance.QuestLog.TryStartQuest(questId);
+			}
+		);
+
+		_story.BindExternalFunction(
+			"AdvanceQuest",
+			(string questId) =>
+			{
+				return GameManager.Instance.QuestLog.TryAdvanceQuest(questId);
+			}
+		);
+
+		_story.BindExternalFunction(
+			"IsQuestActive",
+			(string questId) =>
+			{
+				return GameManager.Instance.QuestLog.IsQuestActive(questId);
+			}
+		);
+
+		_story.BindExternalFunction(
+			"IsQuestCompleted",
+			(string questId) =>
+			{
+				return GameManager.Instance.QuestLog.IsQuestCompleted(questId);
+			}
+		);
+
+		_story.BindExternalFunction(
+			"CanAdvanceQuest",
+			(string questId) =>
+			{
+				return GameManager.Instance.QuestLog.CanAdvanceQuest(questId);
+			}
+		);
 	}
 
 	private void OnEnable()
 	{
-		DialogueEvents.OnStartStory += StartStory;
-		DialogueEvents.OnChoiceSelect += ContinueStory;
-		DialogueEvents.OnTypewriterFinish += SetTypewriterInactive;
-		DialogueEvents.OnTypewriterFinish += DisplayChoices;
+		_dialogueState = GameManager.Instance.Dialogue;
+		_dialogueState.OnStartStory += StartStory;
+		_dialogueState.OnChoiceSelect += ContinueStory;
+		_dialogueState.OnTypewriterFinish += SetTypewriterInactive;
+		_dialogueState.OnTypewriterFinish += DisplayChoices;
 		InputManager.Instance.OnContinueStoryPerformed.AddListener(ContinueStory);
 	}
 
 	private void OnDisable()
 	{
-		DialogueEvents.OnStartStory -= StartStory;
-		DialogueEvents.OnChoiceSelect -= ContinueStory;
-		DialogueEvents.OnTypewriterFinish -= SetTypewriterInactive;
-		DialogueEvents.OnTypewriterFinish -= DisplayChoices;
+		_dialogueState.OnStartStory -= StartStory;
+		_dialogueState.OnChoiceSelect -= ContinueStory;
+		_dialogueState.OnTypewriterFinish -= SetTypewriterInactive;
+		_dialogueState.OnTypewriterFinish -= DisplayChoices;
 
 		if (InputManager.Instance)
 		{
@@ -59,15 +106,26 @@ public class DialogueController : MonoBehaviour
 
 	private void Start()
 	{
-		DialogueEvents.RemoveAllCharacters();
+		_dialogueState.RemoveAllCharacters();
 	}
+
+	#endregion
+
+	#region Debug
 
 	[FoldoutGroup("Debug")]
 	[Button]
 	[UsedImplicitly]
-	private void TestingStory(string knotName)
+	private void TestStory(string knotName)
 	{
-		DialogueEvents.StartStory(knotName);
+		try
+		{
+			_dialogueState.StartStory(knotName);
+		}
+		catch (Exception e)
+		{
+			Debug.LogWarning($"No story with knot \"{knotName}\": {e}");
+		}
 	}
 
 	[FoldoutGroup("Debug")]
@@ -75,7 +133,7 @@ public class DialogueController : MonoBehaviour
 	[UsedImplicitly]
 	private void StartBasicTest()
 	{
-		DialogueEvents.StartStory("Testing");
+		_dialogueState.StartStory("Testing");
 	}
 
 	[FoldoutGroup("Debug")]
@@ -83,7 +141,7 @@ public class DialogueController : MonoBehaviour
 	[UsedImplicitly]
 	private void StartAnimationTest()
 	{
-		DialogueEvents.StartStory("Testing_Animations");
+		_dialogueState.StartStory("Testing_Animations");
 	}
 
 	[FoldoutGroup("Debug")]
@@ -91,7 +149,7 @@ public class DialogueController : MonoBehaviour
 	[UsedImplicitly]
 	private void StartVoiceTest()
 	{
-		DialogueEvents.StartStory("Testing_Voices");
+		_dialogueState.StartStory("Testing_Voices");
 	}
 
 	[FoldoutGroup("Debug")]
@@ -99,8 +157,10 @@ public class DialogueController : MonoBehaviour
 	[UsedImplicitly]
 	private void StartTextAnimatorTest()
 	{
-		DialogueEvents.StartStory("Testing_TextAnimator");
+		_dialogueState.StartStory("Testing_TextAnimator");
 	}
+
+	#endregion
 
 	#region Story Managers
 
@@ -116,14 +176,14 @@ public class DialogueController : MonoBehaviour
 			_typewriterPlaying = false;
 			_choiceIndex = -1;
 			_currentSpeakerName = "";
-			DialogueEvents.RemoveAllCharacters();
+			_dialogueState.RemoveAllCharacters();
 		}
 
 		_storyPlaying = true;
 
 		if (knotName == "")
 		{
-			Debug.LogError("[DialogueController] KnotName is Empty");
+			Debug.LogWarning("[DialogueController] KnotName is Empty");
 		}
 		else
 		{
@@ -139,7 +199,7 @@ public class DialogueController : MonoBehaviour
 	private void ContinueStory()
 	{
 		// Check global blocking conditions (Pause, Backlog, etc.)
-		if (!DialogueEvents.CanAdvanceStory)
+		if (!_dialogueState.CanAdvanceStory)
 		{
 			return;
 		}
@@ -153,7 +213,7 @@ public class DialogueController : MonoBehaviour
 		// If typewriter is playing, skip it instead of continuing
 		if (_typewriterPlaying)
 		{
-			DialogueEvents.SkipTypewriter();
+			_dialogueState.SkipTypewriter();
 			return;
 		}
 
@@ -170,7 +230,7 @@ public class DialogueController : MonoBehaviour
 			_typewriterPlaying = true;
 
 			// Signal start of new dialogue line
-			DialogueEvents.StartDialogue();
+			_dialogueState.StartDialogue();
 
 			// Parse any tags on this line
 			if (_story.currentTags.Count > 0)
@@ -204,7 +264,7 @@ public class DialogueController : MonoBehaviour
 		_storyPlaying = false;
 		_typewriterPlaying = false;
 
-		DialogueEvents.EndStory();
+		_dialogueState.EndStory();
 	}
 
 	#endregion
@@ -240,7 +300,7 @@ public class DialogueController : MonoBehaviour
 			_needToDisplayChoices = true;
 		}
 
-		DialogueEvents.DisplayDialogue(_currentSpeakerName, storyLine);
+		_dialogueState.DisplayDialogue(_currentSpeakerName, storyLine);
 	}
 
 	/// <summary>
@@ -248,10 +308,14 @@ public class DialogueController : MonoBehaviour
 	/// </summary>
 	private void DisplayChoices()
 	{
-		if (_needToDisplayChoices)
+		if (!_needToDisplayChoices)
 		{
-			DialogueEvents.DisplayChoices(_story.currentChoices);
+			return;
 		}
+
+		var choices = _story.currentChoices.Select(choice => choice.text).ToList();
+		_dialogueState.DisplayChoices(choices);
+		_needToDisplayChoices = false;
 	}
 
 	/// <summary>
@@ -294,7 +358,7 @@ public class DialogueController : MonoBehaviour
 			{ "nm", HandleNameTag },
 			{ "d", HandleDialogueVoiceTag },
 			{ "bg", HandleBackgroundTag },
-			{ "sx", HandleSFXTag },
+			{ "sfx", HandleSFXTag },
 			{ "ms", HandleMusicTag },
 			{ "ab", HandleAmbienceTag },
 		};
@@ -375,7 +439,7 @@ public class DialogueController : MonoBehaviour
 
 		if (firstArg.ToLower() == "clear")
 		{
-			DialogueEvents.RemoveAllCharacters(_characterFadeDuration);
+			_dialogueState.RemoveAllCharacters(_characterFadeDuration);
 			return;
 		}
 
@@ -402,7 +466,7 @@ public class DialogueController : MonoBehaviour
 		// Check for clear command
 		if (args.Length > 1 && args[1].ToLower() == "clear")
 		{
-			DialogueEvents.RemoveCharacter(characterId, _characterFadeDuration);
+			_dialogueState.RemoveCharacter(characterId, _characterFadeDuration);
 			return;
 		}
 
@@ -429,18 +493,18 @@ public class DialogueController : MonoBehaviour
 			string animationPart = splitParts[1];
 
 			// Update the character with the real sprite key
-			DialogueEvents.UpdateCharacter(characterId, position, realSpriteKey, _characterFadeDuration);
+			_dialogueState.UpdateCharacter(characterId, position, realSpriteKey, _characterFadeDuration);
 
 			// Parse animation part (e.g. "shake_10_0.5")
 			string[] animParts = animationPart.Split('_');
 			string animName = animParts[0];
 			string[] animArgs = animParts.Skip(1).ToArray();
 
-			DialogueEvents.UpdateAnimation(characterId, animName, animArgs);
+			_dialogueState.UpdateAnimation(characterId, animName, animArgs);
 		}
 		else
 		{
-			DialogueEvents.UpdateCharacter(characterId, position, spriteKey, _characterFadeDuration);
+			_dialogueState.UpdateCharacter(characterId, position, spriteKey, _characterFadeDuration);
 		}
 	}
 
@@ -458,7 +522,7 @@ public class DialogueController : MonoBehaviour
 		string animationName = args[1];
 		string[] parameters = args.Skip(2).ToArray();
 
-		DialogueEvents.UpdateAnimation(characterId, animationName, parameters);
+		_dialogueState.UpdateAnimation(characterId, animationName, parameters);
 	}
 
 	/// <summary>
@@ -470,13 +534,13 @@ public class DialogueController : MonoBehaviour
 		if (args.Length == 0 || args[0].ToLower() == "none")
 		{
 			_currentSpeakerName = "";
-			DialogueEvents.UpdateName("");
+			_dialogueState.UpdateName("");
 			return;
 		}
 
 		string characterName = args[0];
 		_currentSpeakerName = characterName;
-		DialogueEvents.UpdateName(characterName);
+		_dialogueState.UpdateName(characterName);
 	}
 
 	/// <summary>
@@ -492,7 +556,7 @@ public class DialogueController : MonoBehaviour
 		}
 
 		string characterName = args[0].ToLower();
-		DialogueEvents.SetDialogueVoice(characterName);
+		_dialogueState.SetDialogueVoice(characterName);
 	}
 
 	/// <summary>
@@ -502,17 +566,17 @@ public class DialogueController : MonoBehaviour
 	private void HandleBackgroundTag(string[] args)
 	{
 		string backgroundKey = string.Join("_", args);
-		DialogueEvents.UpdateBackground(backgroundKey);
+		_dialogueState.UpdateBackground(backgroundKey);
 	}
 
 	/// <summary>
 	/// Handles sound effect tags.
-	/// Format: #sx_door → sfxKey = "door"
+	/// Format: #sfx_door → sfxKey = "door"
 	/// </summary>
 	private void HandleSFXTag(string[] args)
 	{
 		string sfxKey = string.Join("_", args);
-		DialogueEvents.PlaySFX(sfxKey);
+		_dialogueState.PlaySFX(sfxKey);
 	}
 
 	/// <summary>
@@ -522,7 +586,7 @@ public class DialogueController : MonoBehaviour
 	private void HandleMusicTag(string[] args)
 	{
 		string musicKey = string.Join("_", args);
-		DialogueEvents.PlayMusic(musicKey);
+		_dialogueState.PlayMusic(musicKey);
 	}
 
 	/// <summary>
@@ -532,7 +596,7 @@ public class DialogueController : MonoBehaviour
 	private void HandleAmbienceTag(string[] args)
 	{
 		string ambienceKey = string.Join("_", args);
-		DialogueEvents.PlayAmbience(ambienceKey);
+		_dialogueState.PlayAmbience(ambienceKey);
 	}
 
 	#endregion
