@@ -128,7 +128,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Checks for any input and invokes the event
+	/// Checks for any input and invokes the event
 	/// </summary>
 	private void CheckAnyInput()
 	{
@@ -152,7 +152,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Updates a Vector3 variable depending on a movement input action
+	/// Updates a Vector3 variable depending on a movement input action
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -163,7 +163,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Checks every update if the input was pressed and calls the unity event
+	/// Checks every update if the input was pressed and calls the unity event
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -176,7 +176,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Checks every update if the input was held down and calls the unity event
+	/// Checks every update if the input was held down and calls the unity event
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -189,7 +189,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Checks every update if the input was released and calls the unity event
+	/// Checks every update if the input was released and calls the unity event
 	/// </summary>
 	/// <param name="inputAction">Input action was pressed</param>
 	/// <param name="unityEvent">Unity Event To Trigger</param>
@@ -202,7 +202,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Enable Player Input
+	/// Enable Player Input
 	/// </summary>
 	public void EnablePlayerInput()
 	{
@@ -210,7 +210,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Disable Player Input
+	/// Disable Player Input
 	/// </summary>
 	public void DisablePlayerInput()
 	{
@@ -218,7 +218,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Enable UI Input
+	/// Enable UI Input
 	/// </summary>
 	public void EnableUIInput()
 	{
@@ -226,7 +226,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Disable UI Input
+	/// Disable UI Input
 	/// </summary>
 	public void DisableUIInput()
 	{
@@ -234,7 +234,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Enable VisualNovel Input
+	/// Enable VisualNovel Input
 	/// </summary>
 	public void EnableVisualNovelInput()
 	{
@@ -242,7 +242,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Disable VisualNovel Input
+	/// Disable VisualNovel Input
 	/// </summary>
 	public void DisableVisualNovelInput()
 	{
