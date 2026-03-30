@@ -34,7 +34,7 @@ internal class ScriptUsageLoading : MonoBehaviour
 	public List<string> Banks = new();
 #endif
 
-	// The name of the scene to load and switch to
+	[Tooltip("The name of the scene to load and switch to")]
 	public string Scene;
 
 	public void Start()
