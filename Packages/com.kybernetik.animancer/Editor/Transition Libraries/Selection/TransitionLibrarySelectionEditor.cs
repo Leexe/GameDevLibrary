@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -47,6 +47,10 @@ namespace Animancer.Editor.TransitionLibraries
 
                 case TransitionLibrarySelection.SelectionType.Modifier:
                     DoModifierGUI(target, (TransitionModifierDefinition)target.Selected);
+                    break;
+
+                case TransitionLibrarySelection.SelectionType.Group:
+                    DoGroupGUI(target, (TransitionGroup)target.Selected);
                     break;
 
                 default:
@@ -159,13 +163,31 @@ namespace Animancer.Editor.TransitionLibraries
             DoTransitionField(library, NestedEditor, IsFromExpanded, modifier.FromIndex, "From");
             DoTransitionField(library, NestedEditor2, IsToExpanded, modifier.ToIndex, "To");
 
-            var area = AnimancerGUI.LayoutSingleLineRect();
-            TransitionModifierTableGUI.DoFadeDurationGUI(
-                area,
-                selection.Window,
-                modifier.FromIndex,
-                modifier.ToIndex,
-                "Fade Duration");
+            if (selection.Window.TryGetPage<TransitionLibraryFadeDurationsPage>(out var fadeDurations))
+            {
+                var area = AnimancerGUI.LayoutSingleLineRect();
+                TransitionModifierTableGUI.DoModifierValueGUI(
+                    area,
+                    selection.Window,
+                    fadeDurations,
+                    modifier.FromIndex,
+                    modifier.ToIndex,
+                    "Fade Duration",
+                    false);
+            }
+
+            if (selection.Window.TryGetPage<TransitionLibraryStartTimesPage>(out var startTimes))
+            {
+                var area = AnimancerGUI.LayoutSingleLineRect();
+                TransitionModifierTableGUI.DoModifierValueGUI(
+                    area,
+                    selection.Window,
+                    startTimes,
+                    modifier.FromIndex,
+                    modifier.ToIndex,
+                    "Start Time",
+                    false);
+            }
         }
 
         /************************************************************************************************************************/
@@ -204,6 +226,41 @@ namespace Animancer.Editor.TransitionLibraries
             }
 
             return transition;
+        }
+
+        /************************************************************************************************************************/
+        #endregion
+        /************************************************************************************************************************/
+        #region Groups
+        /************************************************************************************************************************/
+
+        /// <summary>Draws the GUI for the `group`.</summary>
+        private void DoGroupGUI(
+            TransitionLibrarySelection selection,
+            TransitionGroup group)
+        {
+            group.Name = EditorGUILayout.TextField("Group Name", group.Name);
+
+            var enabled = GUI.enabled;
+            GUI.enabled = false;
+
+            EditorGUILayout.LabelField("Transition Count", group.TransitionIndices.Count.ToStringCached());
+
+            var transitions = selection.Window.Data.Transitions;
+            for (int i = 0; i < group.TransitionIndices.Count; i++)
+            {
+                var index = group.TransitionIndices[i];
+                if (!transitions.TryGetObject(index, out var transition))
+                    continue;
+
+                EditorGUILayout.ObjectField(
+                    $"Transition {i.ToStringCached()}",
+                    transition,
+                    typeof(TransitionAssetBase),
+                    false);
+            }
+
+            GUI.enabled = enabled;
         }
 
         /************************************************************************************************************************/

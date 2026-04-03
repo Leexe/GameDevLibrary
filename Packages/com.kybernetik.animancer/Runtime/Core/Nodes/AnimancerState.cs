@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 using System;
 using System.Collections;
@@ -286,6 +286,10 @@ namespace Animancer
         /// <summary>Is the <see cref="Time"/> automatically advancing?</summary>
         ///
         /// <remarks>
+        /// This value doesn't automatically become <c>false</c> after an animation passes the end of its
+        /// <see cref="Length"/>. The <see cref="Time"/> continues increasing unless something stops it,
+        /// regardless of whether it <see cref="IsLooping"/> or not.
+        /// <para></para>
         /// <strong>Example:</strong><code>
         /// void IsPlayingExample(AnimancerComponent animancer, AnimationClip clip)
         /// {

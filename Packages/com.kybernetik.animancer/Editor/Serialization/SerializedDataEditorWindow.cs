@@ -1,4 +1,4 @@
-// Animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -51,8 +51,8 @@ namespace Animancer.Editor
 
         /************************************************************************************************************************/
 
-        /// <summary>Is the <see cref="Data"/> managed by this window different to the <see cref="SourceData"/>.</summary>
-        public bool HasDataChanged
+        /// <summary>Is the <see cref="Data"/> managed by this window different to the <see cref="SourceData"/>?</summary>
+        public virtual bool HasDataChanged
         {
             get
             {
@@ -298,7 +298,7 @@ namespace Animancer.Editor
         private bool _AutoApply;
         private bool _EnabledAutoApplyInPlayMode;
 
-        /// <summary>Is the "Auto Apply" toggle currently enabled?</summary>
+        /// <summary>Should changes be automatically applied as soon as they're made?</summary>
         public bool AutoApply
         {
             get

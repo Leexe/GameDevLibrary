@@ -1,4 +1,4 @@
-// Animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -41,7 +41,14 @@ namespace Animancer.Editor
                 var source = base.SourceObject;
 
                 if (source == null && _SourceGameObject != null)
-                    source = base.SourceObject = EditorUtility.InstanceIDToObject(_SourceComponentInstanceID) as TObject;
+                {
+#if UNITY_6000_3_OR_NEWER
+                    var component = EditorUtility.EntityIdToObject(_SourceComponentInstanceID);
+#else
+                    var component = EditorUtility.InstanceIDToObject(_SourceComponentInstanceID);
+#endif
+                    source = base.SourceObject = component as TObject;
+                }
 
                 return source;
             }

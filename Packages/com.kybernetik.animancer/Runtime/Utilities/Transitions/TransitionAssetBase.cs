@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 using System;
 using System.Collections.Generic;
@@ -18,9 +18,9 @@ namespace Animancer
     /// https://kybernetik.com.au/animancer/api/Animancer/TransitionAssetBase
     [AnimancerHelpUrl(typeof(TransitionAssetBase))]
     public abstract partial class TransitionAssetBase : ScriptableObject,
+        IAnimationClipSource,
         ITransition,
-        IWrapper,
-        IAnimationClipSource
+        IWrapper
     {
         /************************************************************************************************************************/
 

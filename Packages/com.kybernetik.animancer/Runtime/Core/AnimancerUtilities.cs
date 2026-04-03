@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 using System;
 using System.Collections;
@@ -1192,6 +1192,27 @@ namespace Animancer
             try
             {
                 return transition.FadeDuration;
+            }
+            catch
+            {
+                return float.NaN;
+            }
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>
+        /// Returns the <see cref="ITransition.NormalizedStartTime"/>
+        /// or <see cref="float.NaN"/> if it's <c>null</c> or throws an exception.
+        /// </summary>
+        public static float TryGetNormalizedStartTime(this ITransition transition)
+        {
+            if (transition == null)
+                return float.NaN;
+
+            try
+            {
+                return transition.NormalizedStartTime;
             }
             catch
             {

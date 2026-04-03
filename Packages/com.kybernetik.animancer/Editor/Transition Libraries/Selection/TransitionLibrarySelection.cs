@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 #if UNITY_EDITOR
 
@@ -34,8 +34,11 @@ namespace Animancer.Editor.TransitionLibraries
             /// <summary>A to-transition.</summary>
             ToTransition,
 
-            /// <summary>A fade duration modifier.</summary>
+            /// <summary>A modifier for a particular from-to transition combination.</summary>
             Modifier,
+
+            /// <summary>A <see cref="TransitionGroup"/>.</summary>
+            Group,
         }
 
         /************************************************************************************************************************/
@@ -76,6 +79,9 @@ namespace Animancer.Editor.TransitionLibraries
 
         /// <summary>The <see cref="ITransition.FadeDuration"/> of the current selection.</summary>
         public float FadeDuration { get; private set; }
+
+        /// <summary>The <see cref="ITransition.NormalizedStartTime"/> of the current selection.</summary>
+        public float NormalizedStartTime { get; private set; }
 
         /// <summary>Does the current selection have a modified <see cref="FadeDuration"/>?</summary>
         public bool HasModifier { get; private set; }
@@ -121,6 +127,7 @@ namespace Animancer.Editor.TransitionLibraries
             FromTransition = null;
             ToTransition = null;
             FadeDuration = float.NaN;
+            NormalizedStartTime = float.NaN;
             HasModifier = false;
 
             switch (_Type)
@@ -137,6 +144,7 @@ namespace Animancer.Editor.TransitionLibraries
 
                     FromTransition = transition;
                     FadeDuration = transition.TryGetFadeDuration();
+                    NormalizedStartTime = transition.TryGetNormalizedStartTime();
                     _Selected = transition;
                     return true;
 
@@ -147,6 +155,7 @@ namespace Animancer.Editor.TransitionLibraries
 
                     ToTransition = transition;
                     FadeDuration = transition.TryGetFadeDuration();
+                    NormalizedStartTime = transition.TryGetNormalizedStartTime();
                     _Selected = transition;
                     return true;
 
@@ -163,22 +172,23 @@ namespace Animancer.Editor.TransitionLibraries
                     {
                         HasModifier = true;
                     }
-                    else if (hasTransitions)
-                    {
-                        modifier = modifier.WithFadeDuration(transition.TryGetFadeDuration());
-                    }
-                    else
+                    else if (!hasTransitions)
                     {
                         return false;
                     }
 
                     FadeDuration = modifier.FadeDuration;
+                    NormalizedStartTime = modifier.NormalizedStartTime;
                     _Selected = modifier;
                     return true;
 
+                case SelectionType.Group:
+                    name = "Transition Group";
+                    return _Selected is TransitionGroup;
+
                 default:
                     return false;
-            };
+            }
         }
 
         /************************************************************************************************************************/
@@ -220,6 +230,19 @@ namespace Animancer.Editor.TransitionLibraries
                     {
                         _FromIndex = modifier.FromIndex;
                         _ToIndex = modifier.ToIndex;
+                        break;
+                    }
+                    else
+                    {
+                        Deselect();
+                        return;
+                    }
+
+                case SelectionType.Group:
+                    if (select is TransitionGroup group)
+                    {
+                        _FromIndex = index;
+                        _ToIndex = index;
                         break;
                     }
                     else

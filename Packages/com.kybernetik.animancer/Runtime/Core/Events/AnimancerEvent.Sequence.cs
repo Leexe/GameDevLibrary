@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 #pragma warning disable IDE0016 // Use 'throw' expression.
 
@@ -561,6 +561,90 @@ namespace Animancer
             }
 
             /************************************************************************************************************************/
+
+            /// <summary>[Pro-Only]
+            /// Returns the index of an event with the `normalizedTime`
+            /// or <c>-1</c> if there is no such event.
+            /// </summary>
+            /// <seealso cref="IndexOfRequired(int, float)"/>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int IndexOf(float normalizedTime)
+                => IndexOf(Count / 2, normalizedTime);
+
+            /// <summary>[Pro-Only] Returns the index of an event with the `normalizedTime`.</summary>
+            /// <exception cref="ArgumentException">There is no such event.</exception>
+            /// <seealso cref="IndexOf(float)"/>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int IndexOfRequired(float normalizedTime)
+                => IndexOfRequired(Count / 2, normalizedTime);
+
+            /// <summary>[Pro-Only]
+            /// Returns the index of an event with the `normalizedTime`
+            /// or <c>-1</c> if there is no such event.
+            /// </summary>
+            /// <seealso cref="IndexOfRequired(int, AnimancerEvent)"/>
+            public int IndexOf(int indexHint, float normalizedTime)
+            {
+                if (Count == 0)
+                    return -1;
+
+                if (indexHint >= Count)
+                    indexHint = Count - 1;
+
+                var events = _Events;
+                var otherEvent = events[indexHint];
+                if (otherEvent.normalizedTime == normalizedTime)
+                    return indexHint;
+
+                if (otherEvent.normalizedTime > normalizedTime)
+                {
+                    while (--indexHint >= 0)
+                    {
+                        otherEvent = events[indexHint];
+                        if (otherEvent.normalizedTime < normalizedTime)
+                            return -1;
+                        else if (otherEvent.normalizedTime == normalizedTime)
+                            return indexHint;
+                    }
+                }
+                else
+                {
+                    while (otherEvent.normalizedTime == normalizedTime)
+                    {
+                        indexHint--;
+                        if (indexHint < 0)
+                            break;
+
+                        otherEvent = events[indexHint];
+                    }
+
+                    while (++indexHint < Count)
+                    {
+                        otherEvent = events[indexHint];
+                        if (otherEvent.normalizedTime > normalizedTime)
+                            return -1;
+                        else if (otherEvent.normalizedTime == normalizedTime)
+                            return indexHint;
+                    }
+                }
+
+                return -1;
+            }
+
+            /// <summary>[Pro-Only] Returns the index of the `animancerEvent`.</summary>
+            /// <exception cref="ArgumentException">There is no such event.</exception>
+            /// <seealso cref="IndexOf(int, AnimancerEvent)"/>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int IndexOfRequired(int indexHint, float normalizedTime)
+            {
+                indexHint = IndexOf(indexHint, normalizedTime);
+                if (indexHint >= 0)
+                    return indexHint;
+
+                throw new ArgumentException($"Event at Normalized Time {normalizedTime} not found in {nameof(Sequence)}.");
+            }
+
+            /************************************************************************************************************************/
             #endregion
             /************************************************************************************************************************/
             #region Modification
@@ -687,7 +771,10 @@ namespace Animancer
                 Version++;
             }
 
-            /// <summary>[Pro-Only] Adds the specified `callback` to the event with the specified `name`.</summary>
+            /// <summary>[Pro-Only]
+            /// Adds the specified `callback` to an event with the specified `name`
+            /// and returns the index of that event or <c>-1</c> if there is no such event.
+            /// </summary>
             /// <exception cref="ArgumentException">There is no event with the specified `name`.</exception>
             /// <exception cref="ArgumentNullException">
             /// Use <see cref="DummyCallback"/> or <see cref="InvokeBoundCallback"/> instead of <c>null</c>.
@@ -695,8 +782,12 @@ namespace Animancer
             /// <seealso cref="AddCallbacks(StringReference, Action)"/>
             /// <seealso cref="IndexOfRequired(StringReference, int)"/>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void AddCallback(StringReference name, Action callback)
-                => AddCallback(IndexOfRequired(name), callback);
+            public int AddCallback(StringReference name, Action callback)
+            {
+                var index = IndexOfRequired(name);
+                AddCallback(index, callback);
+                return index;
+            }
 
             /// <summary>[Pro-Only]
             /// Adds the specified `callback` to every event with the specified `name`
@@ -860,8 +951,12 @@ namespace Animancer
             /// <seealso cref="SetCallbacks(StringReference, Action)"/>
             /// <seealso cref="IndexOfRequired(StringReference, int)"/>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void SetCallback(StringReference name, Action callback)
-                => SetCallback(IndexOfRequired(name), callback);
+            public int SetCallback(StringReference name, Action callback)
+            {
+                var index = IndexOfRequired(name);
+                SetCallback(index, callback);
+                return index;
+            }
 
             /// <summary>[Pro-Only]
             /// Replaces the <see cref="callback"/> of every event with the specified `name`
@@ -1154,7 +1249,7 @@ namespace Animancer
             /// </summary>
             public bool Remove(AnimancerEvent animancerEvent)
             {
-                var index = IndexOf(animancerEvent);
+                var index = IndexOf(animancerEvent.normalizedTime);
                 if (index < 0)
                     return false;
 

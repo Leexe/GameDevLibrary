@@ -1,12 +1,16 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 #if UNITY_EDITOR
 
+using Animancer.Units;
+using Animancer.Units.Editor;
 using System;
 using UnityEditor;
 using UnityEngine;
 using static Animancer.Editor.AnimancerGUI;
+using static Animancer.Editor.TransitionDrawer;
 using static Animancer.Editor.TransitionLibraries.TransitionLibrarySelection;
+using Object = UnityEngine.Object;
 
 namespace Animancer.Editor.TransitionLibraries
 {
@@ -22,6 +26,9 @@ namespace Animancer.Editor.TransitionLibraries
 
         [NonSerialized] private TransitionLibraryWindow _Window;
         [NonSerialized] private Vector2Int _SelectedCell;
+
+        /// <summary>The page displaying this table.</summary>
+        [NonSerialized] public TransitionLibraryModifiersPage Page;
 
         /************************************************************************************************************************/
 
@@ -44,8 +51,7 @@ namespace Animancer.Editor.TransitionLibraries
             _Window = window;
             _SelectedCell = RecalculateSelectedCell(window.Selection);
 
-            var transitions = window.Data.Transitions;
-            DoTableGUI(area, transitions.Length, transitions.Length);
+            DoTableGUI(area, window.Items.Count, window.Items.Count);
         }
 
         /************************************************************************************************************************/
@@ -60,7 +66,13 @@ namespace Animancer.Editor.TransitionLibraries
                     case SelectionType.FromTransition:
                     case SelectionType.ToTransition:
                     case SelectionType.Modifier:
-                        var cell = new Vector2Int(selection.ToIndex, selection.FromIndex);
+                        var transitions = _Window.Data.Transitions;
+                        transitions.TryGet(selection.FromIndex, out var fromTransition);
+                        transitions.TryGet(selection.ToIndex, out var toTransition);
+
+                        var cell = new Vector2Int(
+                            _Window.Items.IndexOf(toTransition),
+                            _Window.Items.IndexOf(fromTransition));
 
                         if (cell.x < 0)
                             cell.x = int.MinValue;
@@ -69,6 +81,12 @@ namespace Animancer.Editor.TransitionLibraries
                             cell.y = int.MinValue;
 
                         return cell;
+
+                    case SelectionType.Group:
+                        var index = _Window.Items.IndexOf(selection.Selected);
+                        return index >= 0
+                            ? new(index, index)
+                            : new(int.MinValue, int.MinValue);
                 }
             }
 
@@ -105,7 +123,7 @@ namespace Animancer.Editor.TransitionLibraries
             }
             else
             {
-                DoFadeDurationGUI(area, _Window, row, column, "");
+                DoCellBodyGUI(area, _Window, row, column);
 
             }
 
@@ -126,11 +144,14 @@ namespace Animancer.Editor.TransitionLibraries
             var toArea = fromArea;
             toArea.y -= toArea.height - Padding;
 
-            var removeArea = toArea;
-            removeArea.y -= removeArea.height - Padding;
+            var deleteTransitionArea = toArea;
+            deleteTransitionArea.y -= deleteTransitionArea.height - Padding;
 
-            var createArea = removeArea;
-            createArea.y -= createArea.height - Padding;
+            var createTransitionArea = deleteTransitionArea;
+            createTransitionArea.y -= createTransitionArea.height - Padding;
+
+            var createGroupArea = createTransitionArea;
+            createGroupArea.y -= createGroupArea.height - Padding;
 
             fromArea.width -= VerticalScrollBar.fixedWidth + Padding;
 
@@ -143,14 +164,24 @@ namespace Animancer.Editor.TransitionLibraries
 
             style.fontStyle = fontStyle;
 
-            DoCreateButtonGUI(createArea);
-            DoDeleteButtonGUI(removeArea);
+            DoCreateGroupButtonGUI(createGroupArea);
+            DoCreateTransitionButtonGUI(createTransitionArea);
+            DoRemoveButtonGUI(deleteTransitionArea);
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>Draws a button to create a new group.</summary>
+        private void DoCreateGroupButtonGUI(Rect area)
+        {
+            if (GUI.Button(area, "Create Group"))
+                TransitionLibraryOperations.CreateGroup(_Window, _Window.EditorData);
         }
 
         /************************************************************************************************************************/
 
         /// <summary>Draws a button to create a new transition.</summary>
-        private void DoCreateButtonGUI(Rect area)
+        private void DoCreateTransitionButtonGUI(Rect area)
         {
             if (GUI.Button(area, "Create Transition"))
                 TransitionLibraryOperations.CreateTransition(_Window);
@@ -158,29 +189,48 @@ namespace Animancer.Editor.TransitionLibraries
 
         /************************************************************************************************************************/
 
-        /// <summary>Draws a button to remove the selected transition.</summary>
-        private void DoDeleteButtonGUI(Rect area)
+        /// <summary>Draws a button to remove the selected object.</summary>
+        private void DoRemoveButtonGUI(Rect area)
         {
-            TransitionAssetBase transition = null;
-            int index = -1;
+            var enabled = GUI.enabled;
 
             var selection = _Window.Selection;
+            string label = "Remove Selection";
             switch (selection.Type)
             {
                 case SelectionType.FromTransition:
-                    transition = selection.FromTransition;
-                    index = selection.FromIndex;
+                    GUI.enabled = selection.FromIndex >= 0 && selection.FromIndex < _Window.Data.Transitions.Length;
+                    label = "Remove Transition";
                     break;
 
                 case SelectionType.ToTransition:
-                    transition = selection.ToTransition;
-                    index = selection.ToIndex;
+                    GUI.enabled = selection.ToIndex >= 0 && selection.ToIndex < _Window.Data.Transitions.Length;
+                    label = "Remove Transition";
+                    break;
+
+                case SelectionType.Modifier:
+                    label = "Remove Modifier";
+                    break;
+
+                case SelectionType.Group:
+                    label = "Remove Group";
+                    break;
+
+                default:
+                    GUI.enabled = false;
                     break;
             }
 
-            using (new EditorGUI.DisabledScope(index < 0 || index >= _Window.Data.Transitions.Length))
-                if (GUI.Button(area, "Remove Transition"))
-                    TransitionLibraryOperations.AskHowToDeleteTransition(transition, index, _Window);
+            using var content = PooledGUIContent.Acquire(label,
+                "Remove the selected object from this library. [Delete]");
+
+            if (GUI.Button(area, content))
+            {
+                TransitionLibraryOperations.HandleDelete(_Window);
+                Deselect();
+            }
+
+            GUI.enabled = enabled;
         }
 
         /************************************************************************************************************************/
@@ -192,18 +242,61 @@ namespace Animancer.Editor.TransitionLibraries
             GUIStyle style,
             SelectionType selectionType)
         {
-            if (!_Window.Data.Transitions.TryGet(index, out var transition))
+            if (!_Window.Items.TryGet(index, out var transitionOrGroup))
                 return;
 
-            HandleTransitionLabelInput(
-                ref area,
-                _Window,
-                transition,
-                index,
-                selectionType,
-                CalculateTargetTransitionIndex);
+            if (transitionOrGroup is TransitionAssetBase transition)
+            {
+                var group = _Window.Items.GetGroup(index);
+                if (group != null)
+                    StealGroupFoldoutSpace(ref area, style);
 
-            GUI.Label(area, GetTransitionName(transition), style);
+                HandleTransitionLabelInput(
+                    ref area,
+                    _Window,
+                    transition,
+                    selectionType,
+                    CalculateTarget);
+
+                GUI.Label(area, GetTransitionName(transition), style);
+            }
+            else if (transitionOrGroup is TransitionGroup group)
+            {
+                var foldoutArea = StealGroupFoldoutSpace(ref area, style);
+
+                HandleTransitionLabelInput(
+                    ref area,
+                    _Window,
+                    group,
+                    SelectionType.Group,
+                    CalculateTarget);
+
+                GUI.Label(area, group.Name, style);
+
+                EditorGUI.BeginChangeCheck();
+
+                group.IsExpanded = EditorGUI.Foldout(foldoutArea, group.IsExpanded, GUIContent.none);
+
+                if (EditorGUI.EndChangeCheck())
+                    _Window.Selection.Select(_Window, group, index, SelectionType.Group);
+            }
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>Calculates the area for a group foldout and subtracts it from the appropriate side of the `area`.</summary>
+        private Rect StealGroupFoldoutSpace(ref Rect area, GUIStyle style)
+        {
+            if (style.alignment == TextAnchor.MiddleRight)
+            {
+                return StealFromRight(ref area, LineHeight, StandardSpacing);
+            }
+            else
+            {
+                var space = StealFromLeft(ref area, LineHeight, StandardSpacing);
+                space.x += StandardSpacing;
+                return space;
+            }
         }
 
         /************************************************************************************************************************/
@@ -224,10 +317,9 @@ namespace Animancer.Editor.TransitionLibraries
         public static void HandleTransitionLabelInput(
             ref Rect area,
             TransitionLibraryWindow window,
-            TransitionAssetBase transition,
-            int index,
+            object item,
             SelectionType selectionType,
-            Func<Rect, int, Event, int> calculateTargetTransitionIndex)
+            Func<Rect, int, Event, ListTargetCalculation> calculateTarget)
         {
             var control = new GUIControl(area, LabelHint);
 
@@ -238,9 +330,15 @@ namespace Animancer.Editor.TransitionLibraries
                         control.TryUseMouseDown())
                     {
                         if (control.Event.clickCount == 2)
-                            EditorGUIUtility.PingObject(transition);
+                        {
+                            if (item is Object unityObject)
+                                EditorGUIUtility.PingObject(unityObject);
+                        }
                         else
-                            window.Selection.Select(window, transition, index, selectionType);
+                        {
+                            var index = IndexOf(window, item as TransitionAssetBase);
+                            window.Selection.Select(window, item, index, selectionType);
+                        }
 
                         _IsLabelDrag = false;
                     }
@@ -250,11 +348,10 @@ namespace Animancer.Editor.TransitionLibraries
                 case EventType.MouseUp:
                     if (control.TryUseMouseUp() && _IsLabelDrag)
                     {
-                        var target = calculateTargetTransitionIndex(area, index, control.Event);
-                        TransitionLibrarySort.MoveTransition(window, index, target);
-                        window.Selection.Select(window, transition, index, selectionType);
+                        var index = window.Items.IndexOf(item);
+                        var target = calculateTarget(area, index, control.Event);
+                        window.OnDropItem(item, target, selectionType);
                     }
-
                     break;
 
                 case EventType.MouseDrag:
@@ -272,68 +369,138 @@ namespace Animancer.Editor.TransitionLibraries
 
         /************************************************************************************************************************/
 
-        /// <summary>Calculates the transition index for a drag and drop operation.</summary>
-        private static int CalculateTargetTransitionIndex(
+        private static int IndexOf(TransitionLibraryWindow window, TransitionAssetBase transition)
+            => Array.IndexOf(window.Data.Transitions, transition);
+
+        /************************************************************************************************************************/
+
+        /// <summary>Calculates the target index for a drag and drop operation.</summary>
+        private static ListTargetCalculation CalculateTarget(
             Rect area,
             int index,
             Event currentEvent)
         {
-            var distance = currentEvent.mousePosition.y - area.y;
-            var offset = Mathf.FloorToInt(distance / area.height);
-            return index + offset;
+            var target = new ListTargetCalculation(area.y, area.height, currentEvent.mousePosition.y);
+            target.Index += index;
+            return target;
         }
 
         /************************************************************************************************************************/
 
-        private static GUIStyle _FadeDurationStyle;
+        private static readonly int GroupHint = "Group".GetHashCode();
 
-        /// <summary>Draws the fade duration for a particular transition combination.</summary>
-        public static void DoFadeDurationGUI(
+        /// <summary>
+        /// Calls <see cref="DoModifierValueGUI"/> if the specified cell
+        /// contains a transition combination rather than a group.
+        /// </summary>
+        public void DoCellBodyGUI(
             Rect area,
             TransitionLibraryWindow window,
             int from,
-            int to,
-            string label)
+            int to)
         {
-            _FadeDurationStyle ??= new(EditorStyles.numberField)
-            {
-                alignment = TextAnchor.MiddleLeft,
-            };
+            if (!_Window.Items.TryGet(from, out var fromTransitionOrGroup) ||
+                !_Window.Items.TryGet(to, out var toTransitionOrGroup))
+                return;
 
+            if (fromTransitionOrGroup is TransitionAssetBase fromTransition &&
+                toTransitionOrGroup is TransitionAssetBase toTransition)
+            {
+                from = IndexOf(window, fromTransition);
+                to = IndexOf(window, toTransition);
+
+                DoModifierValueGUI(area, _Window, Page, from, to, "", true);
+            }
+            else
+            {
+                var control = new GUIControl(area, GroupHint);
+                if (control.EventType == EventType.MouseDown &&
+                    control.TryUseMouseDown())
+                {
+                    var group = fromTransitionOrGroup is TransitionGroup
+                        ? fromTransitionOrGroup
+                        : toTransitionOrGroup;
+
+                    window.Selection.Select(
+                        window,
+                        group,
+                        from,
+                        SelectionType.Group);
+                }
+            }
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>Draws the fade duration for a particular transition combination.</summary>
+        public static void DoModifierValueGUI(
+            Rect area,
+            TransitionLibraryWindow window,
+            TransitionLibraryModifiersPage page,
+            int from,
+            int to,
+            string label,
+            bool singleField)
+        {
             var previousHotControl = GUIUtility.hotControl;
 
             var hasModifier = window.Data.TryGetModifier(from, to, out var modifier);
+            var hasModifierWithValue = hasModifier;
+            var value = page.GetValue(modifier);
+
+            window.Data.Transitions.TryGet(to, out var transition);
+
+            if (float.IsNaN(value))
+            {
+                hasModifierWithValue = false;
+
+                if (transition != null)
+                    value = page.GetValue(transition);
+            }
 
             var labelStyle = EditorStyles.label.fontStyle;
+            var numberAlignment = EditorStyles.numberField.alignment;
+            var numberStyle = EditorStyles.numberField.fontStyle;
+            var numberSize = EditorStyles.numberField.fontSize;
             try
             {
-                if (hasModifier)
+                EditorStyles.numberField.alignment = TextAnchor.MiddleLeft;
+
+                if (hasModifierWithValue)
                 {
                     EditorStyles.label.fontStyle = FontStyle.Bold;
-                    _FadeDurationStyle.fontStyle = FontStyle.Bold;
-                    _FadeDurationStyle.fontSize = EditorStyles.numberField.fontSize;
+                    EditorStyles.numberField.fontStyle = FontStyle.Bold;
                 }
                 else
                 {
-                    _FadeDurationStyle.fontStyle = FontStyle.Normal;
-                    _FadeDurationStyle.fontSize = EditorStyles.numberField.fontSize * 4 / 5;
+                    EditorStyles.numberField.fontSize = EditorStyles.numberField.fontSize * 4 / 5;
                 }
 
                 EditorGUI.BeginChangeCheck();
 
-                // This is basically a float field,
-                // but anything that fails to parse will clear the field instead of setting it to 0.
+                page.ConfigureForSingleField(singleField, ref value);
+                if (singleField)
+                    transition = null;
 
-                var text = modifier.FadeDuration.ToStringCached();
-                text = EditorGUI.TextField(area, label, text, _FadeDurationStyle);
+                using (new DrawerContext(transition))
+                using (var content = PooledGUIContent.Acquire(label))
+                    page.TimeDrawer.OnGUI(area, content, ref value);
+
+                if (TryUseClickEvent(area, 2))
+                    value = float.NaN;
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (!float.TryParse(text, out var fadeDuration))
-                        fadeDuration = float.NaN;
+                    if (EditorGUIUtility.editingTextField &&
+                        !float.TryParse(CurrentFieldText, out value))
+                        value = float.NaN;
 
-                    window.RecordUndo()
-                        .SetModifier(modifier.WithFadeDuration(fadeDuration));
+                    if (!hasModifier)
+                        modifier = modifier.WithDetails(float.NaN, float.NaN);
+
+                    var data = window.RecordUndo();
+                    page.SetValue(ref modifier, value);
+                    data.SetModifier(modifier);
 
                     hasModifier = true;
 
@@ -343,6 +510,9 @@ namespace Animancer.Editor.TransitionLibraries
             finally
             {
                 EditorStyles.label.fontStyle = labelStyle;
+                EditorStyles.numberField.alignment = numberAlignment;
+                EditorStyles.numberField.fontStyle = numberStyle;
+                EditorStyles.numberField.fontSize = numberSize;
             }
 
             if (previousHotControl != GUIUtility.hotControl)

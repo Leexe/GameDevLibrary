@@ -1,4 +1,4 @@
-// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2025 Kybernetik //
+// Animancer // https://kybernetik.com.au/animancer // Copyright 2018-2026 Kybernetik //
 
 using Animancer.TransitionLibraries;
 using System;
@@ -852,10 +852,10 @@ namespace Animancer
 
         /// <summary>Is a state registered with the `key` and currently playing?</summary>
         public bool IsPlaying(object key)
-            => States.TryGet(key, out var state)
+            => States.TryGetAlias(key, out var state)
             && state.IsPlaying;
 
-        /// <summary>Is least one animation being played?</summary>
+        /// <summary>Is any animation being played on any layer?</summary>
         public bool IsPlaying()
         {
             if (!IsGraphPlaying)
