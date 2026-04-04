@@ -96,7 +96,7 @@ MonoBehaviour:
       Value: 0
       HasValue: 0
     Overlay:
-      Value: 1
+      Value: 0
       HasValue: 1
     OverlayPosition:
       Value: 0
@@ -610,7 +610,7 @@ MonoBehaviour:
   HasSourceProject: 0
   HasPlatforms: 1
   sourceProjectPath: 
-  sourceBankPath: Assets/FMOD_Banks/Build
+  sourceBankPath: Assets/FMOD_Banks
   sourceBankPathUnformatted: 
   BankRefreshCooldown: 5
   ShowBankRefreshWindow: 1
@@ -635,9 +635,8 @@ MonoBehaviour:
   MasterBanks:
   - Master
   Banks:
-  - AMB
-  - BGM
-  - SFX
+  - Enemy
+  - Status Effects
   BanksToLoad: []
   LiveUpdatePort: 9264
   EnableMemoryTracking: 0
