@@ -40,8 +40,6 @@ Shader "Unlit/CylindricalBillboard"
             UNITY_DECLARE_TEX2D(_MainTex);
             float4 _MainTex_ST;
 
-            const float3 vect3Zero = float3(0.0, 0.0, 0.0);
-
             Interpolators vert(Meshdata v)
             {
                 Interpolators o;
