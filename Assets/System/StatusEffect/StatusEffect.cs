@@ -34,14 +34,14 @@ namespace StatusEffects
 		///     Called when the effect build up is applied to a target
 		/// </summary>
 		/// <param name="buildUp">How much build up to apply</param>
-		/// <param name="targetDamageable">The target's damageable component</param>
+		/// <param name="healthController">The target's health controller component</param>
 		/// <param name="stats">The target's stats state</param>
 		/// <param name="source">The source of the status effect</param>
 		/// <param name="target">The target game object</param>
 		/// <returns>True if status effect was activated from this build up frame</returns>
 		public bool ApplyBuildUp(
 			float buildUp,
-			Damageable targetDamageable,
+			HealthController healthController,
 			StatsState stats,
 			GameObject source,
 			GameObject target
@@ -58,14 +58,14 @@ namespace StatusEffects
 			// If the effect hasn't been activated before, activate it
 			if (!wasActive && _currBuildUp >= 1f)
 			{
-				ActivateEffect(targetDamageable, stats, target);
+				ActivateEffect(healthController, stats, target);
 				return true;
 			}
 
 			// If the effect has been activated before, trigger repeated hit effects
 			if (wasActive && _currBuildUp >= 1f)
 			{
-				RepeatedHit(targetDamageable, stats, target);
+				RepeatedHit(healthController, stats, target);
 			}
 
 			return false;
@@ -75,11 +75,16 @@ namespace StatusEffects
 		///     Updates the effect state
 		/// </summary>
 		/// <param name="deltaTime">The time since the last frame</param>
-		/// <param name="targetDamageable">The target's damageable component</param>
+		/// <param name="healthController">The target's health controller component</param>
 		/// <param name="stats">The target's stats state</param>
 		/// <param name="target">The target game object</param>
 		/// <returns>Whether the tick was applied or not</returns>
-		public bool UpdateEffect(float deltaTime, Damageable targetDamageable, StatsState stats, GameObject target)
+		public bool UpdateEffect(
+			float deltaTime,
+			HealthController healthController,
+			StatsState stats,
+			GameObject target
+		)
 		{
 			// If the effect is active decrease it's active duration and start applying ticks
 			if (IsActive)
@@ -90,7 +95,7 @@ namespace StatusEffects
 
 					if (_remainingDuration <= 0f)
 					{
-						EndEffect(targetDamageable, stats, target);
+						EndEffect(healthController, stats, target);
 						return false;
 					}
 				}
@@ -98,7 +103,7 @@ namespace StatusEffects
 				_tickTimer += deltaTime;
 				if (_tickTimer >= Data.TickRate && Data.EnableTickRate)
 				{
-					Tick(targetDamageable, target);
+					Tick(healthController, target);
 					_tickTimer = 0f;
 					return true;
 				}
@@ -130,10 +135,10 @@ namespace StatusEffects
 		/// <summary>
 		///     Called when the effect activates for the first time
 		/// </summary>
-		/// <param name="targetDamageable">The target's damageable component</param>
+		/// <param name="healthController">The target's health controller component</param>
 		/// <param name="stats">The target's stats state</param>
 		/// <param name="target">The target game object</param>
-		protected virtual void ActivateEffect(Damageable targetDamageable, StatsState stats, GameObject target)
+		protected virtual void ActivateEffect(HealthController healthController, StatsState stats, GameObject target)
 		{
 			_remainingDuration = Data.ActiveDuration;
 			_lastCount = Count;
@@ -148,15 +153,7 @@ namespace StatusEffects
 			{
 				stackDamageMult = ((Data.StackDamageMult - 1) * (Count - 1)) + 1;
 			}
-			targetDamageable.Damage(
-				new Damageable.DamageData
-				{
-					Amount = Data.DamageOnActivation * stackDamageMult,
-					Source = Source,
-					Target = target,
-					ProcIFrames = false,
-				}
-			);
+			healthController.TakeDamage(Data.DamageOnActivation * stackDamageMult);
 
 			// Modifiers
 			foreach (Modifier modifier in Data.Modifiers)
@@ -168,9 +165,9 @@ namespace StatusEffects
 		/// <summary>
 		///     Called every tick depending on the tick rate during the active duration
 		/// </summary>
-		/// <param name="targetDamageable">The target's damageable component</param>
+		/// <param name="healthController">The target's health controller component</param>
 		/// <param name="target">The target game object</param>
-		protected virtual void Tick(Damageable targetDamageable, GameObject target)
+		protected virtual void Tick(HealthController healthController, GameObject target)
 		{
 			// On Tick Damage
 			float stackDamageMult = 1f;
@@ -178,15 +175,7 @@ namespace StatusEffects
 			{
 				stackDamageMult = ((Data.StackDamageMult - 1) * (Count - 1)) + 1;
 			}
-			targetDamageable.Damage(
-				new Damageable.DamageData
-				{
-					Amount = Data.DamageOnTick * stackDamageMult,
-					Source = Source,
-					Target = target,
-					ProcIFrames = false,
-				}
-			);
+			healthController.TakeDamage(Data.DamageOnTick * stackDamageMult);
 
 			// Sfx
 			PlayStatusEffectSFX(Data.StatusDotSfx, target);
@@ -195,10 +184,10 @@ namespace StatusEffects
 		/// <summary>
 		///     Called when build up is added to an active status effect
 		/// </summary>
-		/// <param name="targetDamageable">The target's damageable component</param>
+		/// <param name="healthController">The target's health controller component</param>
 		/// <param name="stats">The target's stats state</param>
 		/// <param name="target">The target game object</param>
-		protected virtual void RepeatedHit(Damageable targetDamageable, StatsState stats, GameObject target)
+		protected virtual void RepeatedHit(HealthController healthController, StatsState stats, GameObject target)
 		{
 			if (Data.RefreshableDuration)
 			{
@@ -211,29 +200,13 @@ namespace StatusEffects
 			{
 				stackDamageMult = ((Data.StackDamageMult - 1) * (Count - 1)) + 1;
 			}
-			targetDamageable.Damage(
-				new Damageable.DamageData
-				{
-					Amount = Data.DamageOnHit * stackDamageMult,
-					Source = Source,
-					Target = target,
-					ProcIFrames = false,
-				}
-			);
+			healthController.TakeDamage(Data.DamageOnHit * stackDamageMult);
 
 			// New Count Damage
 			if (_lastCount > 0 && _lastCount < Count)
 			{
 				// Deal Reactivation Damage
-				targetDamageable.Damage(
-					new Damageable.DamageData
-					{
-						Amount = Data.DamageOnReactivation * stackDamageMult,
-						Source = Source,
-						Target = target,
-						ProcIFrames = false,
-					}
-				);
+				healthController.TakeDamage(Data.DamageOnReactivation * stackDamageMult);
 				_lastCount = Count;
 
 				// Modifiers
@@ -250,10 +223,10 @@ namespace StatusEffects
 		/// <summary>
 		///     Called when an effect's active duration ends
 		/// </summary>
-		/// <param name="targetDamageable">The target's damageable component</param>
+		/// <param name="healthController">The target's health controller component</param>
 		/// <param name="stats">The target's stats state</param>
 		/// <param name="target">The target game object</param>
-		protected virtual void EndEffect(Damageable targetDamageable, StatsState stats, GameObject target)
+		protected virtual void EndEffect(HealthController healthController, StatsState stats, GameObject target)
 		{
 			// Deal Damage
 			float stackDamageMult = 1f;
@@ -261,15 +234,7 @@ namespace StatusEffects
 			{
 				stackDamageMult = ((Data.StackDamageMult - 1) * (Count - 1)) + 1;
 			}
-			targetDamageable.Damage(
-				new Damageable.DamageData
-				{
-					Amount = Data.DamageOnExpire * stackDamageMult,
-					Source = Source,
-					Target = target,
-					ProcIFrames = false,
-				}
-			);
+			healthController.TakeDamage(Data.DamageOnExpire * stackDamageMult);
 
 			// Deal With Sfx
 			StopStatusEffectSfxInstance(Data.StatusActiveSfx);

@@ -21,7 +21,7 @@ public class Bullet : MonoBehaviour
 
 	private float _damage;
 	private IEnumerator _lifetime;
-	private Effect _statusEffect;
+	private StatusEffectSO _statusEffect;
 	private float _statusEffectBuildUp;
 
 	private void Start()
@@ -62,7 +62,7 @@ public class Bullet : MonoBehaviour
 		}
 	}
 
-	public void InitiateBullet(float damage, Effect effect = 0, float buildUp = 0.1f)
+	public void InitiateBullet(float damage, StatusEffectSO effect = null, float buildUp = 0.1f)
 	{
 		_damage = damage;
 		_statusEffect = effect;

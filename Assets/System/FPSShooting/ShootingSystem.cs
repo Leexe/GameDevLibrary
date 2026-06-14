@@ -72,7 +72,7 @@ public class ShootingSystem : MonoBehaviour
 	[Header("Status Effects")]
 	[Tooltip("Status Effects To Apply")]
 	[SerializeField]
-	private Effect _statusEffect;
+	private StatusEffectSO[] _statusEffects;
 
 	[Tooltip("How much build up to apply per bullet")]
 	[Range(0, 1)]
@@ -89,6 +89,10 @@ public class ShootingSystem : MonoBehaviour
 
 	private int _ammo;
 	private float _bulletSpreadBuildUp;
+	private int _currentStatusEffectIndex = 0;
+
+	private StatusEffectSO CurrentStatusEffect =>
+		_statusEffects != null && _statusEffects.Length > 0 ? _statusEffects[_currentStatusEffectIndex] : null;
 
 	// Gun Info
 	private float _fireBufferTimer;
@@ -117,7 +121,10 @@ public class ShootingSystem : MonoBehaviour
 		_shootingEvents = GameManager.Instance.ShootingEventsRef;
 		_maxBulletSpreadBuildUp = _bulletSpreadCurve.keys[_bulletSpreadCurve.length - 1].time;
 		_fpsCamera = CameraManager.Instance.MainCameraGameObject.GetComponent<Camera>();
-		Debug.Log(_statusEffect.ToString());
+		if (CurrentStatusEffect != null)
+		{
+			Debug.Log(CurrentStatusEffect.Id);
+		}
 	}
 
 	private void Update()
@@ -265,7 +272,7 @@ public class ShootingSystem : MonoBehaviour
 			.AddForce(directionWithSpread.normalized * _bulletVelocity, ForceMode.Impulse);
 
 		// Populate bullet data
-		currBullet.GetComponent<Bullet>().InitiateBullet(_damage, _statusEffect, _statusEffectBuildUp);
+		currBullet.GetComponent<Bullet>().InitiateBullet(_damage, CurrentStatusEffect, _statusEffectBuildUp);
 
 		_bulletSpreadBuildUp += _bulletSpreadAdd;
 	}
@@ -278,8 +285,10 @@ public class ShootingSystem : MonoBehaviour
 
 	private void ChangeStatusEffect()
 	{
-		_statusEffect = (Effect)(((int)_statusEffect + 1) % Enum.GetNames(typeof(Effect)).Length);
-		Debug.Log(_statusEffect.ToString());
+		if (_statusEffects == null || _statusEffects.Length == 0)
+			return;
+		_currentStatusEffectIndex = (_currentStatusEffectIndex + 1) % _statusEffects.Length;
+		Debug.Log(CurrentStatusEffect.Id);
 	}
 
 	private void OnReloadInput()

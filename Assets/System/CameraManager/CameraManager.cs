@@ -16,9 +16,9 @@ public class CameraManager : MonoSingleton<CameraManager>
 	private CinemachineInputAxisController _cinemachineInputAxisController;
 	public float CameraSensitivity { get; private set; }
 
-	protected override void Awake()
+	protected override void OnInitialized()
 	{
-		base.Awake();
+		base.OnInitialized();
 
 		CameraSensitivity = 1f;
 		_cinemachineInputAxisController = _cinemachine.GetComponent<CinemachineInputAxisController>();

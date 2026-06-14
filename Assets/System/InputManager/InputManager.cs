@@ -68,9 +68,9 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	private InputActionMap _uiActionMap;
 
 	/** Start Methods **/
-	protected override void Awake()
+	protected override void OnInitialized()
 	{
-		base.Awake();
+		base.OnInitialized();
 		EnableUIInput();
 		SetupInputActions();
 	}

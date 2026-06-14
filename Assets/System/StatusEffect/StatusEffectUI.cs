@@ -30,7 +30,7 @@ public class StatusEffectUI : SerializedMonoBehaviour
 	[SerializeField]
 	private GameObject _defaultStatusEffectPrefab;
 
-	private Dictionary<Effect, StatusEffectIconUICache> _statusUICached = new();
+	private Dictionary<string, StatusEffectIconUICache> _statusUICached = new();
 
 	private void Start()
 	{
@@ -51,18 +51,18 @@ public class StatusEffectUI : SerializedMonoBehaviour
 
 	private void OnDisable()
 	{
-		_statusEffectManager?.OnStatusEffectActivate.AddListener(UpdateStatusEffectUI_Activate);
-		_statusEffectManager?.OnStatusEffectApply.AddListener(UpdateStatusEffectUI_Apply);
-		_statusEffectManager?.OnStatusEffectUpdate.AddListener(UpdateStatusEffectUI_Update);
-		_statusEffectManager?.OnStatusEffectEnd.AddListener(DisableStatusEffectUI);
+		_statusEffectManager?.OnStatusEffectActivate.RemoveListener(UpdateStatusEffectUI_Activate);
+		_statusEffectManager?.OnStatusEffectApply.RemoveListener(UpdateStatusEffectUI_Apply);
+		_statusEffectManager?.OnStatusEffectUpdate.RemoveListener(UpdateStatusEffectUI_Update);
+		_statusEffectManager?.OnStatusEffectEnd.RemoveListener(DisableStatusEffectUI);
 	}
 
 	private void UpdateStatusEffectUI_Apply(StatusEffect statusEffect, float buildUpProgress)
 	{
-		Effect statusEffectName = statusEffect.Data.Type;
+		string statusEffectId = statusEffect.Data.Id;
 
-		// Instantiate and add the game object to the list if it doesn't exist
-		if (!_statusUICached.ContainsKey(statusEffectName))
+		// Check if the status effect is in the cached dictionary
+		if (!_statusUICached.ContainsKey(statusEffectId))
 		{
 			GameObject statusEffectUIPrefab =
 				statusEffect.Data.IconPrefab != null ? statusEffect.Data.IconPrefab : _defaultStatusEffectPrefab;
@@ -72,7 +72,7 @@ public class StatusEffectUI : SerializedMonoBehaviour
 				_gridParent.transform.rotation,
 				_gridParent.transform
 			);
-			_statusUICached[statusEffectName] = new StatusEffectIconUICache(
+			_statusUICached[statusEffectId] = new StatusEffectIconUICache(
 				statusEffectIconUI,
 				statusEffectIconUI.GetComponent<StatusEffectIconUI>()
 			);
@@ -80,27 +80,27 @@ public class StatusEffectUI : SerializedMonoBehaviour
 
 		if (!statusEffect.IsActive)
 		{
-			_statusUICached[statusEffectName].GameObjectRef.SetActive(true);
-			UpdateStatusEffectIcon(_statusUICached[statusEffectName].StatusEffectIconUIRef, statusEffect);
+			_statusUICached[statusEffectId].GameObjectRef.SetActive(true);
+			UpdateStatusEffectIcon(_statusUICached[statusEffectId].StatusEffectIconUIRef, statusEffect);
 		}
 	}
 
 	private void UpdateStatusEffectUI_Update(StatusEffect statusEffect, float normalizedProgress)
 	{
-		Effect statusEffectName = statusEffect.Data.Type;
-		UpdateStatusEffectIcon(_statusUICached[statusEffectName].StatusEffectIconUIRef, statusEffect);
+		string statusEffectId = statusEffect.Data.Id;
+		UpdateStatusEffectIcon(_statusUICached[statusEffectId].StatusEffectIconUIRef, statusEffect);
 	}
 
 	private void UpdateStatusEffectUI_Activate(StatusEffect statusEffect, float normalizedProgress)
 	{
-		Effect statusEffectName = statusEffect.Data.Type;
-		UpdateStatusEffectIcon(_statusUICached[statusEffectName].StatusEffectIconUIRef, statusEffect);
-		_statusUICached[statusEffectName].StatusEffectIconUIRef.ActivatedStatusEffectUI();
+		string statusEffectId = statusEffect.Data.Id;
+		UpdateStatusEffectIcon(_statusUICached[statusEffectId].StatusEffectIconUIRef, statusEffect);
+		_statusUICached[statusEffectId].StatusEffectIconUIRef.ActivatedStatusEffectUI();
 	}
 
 	private void DisableStatusEffectUI(StatusEffect statusEffect)
 	{
-		_statusUICached[statusEffect.Data.Type].GameObjectRef.SetActive(false);
+		_statusUICached[statusEffect.Data.Id].GameObjectRef.SetActive(false);
 	}
 
 	private void UpdateStatusEffectIcon(StatusEffectIconUI iconRef, StatusEffect statusEffect)

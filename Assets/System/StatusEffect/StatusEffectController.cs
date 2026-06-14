@@ -10,7 +10,7 @@ public class StatusEffectController : MonoBehaviour
 {
 	[Header("References")]
 	[SerializeField]
-	private Damageable _damageable;
+	private HealthController _healthController;
 
 	[SerializeField]
 	private StatsController _statsController;
@@ -57,14 +57,14 @@ public class StatusEffectController : MonoBehaviour
 
 	private void OnEnable()
 	{
-		_damageable.OnDeath += CancelAllStatusEffects;
+		_healthController.OnDeath.AddListener(CancelAllStatusEffects);
 	}
 
 	private void OnDisable()
 	{
-		if (_damageable != null)
+		if (_healthController != null)
 		{
-			_damageable.OnDeath -= CancelAllStatusEffects;
+			_healthController.OnDeath.RemoveListener(CancelAllStatusEffects);
 		}
 	}
 
@@ -94,7 +94,7 @@ public class StatusEffectController : MonoBehaviour
 	/// <param name="buildUp">The amount of build up to apply, status effect triggers when it reaches 1</param>
 	public void ApplyStatusEffect(StatusEffectSO statusEffectSO, float buildUp = 1f, GameObject source = null)
 	{
-		if (statusEffectSO == null || !_damageable.Health.IsAlive)
+		if (statusEffectSO == null || !_healthController.IsAlive)
 		{
 			return;
 		}
@@ -105,7 +105,7 @@ public class StatusEffectController : MonoBehaviour
 
 		OnStatusEffectApply?.Invoke(statusEffectInstance, statusEffectInstance.GetBuildUpNormalized());
 
-		if (statusEffectInstance.ApplyBuildUp(buildUp, _damageable, Stats, source, gameObject))
+		if (statusEffectInstance.ApplyBuildUp(buildUp, _healthController, Stats, source, gameObject))
 		{
 			OnStatusEffectActivate?.Invoke(statusEffectInstance, statusEffectInstance.GetRemainingDurationNormalized());
 			CheckForCombos(statusEffectSO);
@@ -198,7 +198,7 @@ public class StatusEffectController : MonoBehaviour
 		foreach (KeyValuePair<StatusEffectSO, StatusEffect> statusEffectEntry in _enabledEffects)
 		{
 			StatusEffect statusEffect = statusEffectEntry.Value;
-			bool statusEffectTicked = statusEffect.UpdateEffect(deltaTime, _damageable, Stats, gameObject);
+			bool statusEffectTicked = statusEffect.UpdateEffect(deltaTime, _healthController, Stats, gameObject);
 
 			if (statusEffect.IsActive)
 			{

@@ -1,35 +1,28 @@
 using System.Collections.Generic;
+using JetBrains.Annotations;
+using Sirenix.OdinInspector;
+using Sirenix.Serialization;
+using StatusEffects;
 using UnityEngine;
 
-namespace StatusEffects
+[CreateAssetMenu(fileName = "StatusEffectDictionarySO", menuName = "Dictionaries/StatusEffectDictionarySO")]
+public class StatusEffectDictionarySO : SerializedScriptableObject
 {
-	[CreateAssetMenu(fileName = "StatusEffectDictionary", menuName = "StatusEffect/StatusEffectDictionary")]
-	public class StatusEffectDictionary : ScriptableObject
+	[OdinSerialize, ReadOnly]
+	public Dictionary<string, StatusEffectSO> SODict { get; private set; }
+
+	/// <summary>
+	/// Look up a StatusEffectSO by string ID.
+	/// Primarily used to match StatusEffectInstances with their StatusEffectSOs when loading from a save file.
+	/// </summary>
+	public StatusEffectSO GetStatusEffectSOById(string id)
 	{
-		[Tooltip("List of all status effects in the game.")]
-		[SerializeField]
-		private List<StatusEffectSO> _statusEffects;
-
-		private Dictionary<Effect, StatusEffectSO> _effectDictionary;
-
-		public Dictionary<Effect, StatusEffectSO> EffectDictionary
+		if (SODict != null && SODict.TryGetValue(id, out StatusEffectSO statusEffect))
 		{
-			get
-			{
-				if (_effectDictionary == null)
-				{
-					_effectDictionary = new Dictionary<Effect, StatusEffectSO>();
-					foreach (StatusEffectSO effect in _statusEffects)
-					{
-						if (effect != null && !_effectDictionary.ContainsKey(effect.Type))
-						{
-							_effectDictionary.Add(effect.Type, effect);
-						}
-					}
-				}
-
-				return _effectDictionary;
-			}
+			return statusEffect;
 		}
+
+		Debug.LogError($"StatusEffect with ID '{id}' not found in dictionary.");
+		return null;
 	}
 }

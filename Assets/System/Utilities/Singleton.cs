@@ -50,7 +50,7 @@ public abstract class MonoSingleton<T> : MonoStaticInstance<T>
 /// <summary>
 /// A Singleton that does not get destroyed on scene loads
 /// </summary>
-public abstract class MonoPersistentSingleton<T> : MonoSingleton<T>
+public abstract class PersistentMonoSingleton<T> : MonoSingleton<T>
 	where T : MonoBehaviour
 {
 	protected override void OnInitialized()
