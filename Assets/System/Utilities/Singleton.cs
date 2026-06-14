@@ -1,17 +1,15 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 /// <summary>
-/// A singleton that overrides the current instance instead of destroying it.
+/// Similar to a Singleton except it will override the current instance instead of destroying it
 /// </summary>
-public abstract class MonoStaticInstance<T> : MonoBehaviour
+public abstract class MonoStaticInstance<T> : SerializedMonoBehaviour
 	where T : MonoBehaviour
 {
 	public static T Instance { get; private set; }
 
-	protected virtual void Awake()
-	{
-		Instance = this as T;
-	}
+	protected virtual void Awake() => Instance = this as T;
 
 	protected virtual void OnApplicationQuit()
 	{
@@ -21,58 +19,43 @@ public abstract class MonoStaticInstance<T> : MonoBehaviour
 }
 
 /// <summary>
-/// A standard singleton that destroys any new instances if one already exists.
+/// A Singleton that will destroy any existing instances and replace it with a new instance
 /// </summary>
 public abstract class MonoSingleton<T> : MonoStaticInstance<T>
 	where T : MonoBehaviour
 {
-	protected override void Awake()
+	protected sealed override void Awake()
 	{
 		if (Instance != null)
 		{
 			Destroy(gameObject);
 			return;
 		}
-
 		base.Awake();
+		OnInitialized();
 	}
+
+	/// <summary>
+	/// Called only on the real singleton instance, never on duplicates
+	/// Override this instead of Awake() in subclasses
+	/// </summary>
+	protected virtual void OnInitialized() { }
+
+	/// <summary>
+	/// True only for the real singleton instance, not for duplicates being destroyed
+	/// </summary>
+	protected bool IsActiveInstance => Instance != null && Instance == this;
 }
 
 /// <summary>
-/// A persistent singleton that survives scene loads.
+/// A Singleton that does not get destroyed on scene loads
 /// </summary>
-public abstract class PersistentMonoSingleton<T> : MonoSingleton<T>
+public abstract class MonoPersistentSingleton<T> : MonoSingleton<T>
 	where T : MonoBehaviour
 {
-	protected override void Awake()
+	protected override void OnInitialized()
 	{
-		base.Awake();
+		transform.SetParent(null);
 		DontDestroyOnLoad(gameObject);
-	}
-}
-
-/// <summary>
-/// A standard C# Singleton.
-/// </summary>
-public abstract class Singleton<T>
-	where T : class
-{
-	private static T _instance;
-
-	// ReSharper disable once StaticMemberInGenericType
-	// We want seperate locks for each singleton
-	private static readonly object PadLock = new();
-
-	public static T Instance
-	{
-		get
-		{
-			lock (PadLock)
-			{
-				_instance ??= (T)System.Activator.CreateInstance(typeof(T), true);
-
-				return _instance;
-			}
-		}
 	}
 }

@@ -21,6 +21,10 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 		Game,
 	}
 
+	// A small non-zero value to prevent FMOD from virtualizing events when volume is zero.
+	// This ensures the audio visualizer keeps receiving spectrum data.
+	private const float MinVcaVolume = 0.0001f;
+
 	[SerializeField]
 	private bool _initVisualization = true;
 
@@ -39,16 +43,9 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	private VCA _ambientVca;
 	private VCA _gameVca;
 
-	private List<EventInstance> _eventInstances;
+	private List<EventInstance> _eventInstances = new();
 	private EventReference _currentMusicReference;
 	private int _channelsInitialized;
-
-	// A small non-zero value to prevent FMOD from virtualizing events when volume is zero,
-	// ensures the audio visualizer keeps receiving spectrum data.
-	private const float MinVcaVolume = 0.0001f;
-
-	// Events
-	public static event Action<string> OnTimelineMarkerHit;
 
 	// Music Instances
 	private EventInstance _musicTrack;
@@ -72,11 +69,9 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 
 	#region Lifecycle
 
-	protected override void Awake()
+	protected override void OnInitialized()
 	{
-		base.Awake();
-
-		_eventInstances = new List<EventInstance>();
+		base.OnInitialized();
 
 		// Get Bus Names
 		TryGetBus("bus:/", out _masterBus);
@@ -114,6 +109,11 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 
 	private void OnDestroy()
 	{
+		if (!IsActiveInstance)
+		{
+			return;
+		}
+
 		CleanUp();
 		SaveAudioPref();
 	}
@@ -213,9 +213,6 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	public void SwitchMusic(EventReference music, bool playOnSwitch = true)
 	{
 		SwitchTrack(music, ref _currentMusicReference, ref _musicTrack, _musicTrackInstances);
-
-		_musicTrack.setCallback(MarkerCallback, EVENT_CALLBACK_TYPE.TIMELINE_MARKER);
-
 		if (playOnSwitch)
 		{
 			ResumeMusic();
@@ -256,9 +253,6 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	public void SwitchAmbience(EventReference ambience, bool playOnSwitch = true)
 	{
 		SwitchTrack(ambience, ref _ambientReference, ref _ambientTrack, _ambientTrackInstances);
-
-		_ambientTrack.setCallback(MarkerCallback, EVENT_CALLBACK_TYPE.TIMELINE_MARKER);
-
 		if (playOnSwitch)
 		{
 			ResumeAmbience();
@@ -418,9 +412,9 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	/// <summary>
 	/// Free up an event instance sound
 	/// </summary>
-	public void DestroyInstance(EventInstance instance)
+	public void DestroyInstance(EventInstance instance, bool allowFadeOut = true)
 	{
-		instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+		instance.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
 		instance.release();
 		_eventInstances.Remove(instance);
 	}
@@ -443,30 +437,24 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	/// </summary>
 	public void PlayInstance(EventInstance instance)
 	{
-		instance.getPaused(out bool isPaused);
+		// If the track is playing, do nothing
 		instance.getPlaybackState(out PLAYBACK_STATE state);
+		if (state == PLAYBACK_STATE.PLAYING)
+		{
+			return;
+		}
 
 		// If the track is paused, unpause it
+		instance.getPaused(out bool isPaused);
 		if (isPaused)
 		{
-			// Unpause the Core API channel group for instant resume, bypassing Studio async queue
-			if (instance.getChannelGroup(out ChannelGroup channelGroup) == RESULT.OK && channelGroup.hasHandle())
-			{
-				channelGroup.setPaused(false);
-			}
-
 			instance.setPaused(false);
-			return;
 		}
-
-		// If it's already playing, do nothing
-		if (state == PLAYBACK_STATE.PLAYING || state == PLAYBACK_STATE.STARTING)
+		// If the track was never played, start it
+		else
 		{
-			return;
+			instance.start();
 		}
-
-		// Otherwise, start the track
-		instance.start();
 	}
 
 	/// <summary>
@@ -475,12 +463,6 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	/// <param name="instance">The event instance sound</param>
 	public void PauseInstance(EventInstance instance)
 	{
-		// Pause the Core API channel group for instant pause, bypassing Studio async queue
-		if (instance.getChannelGroup(out ChannelGroup channelGroup) == RESULT.OK && channelGroup.hasHandle())
-		{
-			channelGroup.setPaused(true);
-		}
-
 		instance.setPaused(true);
 	}
 
@@ -511,25 +493,6 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	public void SetInstancePitch(EventInstance instance, float pitch)
 	{
 		instance.setPitch(pitch);
-	}
-
-	#endregion
-
-	#region Callbacks
-
-	// FMOD is written in c++ so this attribute is needed for webgl builds where
-	// the translation from c# to c++ can't be performed during runtime
-	[AOT.MonoPInvokeCallback(typeof(EVENT_CALLBACK))]
-	private static RESULT MarkerCallback(EVENT_CALLBACK_TYPE type, IntPtr instancePtr, IntPtr parameterPtr)
-	{
-		if (type == EVENT_CALLBACK_TYPE.TIMELINE_MARKER)
-		{
-			var parameter = (TIMELINE_MARKER_PROPERTIES)
-				Marshal.PtrToStructure(parameterPtr, typeof(TIMELINE_MARKER_PROPERTIES));
-			string markerName = parameter.name;
-			OnTimelineMarkerHit?.Invoke(markerName);
-		}
-		return RESULT.OK;
 	}
 
 	#endregion
@@ -792,15 +755,16 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	/// <param name="frequencyPeaks">An array of frequency peaks</param>
 	/// <param name="audioBusType">The audio bus type (Master, Music, Ambience, Game)</param>
 	/// <param name="scaleFactor">The scale factor that every frequency peak will be multiplied by</param>
-	/// <param name="higherFrequencyBoost">The frequency boost to the higher frequencies, a small value</param>
+	/// <param name="minPeak">The minimum peak</param>
+	/// <param name="higherFrequencyBoost">The frequency boost to the higher frequencies, a small value (~0.05)</param>
 	/// <param name="spectrumCutoff">The cutoff frequency for the spectrum data, cuts off the high frequencies</param>
-	/// <param name="spectrumLowCutoff">The cutoff frequency for the spectrum data, cuts off the low frequencies</param>
 	public bool GetFrequencyPeaks(
 		int numBuckets,
 		ref float[] frequencyPeaks,
 		ref int[] bucketSizes,
 		AudioBusType audioBusType = AudioBusType.Master,
 		float scaleFactor = 5f,
+		float minPeak = 0f,
 		float higherFrequencyBoost = 0.05f,
 		float spectrumCutoff = 0.75f
 	)
@@ -839,7 +803,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 			float frequencyBoost = 1.0f + (startIndex * higherFrequencyBoost);
 			float compressedPeak = Mathf.Sqrt(peakValue);
 
-			frequencyPeaks[i] = compressedPeak * frequencyBoost * scaleFactor;
+			frequencyPeaks[i] = (compressedPeak * frequencyBoost * scaleFactor) + minPeak;
 		}
 
 		return true;
@@ -862,8 +826,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 		for (int i = 1; i < numBuckets + 1; i++)
 		{
 			float t = (float)i / numBuckets;
-			int calculated = (int)(spectrumSize * Mathf.Pow(t, exponent)) + 1;
-			bucketSizes[i] = Mathf.Max(calculated, bucketSizes[i - 1] + 1);
+			bucketSizes[i] = (int)(spectrumSize * Mathf.Pow(t, exponent)) + 1;
 		}
 
 		return bucketSizes;

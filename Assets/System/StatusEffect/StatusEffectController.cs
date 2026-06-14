@@ -10,10 +10,10 @@ public class StatusEffectController : MonoBehaviour
 {
 	[Header("References")]
 	[SerializeField]
-	private HealthController _healthManager;
+	private Damageable _damageable;
 
 	[SerializeField]
-	private StatusEffectDictionary _statusEffectDictionary;
+	private StatsController _statsController;
 
 	[Header("Status Effects")]
 	[Tooltip("How often to check for status effect updates")]
@@ -49,36 +49,98 @@ public class StatusEffectController : MonoBehaviour
 
 	// Private Variables
 
-	private readonly Dictionary<Effect, StatusEffect> _enabledEffects = new();
-	private readonly Dictionary<Effect, StatusEffect> _statusEffectCachedDict = new();
+	private readonly Dictionary<StatusEffectSO, StatusEffect> _enabledEffects = new();
 	private float _intervalTimer;
+	private StatsState Stats => _statsController != null ? _statsController.Stats : null;
+
+	#region Unity Methods
+
+	private void OnEnable()
+	{
+		_damageable.OnDeath += CancelAllStatusEffects;
+	}
+
+	private void OnDisable()
+	{
+		if (_damageable != null)
+		{
+			_damageable.OnDeath -= CancelAllStatusEffects;
+		}
+	}
+
+	private void Update()
+	{
+		_intervalTimer += Time.deltaTime;
+		if (_intervalTimer >= _updateInterval)
+		{
+			UpdateStatusEffects(_intervalTimer);
+			_intervalTimer %= _updateInterval;
+		}
+	}
+
+	private void OnDestroy()
+	{
+		CancelAllStatusEffects();
+	}
+
+	#endregion
 
 	#region Public API
 
-	// Apply status effects when called
-	public void ApplyStatusEffect(Effect statusEffect, float buildUp = 1f)
+	/// <summary>
+	/// Applies status effect to the target
+	/// </summary>
+	/// <param name="statusEffectSO">The status effect to apply</param>
+	/// <param name="buildUp">The amount of build up to apply, status effect triggers when it reaches 1</param>
+	public void ApplyStatusEffect(StatusEffectSO statusEffectSO, float buildUp = 1f, GameObject source = null)
 	{
-		if (statusEffect == Effect.None || !_healthManager.IsAlive)
+		if (statusEffectSO == null || !_damageable.Health.IsAlive)
 		{
 			return;
 		}
 
-		EnableStatusEffect(statusEffect);
+		EnableStatusEffect(statusEffectSO);
 
-		OnStatusEffectApply?.Invoke(
-			_statusEffectCachedDict[statusEffect],
-			_statusEffectCachedDict[statusEffect].GetBuildUpNormalized()
-		);
+		StatusEffect statusEffectInstance = _enabledEffects[statusEffectSO];
 
-		// Checks if the effect was activated this build up frame
-		if (_statusEffectCachedDict[statusEffect].ApplyBuildUp(buildUp, _healthManager, gameObject))
+		OnStatusEffectApply?.Invoke(statusEffectInstance, statusEffectInstance.GetBuildUpNormalized());
+
+		if (statusEffectInstance.ApplyBuildUp(buildUp, _damageable, Stats, source, gameObject))
 		{
-			OnStatusEffectActivate?.Invoke(
-				_statusEffectCachedDict[statusEffect],
-				_statusEffectCachedDict[statusEffect].GetRemainingDurationNormalized()
-			);
-			CheckForCombos(statusEffect);
+			OnStatusEffectActivate?.Invoke(statusEffectInstance, statusEffectInstance.GetRemainingDurationNormalized());
+			CheckForCombos(statusEffectSO);
 		}
+	}
+
+	/// <summary>
+	/// Cancels a status effect on the target
+	/// </summary>
+	/// <param name="statusEffectSO">The status effect to cancel</param>
+	public void CancelStatusEffect(StatusEffectSO statusEffectSO)
+	{
+		// If the current status effect is not enabled, return
+		if (!_enabledEffects.TryGetValue(statusEffectSO, out StatusEffect statusEffectInstance))
+		{
+			return;
+		}
+
+		statusEffectInstance.CancelEffect(Stats);
+		OnStatusEffectEnd?.Invoke(statusEffectInstance);
+		_enabledEffects.Remove(statusEffectSO);
+	}
+
+	/// <summary>
+	/// Cancels all status effects on the target
+	/// </summary>
+	public void CancelAllStatusEffects()
+	{
+		KeyValuePair<StatusEffectSO, StatusEffect>[] enabledStatusEffects = _enabledEffects.ToArray();
+		foreach (KeyValuePair<StatusEffectSO, StatusEffect> effect in enabledStatusEffects)
+		{
+			effect.Value.CancelEffect(Stats);
+			OnStatusEffectEnd?.Invoke(effect.Value);
+		}
+		_enabledEffects.Clear();
 	}
 
 	#endregion
@@ -86,10 +148,10 @@ public class StatusEffectController : MonoBehaviour
 	#region Combo System
 
 	// Checks for potential combos for one status effect
-	private void CheckForCombos(Effect statusEffect)
+	private void CheckForCombos(StatusEffectSO statusEffectSO)
 	{
 		// If the current status effect is not enabled, return
-		if (!_enabledEffects.TryGetValue(statusEffect, out StatusEffect statusEffectInstance))
+		if (!_enabledEffects.TryGetValue(statusEffectSO, out StatusEffect statusEffectInstance))
 		{
 			return;
 		}
@@ -105,34 +167,16 @@ public class StatusEffectController : MonoBehaviour
 			return;
 		}
 
-		Effect statusEffectTarget = potentialCombos[0].Key; // Take the first potential combo from the list
-		Effect statusEffectResult = statusEffectInstance.Data.GetComboResult(statusEffectTarget);
+		StatusEffectSO statusEffectTarget = potentialCombos[0].Key; // Take the first potential combo from the list
+		StatusEffectSO statusEffectResult = statusEffectInstance.Data.GetCombo(statusEffectTarget);
+
 		if (_deleteComboStatuses)
 		{
-			Tween.Delay(_deleteComboStatusesDelay, () => CancelStatusEffect(statusEffect));
+			Tween.Delay(_deleteComboStatusesDelay, () => CancelStatusEffect(statusEffectSO));
 			Tween.Delay(_deleteComboStatusesDelay, () => CancelStatusEffect(statusEffectTarget));
 		}
 
-		ApplyStatusEffect(statusEffectResult);
-	}
-
-	#endregion
-
-	#region Unity Methods
-
-	private void Start()
-	{
-		_healthManager.OnDeath.AddListener(CancelAllStatusEffects);
-	}
-
-	private void Update()
-	{
-		_intervalTimer += Time.deltaTime;
-		if (_intervalTimer >= _updateInterval)
-		{
-			UpdateStatusEffects(_intervalTimer);
-			_intervalTimer %= _updateInterval;
-		}
+		ApplyStatusEffect(statusEffectResult, 1f, statusEffectInstance.Source);
 	}
 
 	#endregion
@@ -140,34 +184,22 @@ public class StatusEffectController : MonoBehaviour
 	#region Internal Logic
 
 	// Adds the status effect to the enable effects dictionary and caches it if needed
-	private void EnableStatusEffect(Effect statusEffect)
+	private void EnableStatusEffect(StatusEffectSO statusEffectSO)
 	{
-		if (!_enabledEffects.ContainsKey(statusEffect))
+		if (!_enabledEffects.ContainsKey(statusEffectSO))
 		{
-			// Cache the status effect if It's not already cached
-			if (!_statusEffectCachedDict.ContainsKey(statusEffect))
-			{
-				if (_statusEffectDictionary.EffectDictionary.TryGetValue(statusEffect, out StatusEffectSO value))
-				{
-					_statusEffectCachedDict[statusEffect] = new StatusEffect(value);
-				}
-				else
-				{
-					Debug.LogWarning($"Status Effect: {statusEffect.ToString()} Not Cached");
-				}
-			}
-
-			_enabledEffects[statusEffect] = _statusEffectCachedDict[statusEffect];
+			_enabledEffects[statusEffectSO] = statusEffectSO.CreateInstance();
 		}
 	}
 
 	// Updates the states of the status effects
 	private void UpdateStatusEffects(float deltaTime)
 	{
-		foreach (KeyValuePair<Effect, StatusEffect> statusEffectEntry in _enabledEffects)
+		foreach (KeyValuePair<StatusEffectSO, StatusEffect> statusEffectEntry in _enabledEffects)
 		{
 			StatusEffect statusEffect = statusEffectEntry.Value;
-			bool statusEffectTicked = statusEffect.UpdateEffect(deltaTime, _healthManager, gameObject);
+			bool statusEffectTicked = statusEffect.UpdateEffect(deltaTime, _damageable, Stats, gameObject);
+
 			if (statusEffect.IsActive)
 			{
 				OnStatusEffectUpdate?.Invoke(statusEffect, statusEffect.GetRemainingDurationNormalized());
@@ -185,44 +217,21 @@ public class StatusEffectController : MonoBehaviour
 		}
 
 		// If the status effect is not active and has no build up, remove it
-		KeyValuePair<Effect, StatusEffect>[] expiredStatusEffects = _enabledEffects
+		KeyValuePair<StatusEffectSO, StatusEffect>[] expiredStatusEffects = _enabledEffects
 			.Where(statusEffect => !statusEffect.Value.IsApplied)
 			.ToArray();
-		foreach (KeyValuePair<Effect, StatusEffect> statusEffect in expiredStatusEffects)
+
+		foreach (KeyValuePair<StatusEffectSO, StatusEffect> statusEffect in expiredStatusEffects)
 		{
 			RemoveStatusEffect(statusEffect.Key);
 		}
 	}
 
 	// Removes the status effect from the enabled effects dictionary
-	private void RemoveStatusEffect(Effect statusEffect)
+	private void RemoveStatusEffect(StatusEffectSO statusEffectSO)
 	{
-		OnStatusEffectEnd?.Invoke(_enabledEffects[statusEffect]);
-		_enabledEffects.Remove(statusEffect);
-	}
-
-	// Cancels the status effect
-	private void CancelStatusEffect(Effect statusEffect)
-	{
-		// If the current status effect is not enabled, return
-		if (!_enabledEffects.TryGetValue(statusEffect, out StatusEffect statusEffectInstance))
-		{
-			return;
-		}
-
-		statusEffectInstance.CancelEffect();
-		OnStatusEffectEnd?.Invoke(_enabledEffects[statusEffect]);
-	}
-
-	// Removes all status effects
-	private void CancelAllStatusEffects()
-	{
-		KeyValuePair<Effect, StatusEffect>[] enabledStatusEffects = _enabledEffects.Where(_ => true).ToArray();
-		foreach (KeyValuePair<Effect, StatusEffect> effect in enabledStatusEffects)
-		{
-			effect.Value.CancelEffect();
-			OnStatusEffectEnd?.Invoke(_enabledEffects[effect.Key]);
-		}
+		OnStatusEffectEnd?.Invoke(_enabledEffects[statusEffectSO]);
+		_enabledEffects.Remove(statusEffectSO);
 	}
 
 	#endregion
