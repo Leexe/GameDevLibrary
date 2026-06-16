@@ -118,58 +118,30 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 
 	private void SubscribeEvents()
 	{
-		if (_continueStoryAction != null)
-			_continueStoryAction.performed += HandleContinueStory;
-		if (_escapeAction != null)
-			_escapeAction.performed += HandleEscape;
-		if (_backlogAction != null)
-			_backlogAction.performed += HandleBacklog;
-		if (_jumpAction != null)
-			_jumpAction.performed += HandleJump;
-		if (_dashAction != null)
-			_dashAction.performed += HandleDash;
-		if (_shootAction != null)
-		{
-			_shootAction.performed += HandleShootPerformed;
-			_shootAction.canceled += HandleShootReleased;
-		}
-		if (_reloadAction != null)
-			_reloadAction.performed += HandleReload;
-		if (_crouchAction != null)
-		{
-			_crouchAction.performed += HandleCrouchPerformed;
-			_crouchAction.canceled += HandleCrouchReleased;
-		}
-		if (_changeGun != null)
-			_changeGun.performed += HandleChangeGun;
+		_continueStoryAction.performed += HandleContinueStory;
+		_escapeAction.performed += HandleEscape;
+		_backlogAction.performed += HandleBacklog;
+		_jumpAction.performed += HandleJump;
+		_dashAction.performed += HandleDash;
+		_shootAction.performed += HandleShootPerformed;
+		_shootAction.canceled += HandleShootReleased;
+		_reloadAction.performed += HandleReload;
+		_crouchAction.performed += HandleCrouchPerformed;
+		_crouchAction.canceled += HandleCrouchReleased;
 	}
 
 	private void UnsubscribeEvents()
 	{
-		if (_continueStoryAction != null)
-			_continueStoryAction.performed -= HandleContinueStory;
-		if (_escapeAction != null)
-			_escapeAction.performed -= HandleEscape;
-		if (_backlogAction != null)
-			_backlogAction.performed -= HandleBacklog;
-		if (_jumpAction != null)
-			_jumpAction.performed -= HandleJump;
-		if (_dashAction != null)
-			_dashAction.performed -= HandleDash;
-		if (_shootAction != null)
-		{
-			_shootAction.performed -= HandleShootPerformed;
-			_shootAction.canceled -= HandleShootReleased;
-		}
-		if (_reloadAction != null)
-			_reloadAction.performed -= HandleReload;
-		if (_crouchAction != null)
-		{
-			_crouchAction.performed -= HandleCrouchPerformed;
-			_crouchAction.canceled -= HandleCrouchReleased;
-		}
-		if (_changeGun != null)
-			_changeGun.performed -= HandleChangeGun;
+		_continueStoryAction.performed -= HandleContinueStory;
+		_escapeAction.performed -= HandleEscape;
+		_backlogAction.performed -= HandleBacklog;
+		_jumpAction.performed -= HandleJump;
+		_dashAction.performed -= HandleDash;
+		_shootAction.performed -= HandleShootPerformed;
+		_shootAction.canceled -= HandleShootReleased;
+		_reloadAction.performed -= HandleReload;
+		_crouchAction.performed -= HandleCrouchPerformed;
+		_crouchAction.canceled -= HandleCrouchReleased;
 	}
 
 	/** Update Methods **/
