@@ -7,16 +7,18 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	// Action Maps
 	private const string PlayerActionMap = "Player";
 	private const string VisualNovelActionMap = "VisualNovel";
-
 	private const string UIActionMap = "UI";
 
 	// References
+	[Tooltip("The Input Action Asset containing all player and UI actions.")]
 	public InputActionAsset InputActions;
 
 	// Events
+	[Header("Continuous Events (Updated Every Frame)")]
 	[HideInInspector]
 	public UnityEvent<Vector2> OnMovement;
 
+	[Header("Discrete Events (Fired on Press/Release)")]
 	[HideInInspector]
 	public UnityEvent OnJumpPerformed;
 
@@ -62,36 +64,42 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	private InputAction _escapeAction;
 	private InputAction _jumpAction;
 	private InputAction _movementAction;
-	private InputActionMap _playerActionMap;
 	private InputAction _reloadAction;
 	private InputAction _shootAction;
-	private InputActionMap _uiActionMap;
 
 	/** Start Methods **/
 	protected override void OnInitialized()
 	{
 		base.OnInitialized();
-		EnableUIInput();
-		SetupInputActions();
-	}
 
-	/** Update Methods **/
-	private void Update()
-	{
-		UpdateInputs();
-		CheckAnyInput();
+		if (InputActions == null)
+		{
+			Debug.LogError("InputManager: InputActions asset is not assigned!");
+			return;
+		}
+
+		SetupInputActions();
+		EnableUIInput();
 	}
 
 	private void OnEnable()
 	{
-		EnablePlayerInput();
-		EnableVisualNovelInput();
+		if (InputActions != null)
+		{
+			EnablePlayerInput();
+			EnableVisualNovelInput();
+			SubscribeEvents();
+		}
 	}
 
 	private void OnDisable()
 	{
+		if (!IsActiveInstance || InputActions == null)
+			return;
+
 		DisablePlayerInput();
 		DisableVisualNovelInput();
+		UnsubscribeEvents();
 	}
 
 	private void SetupInputActions()
@@ -108,23 +116,79 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		_changeGun = InputActions.FindAction("ChangeGun");
 	}
 
-	private void UpdateInputs()
+	private void SubscribeEvents()
 	{
-		UpdateMovementVector(_movementAction, ref OnMovement);
+		if (_continueStoryAction != null)
+			_continueStoryAction.performed += HandleContinueStory;
+		if (_escapeAction != null)
+			_escapeAction.performed += HandleEscape;
+		if (_backlogAction != null)
+			_backlogAction.performed += HandleBacklog;
+		if (_jumpAction != null)
+			_jumpAction.performed += HandleJump;
+		if (_dashAction != null)
+			_dashAction.performed += HandleDash;
+		if (_shootAction != null)
+		{
+			_shootAction.performed += HandleShootPerformed;
+			_shootAction.canceled += HandleShootReleased;
+		}
+		if (_reloadAction != null)
+			_reloadAction.performed += HandleReload;
+		if (_crouchAction != null)
+		{
+			_crouchAction.performed += HandleCrouchPerformed;
+			_crouchAction.canceled += HandleCrouchReleased;
+		}
+		if (_changeGun != null)
+			_changeGun.performed += HandleChangeGun;
+	}
 
-		AddEventToAction(_continueStoryAction, ref OnContinueStoryPerformed);
-		AddEventToAction(_escapeAction, ref OnEscapePerformed);
-		AddEventToAction(_backlogAction, ref OnBacklogPerformed);
+	private void UnsubscribeEvents()
+	{
+		if (_continueStoryAction != null)
+			_continueStoryAction.performed -= HandleContinueStory;
+		if (_escapeAction != null)
+			_escapeAction.performed -= HandleEscape;
+		if (_backlogAction != null)
+			_backlogAction.performed -= HandleBacklog;
+		if (_jumpAction != null)
+			_jumpAction.performed -= HandleJump;
+		if (_dashAction != null)
+			_dashAction.performed -= HandleDash;
+		if (_shootAction != null)
+		{
+			_shootAction.performed -= HandleShootPerformed;
+			_shootAction.canceled -= HandleShootReleased;
+		}
+		if (_reloadAction != null)
+			_reloadAction.performed -= HandleReload;
+		if (_crouchAction != null)
+		{
+			_crouchAction.performed -= HandleCrouchPerformed;
+			_crouchAction.canceled -= HandleCrouchReleased;
+		}
+		if (_changeGun != null)
+			_changeGun.performed -= HandleChangeGun;
+	}
 
-		AddEventToAction(_jumpAction, ref OnJumpPerformed);
-		AddEventToAction(_dashAction, ref OnDashPerformed);
-		AddEventToAction(_shootAction, ref OnShootingPerformed);
-		AddEventToAction(_reloadAction, ref OnReloadPerformed);
-		AddEventToAction(_crouchAction, ref OnCrouchPerformed);
-		AddEventToAction(_changeGun, ref OnChangeGun);
+	/** Update Methods **/
+	private void Update()
+	{
+		if (InputActions == null)
+			return;
 
-		AddEventToActionRelease(_shootAction, ref OnShootingReleased);
-		AddEventToActionRelease(_crouchAction, ref OnCrouchRelease);
+		UpdateContinuousInputs();
+		CheckAnyInput();
+	}
+
+	private void UpdateContinuousInputs()
+	{
+		if (_movementAction != null)
+		{
+			Vector3 readVector = _movementAction.ReadValue<Vector3>();
+			OnMovement?.Invoke(new Vector2(readVector.x, readVector.z));
+		}
 	}
 
 	/// <summary>
@@ -151,62 +215,35 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		}
 	}
 
-	/// <summary>
-	/// Updates a Vector3 variable depending on a movement input action
-	/// </summary>
-	/// <param name="inputAction">Input action was pressed</param>
-	/// <param name="unityEvent">Unity Event To Trigger</param>
-	private void UpdateMovementVector(InputAction inputAction, ref UnityEvent<Vector2> unityEvent)
-	{
-		Vector3 readVector = inputAction.ReadValue<Vector3>();
-		unityEvent?.Invoke(new Vector2(readVector.x, readVector.z));
-	}
+	// Action Event Handlers (Using named methods avoids closure allocations)
+	private void HandleContinueStory(InputAction.CallbackContext context) => OnContinueStoryPerformed?.Invoke();
 
-	/// <summary>
-	/// Checks every update if the input was pressed and calls the unity event
-	/// </summary>
-	/// <param name="inputAction">Input action was pressed</param>
-	/// <param name="unityEvent">Unity Event To Trigger</param>
-	private void AddEventToAction(InputAction inputAction, ref UnityEvent unityEvent)
-	{
-		if (inputAction.WasPressedThisFrame())
-		{
-			unityEvent?.Invoke();
-		}
-	}
+	private void HandleEscape(InputAction.CallbackContext context) => OnEscapePerformed?.Invoke();
 
-	/// <summary>
-	/// Checks every update if the input was held down and calls the unity event
-	/// </summary>
-	/// <param name="inputAction">Input action was pressed</param>
-	/// <param name="unityEvent">Unity Event To Trigger</param>
-	private void AddEventToActionHold(InputAction inputAction, ref UnityEvent unityEvent)
-	{
-		if (inputAction.IsPressed())
-		{
-			unityEvent?.Invoke();
-		}
-	}
+	private void HandleBacklog(InputAction.CallbackContext context) => OnBacklogPerformed?.Invoke();
 
-	/// <summary>
-	/// Checks every update if the input was released and calls the unity event
-	/// </summary>
-	/// <param name="inputAction">Input action was pressed</param>
-	/// <param name="unityEvent">Unity Event To Trigger</param>
-	private void AddEventToActionRelease(InputAction inputAction, ref UnityEvent unityEvent)
-	{
-		if (inputAction.WasReleasedThisFrame())
-		{
-			unityEvent?.Invoke();
-		}
-	}
+	private void HandleJump(InputAction.CallbackContext context) => OnJumpPerformed?.Invoke();
+
+	private void HandleDash(InputAction.CallbackContext context) => OnDashPerformed?.Invoke();
+
+	private void HandleShootPerformed(InputAction.CallbackContext context) => OnShootingPerformed?.Invoke();
+
+	private void HandleShootReleased(InputAction.CallbackContext context) => OnShootingReleased?.Invoke();
+
+	private void HandleReload(InputAction.CallbackContext context) => OnReloadPerformed?.Invoke();
+
+	private void HandleCrouchPerformed(InputAction.CallbackContext context) => OnCrouchPerformed?.Invoke();
+
+	private void HandleCrouchReleased(InputAction.CallbackContext context) => OnCrouchRelease?.Invoke();
+
+	private void HandleChangeGun(InputAction.CallbackContext context) => OnChangeGun?.Invoke();
 
 	/// <summary>
 	/// Enable Player Input
 	/// </summary>
 	public void EnablePlayerInput()
 	{
-		InputActions.FindActionMap(PlayerActionMap).Enable();
+		InputActions?.FindActionMap(PlayerActionMap)?.Enable();
 	}
 
 	/// <summary>
@@ -214,7 +251,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	/// </summary>
 	public void DisablePlayerInput()
 	{
-		InputActions.FindActionMap(PlayerActionMap).Disable();
+		InputActions?.FindActionMap(PlayerActionMap)?.Disable();
 	}
 
 	/// <summary>
@@ -222,7 +259,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	/// </summary>
 	public void EnableUIInput()
 	{
-		InputActions.FindActionMap(UIActionMap).Enable();
+		InputActions?.FindActionMap(UIActionMap)?.Enable();
 	}
 
 	/// <summary>
@@ -230,7 +267,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	/// </summary>
 	public void DisableUIInput()
 	{
-		InputActions.FindActionMap(UIActionMap).Disable();
+		InputActions?.FindActionMap(UIActionMap)?.Disable();
 	}
 
 	/// <summary>
@@ -238,7 +275,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	/// </summary>
 	public void EnableVisualNovelInput()
 	{
-		InputActions.FindActionMap(VisualNovelActionMap).Enable();
+		InputActions?.FindActionMap(VisualNovelActionMap)?.Enable();
 	}
 
 	/// <summary>
@@ -246,6 +283,6 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	/// </summary>
 	public void DisableVisualNovelInput()
 	{
-		InputActions.FindActionMap(VisualNovelActionMap).Disable();
+		InputActions?.FindActionMap(VisualNovelActionMap)?.Disable();
 	}
 }
