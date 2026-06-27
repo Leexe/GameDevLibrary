@@ -33,6 +33,6 @@ public class DialogueChoiceBox : MonoBehaviour
 			AudioManager.Instance.PlayOneShot(_clickSfx);
 		}
 
-		_dialogueController.DialogueState.UpdateChoiceSelected(_choiceIndex);
+		_dialogueController.DialogueState.OnChoiceSelect?.Invoke(_choiceIndex);
 	}
 }

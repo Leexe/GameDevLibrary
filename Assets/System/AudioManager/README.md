@@ -1,4 +1,7 @@
-# Audio Manager v1.2
+# Audio Manager v1.3
+
+## v1.3
+- Changed ambience to be a dictionary style, where multiple ambiences can be instantiated and queried using keys
 
 ## v1.2
 - Added event that triggers on timeline marker hit

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
 
-public class VisualEffectsManager : Singleton<VisualEffectsManager>
+public class VisualEffectsManager : MonoSingleton<VisualEffectsManager>
 {
 	[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
 	public struct BufferData

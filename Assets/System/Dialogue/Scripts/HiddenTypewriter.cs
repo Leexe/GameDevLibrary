@@ -15,8 +15,6 @@ public class HiddenTypewriter : MonoBehaviour
 	{
 		_dialogueState = _dialogueController.DialogueState;
 		_dialogueState.OnDisplayDialogue += ChangeStoryText;
-		_dialogueState.OnPause += PauseTypewriter;
-		_dialogueState.OnUnpause += ResumeTypewriter;
 	}
 
 	private void OnDisable()
@@ -24,23 +22,11 @@ public class HiddenTypewriter : MonoBehaviour
 		if (_dialogueState != null)
 		{
 			_dialogueState.OnDisplayDialogue -= ChangeStoryText;
-			_dialogueState.OnPause -= PauseTypewriter;
-			_dialogueState.OnUnpause -= ResumeTypewriter;
 		}
 	}
 
 	private void ChangeStoryText(string characterName, string line)
 	{
 		_hiddenTypewriter.ShowText(line);
-	}
-
-	private void PauseTypewriter()
-	{
-		_hiddenTypewriter.SetTypewriterSpeed(0f);
-	}
-
-	private void ResumeTypewriter()
-	{
-		_hiddenTypewriter.SetTypewriterSpeed(1f);
 	}
 }

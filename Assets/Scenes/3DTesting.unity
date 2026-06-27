@@ -466,6 +466,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7666762690099316146, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 7666762690099316146, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
     - target: {fileID: 7848860422320989564, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -737,6 +741,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7985643357156547483, guid: 6a91b06c16a424269ad920f8cd63a9fc, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 7985643357156547483, guid: 6a91b06c16a424269ad920f8cd63a9fc, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -860,6 +868,7 @@ GameObject:
   - component: {fileID: 748385072}
   - component: {fileID: 748385074}
   - component: {fileID: 748385073}
+  - component: {fileID: 748385075}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -1147,7 +1156,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _bulletSpreadAdd: 0.8
-  _statusEffect: 1
+  _statusEffects: []
   _statusEffectBuildUp: 0.1
   _raycastDistance: 100
   _enemyLayerMask:
@@ -1206,8 +1215,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7bcea11e8ce5214d8cf849e78284635, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectManager
-  _healthManager: {fileID: 748385073}
-  _statusEffectDictionary: {fileID: 11400000, guid: c8b4deeac3fc3496e8437e9f676a39e4, type: 2}
+  _healthController: {fileID: 748385073}
+  _statsController: {fileID: 748385075}
   _updateInterval: 0.05
   _deleteComboStatuses: 1
   _deleteComboStatusesDelay: 0.3
@@ -1226,6 +1235,53 @@ MonoBehaviour:
   OnStatusEffectEnd:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &748385075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748385066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e22620c7e458649019497d7e11d67bdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatsController
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: _baseStats
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[Stats.StatType, Assembly-CSharp],[System.Single,
+        mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[Stats.StatType,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1534,6 +1590,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7666762690099316146, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 7666762690099316146, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
     - target: {fileID: 7848860422320989564, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1651,6 +1711,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4209121169465835826, guid: 60c86fe6f35aa4af488742b834381bb7, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 4209121169465835826, guid: 60c86fe6f35aa4af488742b834381bb7, type: 3}
+    - target: {fileID: 5182606521294095668, guid: 60c86fe6f35aa4af488742b834381bb7, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 5182606521294095668, guid: 60c86fe6f35aa4af488742b834381bb7, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1904,6 +1972,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bd27339cf3ca4593ad26666591ebd64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: ShootingEventsRef
+      Entry: 7
+      Data: 0|ShootingEvents, Assembly-CSharp
+    - Name: OnShootGun
+      Entry: 6
+      Data: 
+    - Name: OnStartGunReload
+      Entry: 6
+      Data: 
+    - Name: OnEndGunReload
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
 --- !u!4 &1294196521
 Transform:
   m_ObjectHideFlags: 0
@@ -2565,6 +2657,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36f21d94e9e44d64682b87e0220e2e09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraManager
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   MainCameraGameObject: {fileID: 330585543}
   _cinemachine: {fileID: 1514091683}
   _defaultCameraSensitivity: 1.125
@@ -2735,6 +2836,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7666762690099316146, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
+      propertyPath: serializationData.Prefab
+      value: 
+      objectReference: {fileID: 7666762690099316146, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
     - target: {fileID: 7848860422320989564, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2781,18 +2886,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8352789065430238566, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
-      propertyPath: _enableEventChannel
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
-      propertyPath: _toggleRegeneration
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8689929418496238573, guid: 43f92e39362544ea9a950b848b92e68a, type: 3}
-      propertyPath: _toggleInvincibilityFrames
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

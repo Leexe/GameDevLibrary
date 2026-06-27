@@ -8,9 +8,38 @@ using FMODUnity;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
+using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 public class AudioManager : PersistentMonoSingleton<AudioManager>
 {
+	#region Snapshots
+
+	/// <summary>
+	///     Sets the state of a snapshot
+	/// </summary>
+	/// <param name="snapshot">The snapshot reference</param>
+	/// <param name="isActive">Whether the snapshot is active or not</param>
+	public void SetSnapshotState(EventReference snapshot, bool isActive)
+	{
+		if (!_activeSnapshots.ContainsKey(snapshot.Guid))
+		{
+			EventInstance instance = CreateInstance(snapshot);
+			_activeSnapshots[snapshot.Guid] = instance;
+		}
+
+		EventInstance activeSnapshot = _activeSnapshots[snapshot.Guid];
+		if (isActive)
+		{
+			activeSnapshot.start();
+		}
+		else
+		{
+			activeSnapshot.stop(STOP_MODE.ALLOWFADEOUT);
+		}
+	}
+
+	#endregion
+
 	#region Fields
 
 	public enum AudioBusType
@@ -53,9 +82,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	private readonly Dictionary<GUID, EventInstance> _activeSnapshots = new();
 
 	// Ambient Instances
-	private EventInstance _ambientTrack;
-	private EventReference _ambientReference;
-	private readonly Dictionary<GUID, EventInstance> _ambientTrackInstances = new();
+	private readonly Dictionary<string, EventInstance> _activeAmbiences = new();
 
 	// Audio Visualization
 	private readonly Dictionary<AudioBusType, DSP> _fftDsps = new();
@@ -127,7 +154,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Attempts to get an FMOD bus by path, logging a warning if not found
+	///     Attempts to get an FMOD bus by path, logging a warning if not found
 	/// </summary>
 	public bool TryGetBus(string busPath, out Bus bus)
 	{
@@ -145,7 +172,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Attempts to get an FMOD VCA by path, logging a warning if not found
+	///     Attempts to get an FMOD VCA by path, logging a warning if not found
 	/// </summary>
 	public bool TryGetVca(string vcaPath, out VCA vca)
 	{
@@ -163,7 +190,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Cleans up sound events and event emitters
+	///     Cleans up sound events and event emitters
 	/// </summary>
 	private void CleanUp()
 	{
@@ -171,12 +198,12 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 
 		foreach (EventInstance eventInstance in _eventInstances)
 		{
-			eventInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+			eventInstance.stop(STOP_MODE.IMMEDIATE);
 			eventInstance.release();
 		}
 
 		_musicTrackInstances.Clear();
-		_ambientTrackInstances.Clear();
+		_activeAmbiences.Clear();
 	}
 
 	#endregion
@@ -184,7 +211,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	#region Music Control
 
 	/// <summary>
-	/// Play the primary music track
+	///     Play the primary music track
 	/// </summary>
 	public void ResumeMusic()
 	{
@@ -192,7 +219,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Pause the primary music track
+	///     Pause the primary music track
 	/// </summary>
 	public void PauseMusic()
 	{
@@ -200,7 +227,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Stop the primary music track
+	///     Stop the primary music track
 	/// </summary>
 	public void StopMusic(bool fadeOut = true)
 	{
@@ -208,7 +235,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Switches the music track
+	///     Switches the music track
 	/// </summary>
 	public void SwitchMusic(EventReference music, bool playOnSwitch = true)
 	{
@@ -224,43 +251,67 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	#region Ambient Control
 
 	/// <summary>
-	/// Play the primary ambient track
+	///     Play an ambient track by a string id
 	/// </summary>
-	public void ResumeAmbience()
+	public void PlayAmbience(string id, EventReference ambience)
 	{
-		PlayInstance(_ambientTrack);
-	}
-
-	/// <summary>
-	/// Pause the primary ambient track
-	/// </summary>
-	public void PauseAmbience()
-	{
-		PauseInstance(_ambientTrack);
-	}
-
-	/// <summary>
-	/// Stop the primary ambient track
-	/// </summary>
-	public void StopAmbience(bool fadeOut = true)
-	{
-		StopInstance(_ambientTrack, fadeOut);
-	}
-
-	/// <summary>
-	/// Switches the ambient track
-	/// </summary>
-	public void SwitchAmbience(EventReference ambience, bool playOnSwitch = true)
-	{
-		SwitchTrack(ambience, ref _ambientReference, ref _ambientTrack, _ambientTrackInstances);
-		if (playOnSwitch)
+		if (_activeAmbiences.TryGetValue(id, out EventInstance instance))
 		{
-			ResumeAmbience();
+			PlayInstance(instance);
+		}
+		else
+		{
+			EventInstance newInstance = CreateInstance(ambience);
+			_activeAmbiences[id] = newInstance;
+			PlayInstance(newInstance);
 		}
 	}
 
 	/// <summary>
-	/// Generic helper to switch tracks for music or ambience.
+	///     Pause a specific ambient track
+	/// </summary>
+	public void PauseAmbience(string id)
+	{
+		if (_activeAmbiences.TryGetValue(id, out EventInstance instance))
+		{
+			PauseInstance(instance);
+		}
+	}
+
+	/// <summary>
+	///     Stop a specific ambient track
+	/// </summary>
+	public void StopAmbience(string id = "none", bool fadeOut = true)
+	{
+		if (id == "none")
+		{
+			foreach (KeyValuePair<string, EventInstance> keyValuePair in _activeAmbiences)
+			{
+				keyValuePair.Value.stop(STOP_MODE.IMMEDIATE);
+			}
+
+			_activeAmbiences.Clear();
+		}
+
+		if (_activeAmbiences.TryGetValue(id, out EventInstance instance))
+		{
+			StopInstance(instance, fadeOut);
+		}
+	}
+
+	/// <summary>
+	///     Set a parameter for a specific ambient track
+	/// </summary>
+	public void SetAmbienceParameter(string id, string parameterName, float value)
+	{
+		if (_activeAmbiences.TryGetValue(id, out EventInstance instance))
+		{
+			SetInstanceParameter(instance, parameterName, value);
+		}
+	}
+
+	/// <summary>
+	///     Generic helper to switch tracks
 	/// </summary>
 	private void SwitchTrack(
 		EventReference newTrack,
@@ -276,7 +327,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 
 		if (currentInstance.isValid())
 		{
-			currentInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			currentInstance.stop(STOP_MODE.ALLOWFADEOUT);
 		}
 
 		currentReference = newTrack;
@@ -294,7 +345,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	#region One-Shots
 
 	/// <summary>
-	/// Plays a sound effect
+	///     Plays a sound effect
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	public void PlayOneShot(EventReference sound)
@@ -303,7 +354,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Plays a sound effect attached to a game object
+	///     Plays a sound effect attached to a game object
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="gameObjectRef">The game object to be attached to</param>
@@ -313,7 +364,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Plays a sound effect at some position in the world
+	///     Plays a sound effect at some position in the world
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="pos">Some position in the world</param>
@@ -323,7 +374,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Plays a sound effect with a specific volume
+	///     Plays a sound effect with a specific volume
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="volume">Volume from 0 to 1</param>
@@ -336,7 +387,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Plays a sound effect at some position in the world with a specific volume
+	///     Plays a sound effect at some position in the world with a specific volume
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="pos">Some position in the world</param>
@@ -351,7 +402,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Plays a sound effect with a custom pitch
+	///     Plays a sound effect with a custom pitch
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="pitch">Pitch multiplier (0.5 = half, 1.0 = normal, 2.0 = double)</param>
@@ -366,7 +417,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Plays a sound effect with a random pitch within a range (fire-and-forget)
+	///     Plays a sound effect with a random pitch within a range (fire-and-forget)
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="minPitch">Minimum pitch multiplier</param>
@@ -383,7 +434,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	#region Event Instance
 
 	/// <summary>
-	/// Creates an event instance of a sound, which allows a sound to be looped, or it's FMOD parameters to be modified
+	///     Creates an event instance of a sound, which allows a sound to be looped, or it's FMOD parameters to be modified
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <returns>Returns a cached event instance of the sound, that can be used to modify the sound at runtime</returns>
@@ -396,7 +447,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Creates an event instance of a sound and attaches it to a game object
+	///     Creates an event instance of a sound and attaches it to a game object
 	/// </summary>
 	/// <param name="sound">The FMOD event reference of the sound</param>
 	/// <param name="gameObjectRef">The game object to attach to</param>
@@ -410,11 +461,11 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Free up an event instance sound
+	///     Free up an event instance sound
 	/// </summary>
 	public void DestroyInstance(EventInstance instance, bool allowFadeOut = true)
 	{
-		instance.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+		instance.stop(allowFadeOut ? STOP_MODE.ALLOWFADEOUT : STOP_MODE.IMMEDIATE);
 		instance.release();
 		_eventInstances.Remove(instance);
 	}
@@ -424,7 +475,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	#region Instance Playback
 
 	/// <summary>
-	/// Play an event instance sound at the start of the instance
+	///     Play an event instance sound at the start of the instance
 	/// </summary>
 	public void PlayInstanceAtStart(EventInstance eventInstance)
 	{
@@ -433,7 +484,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Resume playing the event instance sound
+	///     Resume playing the event instance sound
 	/// </summary>
 	public void PlayInstance(EventInstance instance)
 	{
@@ -458,7 +509,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Pauses an event instance sound
+	///     Pauses an event instance sound
 	/// </summary>
 	/// <param name="instance">The event instance sound</param>
 	public void PauseInstance(EventInstance instance)
@@ -467,17 +518,17 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Stops an event instance sound
+	///     Stops an event instance sound
 	/// </summary>
 	/// <param name="instance">The event instance sound</param>
 	/// <param name="allowFadeOut">Allow the sound to fade out or not</param>
 	public void StopInstance(EventInstance instance, bool allowFadeOut = true)
 	{
-		instance.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+		instance.stop(allowFadeOut ? STOP_MODE.ALLOWFADEOUT : STOP_MODE.IMMEDIATE);
 	}
 
 	/// <summary>
-	/// Returns a boolean indicating if an event instance sound is playing
+	///     Returns a boolean indicating if an event instance sound is playing
 	/// </summary>
 	public bool InstanceIsPlaying(EventInstance instance)
 	{
@@ -486,7 +537,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Sets the pitch of an event instance
+	///     Sets the pitch of an event instance
 	/// </summary>
 	/// <param name="instance">The event instance to modify</param>
 	/// <param name="pitch">Pitch multiplier (0.5 = half, 1.0 = normal, 2.0 = double)</param>
@@ -495,12 +546,24 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 		instance.setPitch(pitch);
 	}
 
+	/// <summary>
+	///     Stops all currently playing events globally
+	/// </summary>
+	/// <param name="allowFadeOut">Allow the sounds to fade out or not</param>
+	public void StopAllEvents(bool allowFadeOut = true)
+	{
+		if (_masterBus.isValid())
+		{
+			_masterBus.stopAllEvents(allowFadeOut ? STOP_MODE.ALLOWFADEOUT : STOP_MODE.IMMEDIATE);
+		}
+	}
+
 	#endregion
 
 	#region Parameters
 
 	/// <summary>
-	/// Sets a global parameter by name
+	///     Sets a global parameter by name
 	/// </summary>
 	/// <param name="parameterName">The name of the parameter</param>
 	/// <param name="value">The value of the parameter</param>
@@ -510,7 +573,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Sets a parameter of an event instance sound by name
+	///     Sets a parameter of an event instance sound by name
 	/// </summary>
 	/// <param name="instance">The event instance sound</param>
 	/// <param name="parameterName">The name of the parameter</param>
@@ -521,7 +584,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Sets a parameter of an event instance sound by name
+	///     Sets a parameter of an event instance sound by name
 	/// </summary>
 	/// <param name="instance">The event instance sound</param>
 	/// <param name="parameterID">The parameter ID of the parameter</param>
@@ -533,38 +596,10 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 
 	#endregion
 
-	#region Snapshots
-
-	/// <summary>
-	/// Sets the state of a snapshot
-	/// </summary>
-	/// <param name="snapshot">The snapshot reference</param>
-	/// <param name="isActive">Whether the snapshot is active or not</param>
-	public void SetSnapshotState(EventReference snapshot, bool isActive)
-	{
-		if (!_activeSnapshots.ContainsKey(snapshot.Guid))
-		{
-			EventInstance instance = CreateInstance(snapshot);
-			_activeSnapshots[snapshot.Guid] = instance;
-		}
-
-		EventInstance activeSnapshot = _activeSnapshots[snapshot.Guid];
-		if (isActive)
-		{
-			activeSnapshot.start();
-		}
-		else
-		{
-			activeSnapshot.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-		}
-	}
-
-	#endregion
-
 	#region Volume Control
 
 	/// <summary>
-	/// Saves audio level preferences to player prefs
+	///     Saves audio level preferences to player prefs
 	/// </summary>
 	public void SaveAudioPref()
 	{
@@ -599,6 +634,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 				{
 					_masterVca.setVolume(clampedVolume);
 				}
+
 				break;
 			case AudioBusType.Music:
 				_musicVolume = clampedVolume;
@@ -606,6 +642,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 				{
 					_musicVca.setVolume(clampedVolume);
 				}
+
 				break;
 			case AudioBusType.Ambience:
 				_ambientVolume = clampedVolume;
@@ -613,6 +650,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 				{
 					_ambientVca.setVolume(clampedVolume);
 				}
+
 				break;
 			case AudioBusType.Game:
 				_gameVolume = clampedVolume;
@@ -620,6 +658,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 				{
 					_gameVca.setVolume(clampedVolume);
 				}
+
 				break;
 		}
 	}
@@ -631,7 +670,8 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	public bool IsVisualizationReady => _channelsInitialized == 4;
 
 	/// <summary>
-	/// Creates the Fast Fourier Transform (FFT) Digital Signal Processors (DSPs) and attaches them to the corresponding channel groups (Master, Music, Ambience, Game)
+	///     Creates the Fast Fourier Transform (FFT) Digital Signal Processors (DSPs) and attaches them to the corresponding
+	///     channel groups (Master, Music, Ambience, Game)
 	/// </summary>
 	/// <param name="windowSize">FFT window size (power of 2). Larger = more frequency detail, more latency.</param>
 	public void InitializeVisualization(int windowSize = 1024)
@@ -709,7 +749,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Removes and releases all FFT DSPs
+	///     Removes and releases all FFT DSPs
 	/// </summary>
 	public void CleanUpVisualization()
 	{
@@ -748,9 +788,9 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Gets the frequency peaks for the given number of buckets and spectrum size
+	///     Gets the frequency peaks for the given number of buckets and spectrum size
 	/// </summary>
-	/// <param name="bucketSizes">An array of bucket sizes, calculated by <see cref="GetBucketSizes"/></param>
+	/// <param name="bucketSizes">An array of bucket sizes, calculated by <see cref="GetBucketSizes" /></param>
 	/// <param name="numBuckets">The number of buckets</param>
 	/// <param name="frequencyPeaks">An array of frequency peaks</param>
 	/// <param name="audioBusType">The audio bus type (Master, Music, Ambience, Game)</param>
@@ -810,7 +850,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Gets the bucket sizes for the given number of buckets and spectrum size
+	///     Gets the bucket sizes for the given number of buckets and spectrum size
 	/// </summary>
 	/// <param name="numBuckets">The number of buckets</param>
 	/// <param name="spectrumSize">The spectrum size</param>
@@ -833,8 +873,8 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Returns the FFT spectrum data for the given bus and channel
-	/// Call this every frame from the visualizer
+	///     Returns the FFT spectrum data for the given bus and channel
+	///     Call this every frame from the visualizer
 	/// </summary>
 	/// <param name="busType">The audio bus to visualize (Master, Music, Ambience, Game)</param>
 	/// <param name="channel">Audio channel index (0 = left, 1 = right)</param>
@@ -880,7 +920,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Returns the number of spectrum bins for the current FFT window size
+	///     Returns the number of spectrum bins for the current FFT window size
 	/// </summary>
 	public int GetSpectrumLength()
 	{
@@ -893,7 +933,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Returns the current Root Mean Square (RMS) or average loudness level for a bus
+	///     Returns the current Root Mean Square (RMS) or average loudness level for a bus
 	/// </summary>
 	/// <param name="busType">The AudioBusType to meter</param>
 	/// <returns>Normalized RMS value (0-1), or 0 if unavailable</returns>
@@ -939,7 +979,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Returns the current peak level or maximum loudness level for a bus
+	///     Returns the current peak level or maximum loudness level for a bus
 	/// </summary>
 	/// <param name="busType">The AudioBusType to meter</param>
 	/// <returns>Normalized peak value (0-1), or 0 if unavailable</returns>
@@ -986,7 +1026,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	}
 
 	/// <summary>
-	/// Returns the bus by type
+	///     Returns the bus by type
 	/// </summary>
 	/// <param name="type">The AudioBusType</param>
 	/// <returns>The bus</returns>

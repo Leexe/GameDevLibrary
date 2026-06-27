@@ -280,15 +280,6 @@ public class DialogueState
 	/// </summary>
 	public Action<int> OnChoiceSelect;
 
-	/// <summary>
-	/// Signals that a choice has been selected.
-	/// </summary>
-	/// <param name="choiceIndex">Index of the selected choice.</param>
-	public void UpdateChoiceSelected(int choiceIndex)
-	{
-		OnChoiceSelect?.Invoke(choiceIndex);
-	}
-
 	#endregion
 
 	#region Audio Events
@@ -337,33 +328,5 @@ public class DialogueState
 
 	#endregion
 
-	#region Pause Events
 
-	/// <summary>
-	/// Event fired when dialogue should be paused (e.g. game paused).
-	/// </summary>
-	public Action OnPause;
-
-	/// <summary>
-	/// Pauses the dialogue system (typewriters, etc.).
-	/// </summary>
-	public void Pause()
-	{
-		OnPause?.Invoke();
-	}
-
-	/// <summary>
-	/// Event fired when dialogue should be unpaused.
-	/// </summary>
-	public Action OnUnpause;
-
-	/// <summary>
-	/// Unpauses the dialogue system.
-	/// </summary>
-	public void Unpause()
-	{
-		OnUnpause?.Invoke();
-	}
-
-	#endregion
 }

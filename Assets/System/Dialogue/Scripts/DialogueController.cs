@@ -41,6 +41,9 @@ public class DialogueController : MonoBehaviour
 	{
 		_story = new Story(_inkJson.text);
 		InitializeTagHandlers();
+
+		// prevent continuing if paused
+		DialogueState.AddBlockingCondition(() => Time.timeScale == 0f);
 	}
 
 	private void OnEnable()

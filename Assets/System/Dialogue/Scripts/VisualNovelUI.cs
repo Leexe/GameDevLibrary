@@ -118,8 +118,6 @@ public class VisualNovelUI : MonoBehaviour
 		_dialogueState.OnEndStory += RemoveAllCharacters;
 		_dialogueState.OnAllCharacterRemove += RemoveAllCharacters;
 		_dialogueState.OnTypewriterSkip += SkipTypewriter;
-		_dialogueState.OnPause += PauseTypewriter;
-		_dialogueState.OnUnpause += ResumeTypewriter;
 
 		_typewriter.onTextShowed.AddListener(_dialogueState.TypewriterFinished);
 	}
@@ -137,8 +135,6 @@ public class VisualNovelUI : MonoBehaviour
 		_dialogueState.OnEndStory -= RemoveAllCharacters;
 		_dialogueState.OnAllCharacterRemove -= RemoveAllCharacters;
 		_dialogueState.OnTypewriterSkip -= SkipTypewriter;
-		_dialogueState.OnPause -= PauseTypewriter;
-		_dialogueState.OnUnpause -= ResumeTypewriter;
 	}
 
 	private void InitializeAnimationHandlers()
@@ -312,21 +308,7 @@ public class VisualNovelUI : MonoBehaviour
 		_typewriter.SkipTypewriter();
 	}
 
-	/// <summary>
-	///     Pauses the typewriter animation. Called when game is paused.
-	/// </summary>
-	private void PauseTypewriter()
-	{
-		_typewriter.SetTypewriterSpeed(0f);
-	}
 
-	/// <summary>
-	///     Resumes the typewriter animation. Called when game is unpaused.
-	/// </summary>
-	private void ResumeTypewriter()
-	{
-		_typewriter.SetTypewriterSpeed(1f);
-	}
 
 	#endregion
 

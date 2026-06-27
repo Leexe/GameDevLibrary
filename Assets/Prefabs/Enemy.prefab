@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 8689929418496238573}
   - component: {fileID: 9006496416770034254}
   - component: {fileID: 2134864694666703139}
+  - component: {fileID: 7666762690099316146}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
@@ -149,9 +150,6 @@ MonoBehaviour:
   _invincibilityTimeAfterDamage: 1
   _godMode: 0
   <Health>k__BackingField: 0
-  OnInitiateHealth:
-    m_PersistentCalls:
-      m_Calls: []
   OnRegen:
     m_PersistentCalls:
       m_Calls: []
@@ -182,8 +180,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7bcea11e8ce5214d8cf849e78284635, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectManager
-  _healthManager: {fileID: 8689929418496238573}
-  _statusEffectDictionary: {fileID: 11400000, guid: c8b4deeac3fc3496e8437e9f676a39e4, type: 2}
+  _healthController: {fileID: 8689929418496238573}
+  _statsController: {fileID: 7666762690099316146}
   _updateInterval: 0.05
   _deleteComboStatuses: 1
   _deleteComboStatusesDelay: 0.5
@@ -225,6 +223,53 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &7666762690099316146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664095696832057756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e22620c7e458649019497d7e11d67bdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatsController
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: _baseStats
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[Stats.StatType, Assembly-CSharp],[System.Single,
+        mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[Stats.StatType,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
 --- !u!1 &4274305349858651883
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,21 +10,22 @@ public class DialogueChoicesController : MonoBehaviour
 	private GameObject _dialogueBoxPrefab;
 
 	private readonly List<DialogueChoiceBox> _choiceBoxes = new();
-	private DialogueState _dialogueState;
 
 	private void OnEnable()
 	{
-		_dialogueState = _dialogueController.DialogueState;
-		_dialogueState.OnDisplayChoices += DisplayChoices;
-		_dialogueState.OnChoiceSelect += HideChoices;
-		_dialogueState.OnStartStory += HideChoices;
+		_dialogueController.DialogueState.OnDisplayChoices += DisplayChoices;
+		_dialogueController.DialogueState.OnChoiceSelect += HideChoices;
+		_dialogueController.DialogueState.OnStartStory += HideChoices;
 	}
 
 	private void OnDisable()
 	{
-		_dialogueState.OnDisplayChoices -= DisplayChoices;
-		_dialogueState.OnChoiceSelect -= HideChoices;
-		_dialogueState.OnStartStory -= HideChoices;
+		if (_dialogueController)
+		{
+			_dialogueController.DialogueState.OnDisplayChoices -= DisplayChoices;
+			_dialogueController.DialogueState.OnChoiceSelect -= HideChoices;
+			_dialogueController.DialogueState.OnStartStory -= HideChoices;
+		}
 	}
 
 	private void DisplayChoices(List<string> choices)

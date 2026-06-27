@@ -21,21 +21,15 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes:
-    - Name: PotentialCombosDict
+    - Name: <PotentialCombosDict>k__BackingField
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[StatusEffects.Effect, Assembly-CSharp],[StatusEffects.Effect,
-        Assembly-CSharp]], mscorlib
+      Data: 0|System.Collections.Generic.Dictionary`2[[StatusEffects.StatusEffectSO,
+        Assembly-CSharp],[StatusEffects.StatusEffectSO, Assembly-CSharp]], mscorlib
     - Name: comparer
       Entry: 7
-      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[StatusEffects.Effect,
+      Data: 1|System.Collections.Generic.ObjectEqualityComparer`1[[StatusEffects.StatusEffectSO,
         Assembly-CSharp]], mscorlib
     - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
       Entry: 8
       Data: 
     - Name: 
@@ -47,40 +41,61 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
-  <Type>k__BackingField: 8
-  _activeDuration: 5
-  _maxCount: 1
-  _refreshableDuration: 0
-  _enableTickRate: 1
-  _tickRate: 0.95
-  _damageOnActivation: 0
-  _damagePerTick: 20
-  _damageOnExpire: 0
-  _buildUpDecay: 0.05
-  _buildUpFreeze: 0.1
-  _iconPrefab: {fileID: 7073774610289606877, guid: 653a52ce86df74fafb14fd479ce798cd, type: 3}
-  _statusTriggeredSfx:
+  <Id>k__BackingField: corruption
+  <Name>k__BackingField: Corruption
+  <Description>k__BackingField: 
+  <IconPrefab>k__BackingField: {fileID: 7073774610289606877, guid: 653a52ce86df74fafb14fd479ce798cd, type: 3}
+  <InfiniteDuration>k__BackingField: 0
+  <ActiveDuration>k__BackingField: 3.5
+  <RefreshableDuration>k__BackingField: 0
+  <EnableTickRate>k__BackingField: 1
+  <TickRate>k__BackingField: 0.5
+  <MaxCount>k__BackingField: 1
+  <BuildUpDecay>k__BackingField: 0.1
+  <BuildUpFreeze>k__BackingField: 0.35
+  <DamageOnActivation>k__BackingField: 0
+  <DamageOnReactivation>k__BackingField: 0
+  <DamageOnTick>k__BackingField: 15
+  <DamageOnExpire>k__BackingField: 0
+  <DamageOnHit>k__BackingField: 0
+  <StackDamageMult>k__BackingField: 1
+  <Modifiers>k__BackingField: []
+  <RepeatedModifiers>k__BackingField: []
+  <VfxEndDelay>k__BackingField: 0
+  <StatusTriggeredVfx>k__BackingField: {fileID: 0}
+  <StatusReactivateVfx>k__BackingField: {fileID: 0}
+  <StatusActivateVfx>k__BackingField: {fileID: 0}
+  <StatusDotVfx>k__BackingField: {fileID: 0}
+  <StatusEndVfx>k__BackingField: {fileID: 0}
+  <StatusTriggeredSfx>k__BackingField:
     Guid:
       Data1: 0
       Data2: 0
       Data3: 0
       Data4: 0
     Path: 
-  _statusActiveSfx:
+  <StatusReactivateSfx>k__BackingField:
     Guid:
       Data1: 0
       Data2: 0
       Data3: 0
       Data4: 0
     Path: 
-  _statusDOTSfx:
+  <StatusActiveSfx>k__BackingField:
     Guid:
       Data1: 0
       Data2: 0
       Data3: 0
       Data4: 0
     Path: 
-  _statusEndSfx:
+  <StatusDotSfx>k__BackingField:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  <StatusEndSfx>k__BackingField:
     Guid:
       Data1: 0
       Data2: 0
