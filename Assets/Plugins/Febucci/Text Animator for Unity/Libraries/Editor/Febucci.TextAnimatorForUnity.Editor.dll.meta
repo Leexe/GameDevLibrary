@@ -1,15 +1,8 @@
 fileFormatVersion: 2
 guid: 0bc02fe2a29e27eba0edcef904c5a201
-AssetOrigin:
-  serializedVersion: 1
-  productId: 341308
-  packageName: Text Animator for Unity | UI Toolkit and Text Mesh Pro
-  packageVersion: 3.5.0
-  assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Libraries/Editor/Febucci.TextAnimatorForUnity.Editor.dll
-  uploadId: 874282
 PluginImporter:
   externalObjects: {}
-  serializedVersion: 3
+  serializedVersion: 2
   iconMap: {}
   executionOrder: {}
   defineConstraints: []
@@ -18,17 +11,24 @@ PluginImporter:
   isExplicitlyReferenced: 0
   validateReferences: 1
   platformData:
-    Any:
+  - first:
+      Any: 
+    second:
       enabled: 0
       settings: {}
-    Editor:
+  - first:
+      Editor: Editor
+    second:
       enabled: 1
       settings:
         DefaultValueInitialized: true
-    WindowsStoreApps:
-      enabled: 0
-      settings:
-        CPU: AnyCPU
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341308
+  packageName: Text Animator for Unity | UI Toolkit and Text Mesh Pro
+  packageVersion: 3.11.1
+  assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Libraries/Editor/Febucci.TextAnimatorForUnity.Editor.dll
+  uploadId: 899494

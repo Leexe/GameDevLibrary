@@ -58,7 +58,8 @@ namespace Animancer.Editor
             {
                 try
                 {
-                    if (_Data == null)
+                    if (SourceObject == null ||
+                        _Data == null)
                         return false;
 
                     var sourceData = SourceData;
@@ -419,11 +420,17 @@ namespace Animancer.Editor
 
             // Revert.
             if (GUI.Button(leftArea, RevertLabel, styles.left))
+            {
+                AnimancerGUI.Deselect();
                 Revert();
+            }
 
             // Apply.
             if (GUI.Button(middleArea, ApplyLabel, styles.middle))
+            {
+                AnimancerGUI.Deselect();
                 Apply();
+            }
 
             // Auto Apply.
             var autoApply = AutoApply;

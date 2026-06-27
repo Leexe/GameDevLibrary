@@ -18,7 +18,7 @@ namespace Animancer
 
     /// <summary>Extension methods for <see cref="ICopyable{T}"/>.</summary>
     /// https://kybernetik.com.au/animancer/api/Animancer/CopyableExtensions
-    public static partial class CopyableExtensions
+    public static class CopyableExtensions
     {
         /************************************************************************************************************************/
 

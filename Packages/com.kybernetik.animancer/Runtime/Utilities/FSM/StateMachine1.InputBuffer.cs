@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Animancer.FSM
 {
-    public partial class StateMachine<TState>
+    partial class StateMachine<TState> // StateMachine1.InputBuffer.cs
     {
         /// <summary>
         /// A simple system that can <see cref="InputBuffer{TStateMachine}.Buffer"/> a state then try to enter it every

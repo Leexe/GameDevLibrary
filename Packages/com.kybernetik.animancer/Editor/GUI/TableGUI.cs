@@ -81,8 +81,8 @@ namespace Animancer.Editor
             var indexBounds = new RectInt(
                 (int)(_ScrollPosition.x / cellSize.x),
                 (int)(_ScrollPosition.y / cellSize.y),
-                Mathf.CeilToInt((area.width - labelSize.x) / cellSize.x) + 1,
-                Mathf.CeilToInt((area.height - labelSize.y) / cellSize.y) + 1);
+                Math.Min(columns, Mathf.CeilToInt((area.width - labelSize.x) / cellSize.x) + 1),
+                Math.Min(rows, Mathf.CeilToInt((area.height - labelSize.y) / cellSize.y) + 1));
 
             area.size += scrollBarSize;
 

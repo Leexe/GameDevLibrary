@@ -33,7 +33,7 @@ namespace Animancer.Editor.TransitionLibraries
     }
 
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor.TransitionLibraries/TransitionLibraryEditorDataInternal
-    public partial class TransitionLibraryEditorDataInternal
+    partial class TransitionLibraryEditorDataInternal // TransitionSortMode.cs
     {
         /************************************************************************************************************************/
 

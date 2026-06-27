@@ -2,8 +2,6 @@
 
 #if UNITY_EDITOR
 
-using Animancer.Units;
-using Animancer.Units.Editor;
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -61,32 +59,23 @@ namespace Animancer.Editor.TransitionLibraries
         {
             if (selection.Validate())
             {
+                var cell = new Vector2Int(
+                    selection.ToIndex,
+                    selection.FromIndex);
+
                 switch (selection.Type)
                 {
                     case SelectionType.FromTransition:
                     case SelectionType.ToTransition:
                     case SelectionType.Modifier:
-                        var transitions = _Window.Data.Transitions;
-                        transitions.TryGet(selection.FromIndex, out var fromTransition);
-                        transitions.TryGet(selection.ToIndex, out var toTransition);
-
-                        var cell = new Vector2Int(
-                            _Window.Items.IndexOf(toTransition),
-                            _Window.Items.IndexOf(fromTransition));
-
-                        if (cell.x < 0)
-                            cell.x = int.MinValue;
-
-                        if (cell.y < 0)
-                            cell.y = int.MinValue;
-
+                        cell.x = _Window.Items.TransitionToItemIndex(cell.x);
+                        cell.y = _Window.Items.TransitionToItemIndex(cell.y);
                         return cell;
 
                     case SelectionType.Group:
-                        var index = _Window.Items.IndexOf(selection.Selected);
-                        return index >= 0
-                            ? new(index, index)
-                            : new(int.MinValue, int.MinValue);
+                        cell.x = _Window.Items.GroupToItemIndex(cell.x);
+                        cell.y = _Window.Items.GroupToItemIndex(cell.y);
+                        return cell;
                 }
             }
 
@@ -175,7 +164,10 @@ namespace Animancer.Editor.TransitionLibraries
         private void DoCreateGroupButtonGUI(Rect area)
         {
             if (GUI.Button(area, "Create Group"))
+            {
                 TransitionLibraryOperations.CreateGroup(_Window, _Window.EditorData);
+                GUIUtility.ExitGUI();
+            }
         }
 
         /************************************************************************************************************************/
@@ -184,7 +176,10 @@ namespace Animancer.Editor.TransitionLibraries
         private void DoCreateTransitionButtonGUI(Rect area)
         {
             if (GUI.Button(area, "Create Transition"))
+            {
                 TransitionLibraryOperations.CreateTransition(_Window);
+                GUIUtility.ExitGUI();
+            }
         }
 
         /************************************************************************************************************************/
@@ -228,6 +223,7 @@ namespace Animancer.Editor.TransitionLibraries
             {
                 TransitionLibraryOperations.HandleDelete(_Window);
                 Deselect();
+                GUIUtility.ExitGUI();
             }
 
             GUI.enabled = enabled;
@@ -238,16 +234,16 @@ namespace Animancer.Editor.TransitionLibraries
         /// <summary>Draws a row or column label.</summary>
         private void DoLabelGUI(
             Rect area,
-            int index,
+            int itemIndex,
             GUIStyle style,
             SelectionType selectionType)
         {
-            if (!_Window.Items.TryGet(index, out var transitionOrGroup))
+            if (!_Window.Items.TryGet(itemIndex, out var transitionOrGroup))
                 return;
 
             if (transitionOrGroup is TransitionAssetBase transition)
             {
-                var group = _Window.Items.GetGroup(index);
+                var group = _Window.Items.GetGroup(itemIndex);
                 if (group != null)
                     StealGroupFoldoutSpace(ref area, style);
 
@@ -255,6 +251,7 @@ namespace Animancer.Editor.TransitionLibraries
                     ref area,
                     _Window,
                     transition,
+                    itemIndex,
                     selectionType,
                     CalculateTarget);
 
@@ -268,6 +265,7 @@ namespace Animancer.Editor.TransitionLibraries
                     ref area,
                     _Window,
                     group,
+                    itemIndex,
                     SelectionType.Group,
                     CalculateTarget);
 
@@ -278,7 +276,26 @@ namespace Animancer.Editor.TransitionLibraries
                 group.IsExpanded = EditorGUI.Foldout(foldoutArea, group.IsExpanded, GUIContent.none);
 
                 if (EditorGUI.EndChangeCheck())
-                    _Window.Selection.Select(_Window, group, index, SelectionType.Group);
+                {
+                    itemIndex = _Window.Items.ItemToSourceIndex(itemIndex);
+                    _Window.Selection.Select(_Window, group, itemIndex, SelectionType.Group);
+                }
+            }
+            else
+            {
+                group = _Window.Items.GetGroup(itemIndex);
+                if (group != null)
+                    StealGroupFoldoutSpace(ref area, style);
+
+                HandleTransitionLabelInput(
+                    ref area,
+                    _Window,
+                    transitionOrGroup,
+                    itemIndex,
+                    selectionType,
+                    CalculateTarget);
+
+                GUI.Label(area, MissingTransitionLabel, style);
             }
         }
 
@@ -300,12 +317,15 @@ namespace Animancer.Editor.TransitionLibraries
         }
 
         /************************************************************************************************************************/
+        
+        /// <summary>The label to use for <c>null</c> transitions.</summary>
+        public const string MissingTransitionLabel = "<Missing Transition>";
 
         /// <summary>Returns the name of the `transition` with a special message for <c>null</c>.</summary>
         public static string GetTransitionName(TransitionAssetBase transition)
             => transition != null
             ? transition.GetCachedName()
-            : "<Missing Transition>";
+            : MissingTransitionLabel;
 
         /************************************************************************************************************************/
 
@@ -318,6 +338,7 @@ namespace Animancer.Editor.TransitionLibraries
             ref Rect area,
             TransitionLibraryWindow window,
             object item,
+            int itemIndex,
             SelectionType selectionType,
             Func<Rect, int, Event, ListTargetCalculation> calculateTarget)
         {
@@ -336,7 +357,7 @@ namespace Animancer.Editor.TransitionLibraries
                         }
                         else
                         {
-                            var index = IndexOf(window, item as TransitionAssetBase);
+                            var index = window.Items.ItemToSourceIndex(itemIndex);
                             window.Selection.Select(window, item, index, selectionType);
                         }
 
@@ -348,9 +369,8 @@ namespace Animancer.Editor.TransitionLibraries
                 case EventType.MouseUp:
                     if (control.TryUseMouseUp() && _IsLabelDrag)
                     {
-                        var index = window.Items.IndexOf(item);
-                        var target = calculateTarget(area, index, control.Event);
-                        window.OnDropItem(item, target, selectionType);
+                        var target = calculateTarget(area, itemIndex, control.Event);
+                        window.OnDropItem(item, itemIndex, target, selectionType);
                     }
                     break;
 
@@ -369,19 +389,14 @@ namespace Animancer.Editor.TransitionLibraries
 
         /************************************************************************************************************************/
 
-        private static int IndexOf(TransitionLibraryWindow window, TransitionAssetBase transition)
-            => Array.IndexOf(window.Data.Transitions, transition);
-
-        /************************************************************************************************************************/
-
         /// <summary>Calculates the target index for a drag and drop operation.</summary>
         private static ListTargetCalculation CalculateTarget(
             Rect area,
-            int index,
+            int itemIndex,
             Event currentEvent)
         {
             var target = new ListTargetCalculation(area.y, area.height, currentEvent.mousePosition.y);
-            target.Index += index;
+            target.Index += itemIndex;
             return target;
         }
 
@@ -399,34 +414,40 @@ namespace Animancer.Editor.TransitionLibraries
             int from,
             int to)
         {
-            if (!_Window.Items.TryGet(from, out var fromTransitionOrGroup) ||
-                !_Window.Items.TryGet(to, out var toTransitionOrGroup))
-                return;
-
-            if (fromTransitionOrGroup is TransitionAssetBase fromTransition &&
-                toTransitionOrGroup is TransitionAssetBase toTransition)
+            // For transition intersections, show the modifier value.
+            if (window.Items.TryGet(from, out var fromItem) &&
+                fromItem is not TransitionGroup &&
+                window.Items.TryGet(to, out var toItem) &&
+                toItem is not TransitionGroup)
             {
-                from = IndexOf(window, fromTransition);
-                to = IndexOf(window, toTransition);
+                from = window.Items.ItemToSourceIndex(from);
+                to = window.Items.ItemToSourceIndex(to);
 
                 DoModifierValueGUI(area, _Window, Page, from, to, "", true);
             }
-            else
+            else // For group intersections, allow clicking to select the group.
             {
-                var control = new GUIControl(area, GroupHint);
-                if (control.EventType == EventType.MouseDown &&
-                    control.TryUseMouseDown())
+                var group = fromItem;
+                var groupIndex = from;
+                if (group is not TransitionGroup)
                 {
-                    var group = fromTransitionOrGroup is TransitionGroup
-                        ? fromTransitionOrGroup
-                        : toTransitionOrGroup;
-
-                    window.Selection.Select(
-                        window,
-                        group,
-                        from,
-                        SelectionType.Group);
+                    window.Items.TryGet(to, out group);
+                    groupIndex = to;
                 }
+
+                if (group is TransitionGroup)
+                {
+                    var control = new GUIControl(area, LabelHint);
+                    if (control.Event.type == EventType.MouseDown &&
+                        control.Event.button == 0 &&
+                        control.TryUseMouseDown())
+                    {
+                        groupIndex = _Window.Items.ItemToSourceIndex(groupIndex);
+                        _Window.Selection.Select(_Window, group, groupIndex, SelectionType.Group);
+                    }
+                }
+
+                return;
             }
         }
 

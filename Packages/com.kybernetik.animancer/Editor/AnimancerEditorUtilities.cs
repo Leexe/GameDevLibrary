@@ -12,7 +12,7 @@ namespace Animancer.Editor
 {
     /// <summary>[Editor-Only] Various utilities used throughout Animancer.</summary>
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor/AnimancerEditorUtilities
-    public static partial class AnimancerEditorUtilities
+    public static partial class AnimancerEditorUtilities // AnimancerEditorUtilities.cs
     {
         /************************************************************************************************************************/
         #region Misc

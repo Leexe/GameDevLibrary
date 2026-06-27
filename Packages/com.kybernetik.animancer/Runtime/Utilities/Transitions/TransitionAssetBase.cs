@@ -17,7 +17,7 @@ namespace Animancer
     /// </remarks>
     /// https://kybernetik.com.au/animancer/api/Animancer/TransitionAssetBase
     [AnimancerHelpUrl(typeof(TransitionAssetBase))]
-    public abstract partial class TransitionAssetBase : ScriptableObject,
+    public abstract class TransitionAssetBase : ScriptableObject,
         IAnimationClipSource,
         ITransition,
         IWrapper

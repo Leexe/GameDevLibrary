@@ -31,6 +31,16 @@ namespace Animancer
 
         private static int _GuardCount;
 
+#if UNITY_EDITOR
+        /// <summary>[Editor-Only] Resets static fields in case the Play Mode Domain Reload is disabled.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Initialize()
+        {
+            ObjectsChecked.Clear();
+            _GuardCount = 0;
+        }
+#endif
+
         /************************************************************************************************************************/
 
         /// <summary>Call this with a <c>using</c> statement before calling <see cref="HasCheckedObject"/>.</summary>

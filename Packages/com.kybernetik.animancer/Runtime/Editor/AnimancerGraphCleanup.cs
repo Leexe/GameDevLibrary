@@ -159,7 +159,7 @@ namespace Animancer.Editor
 namespace Animancer
 {
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerGraph
-    public partial class AnimancerGraph
+    partial class AnimancerGraph // AnimancerGraphCleanup.cs
     {
         /************************************************************************************************************************/
 

@@ -2,6 +2,10 @@
 
 #if UNITY_EDITOR
 
+#if !UNITY_6000_3_OR_NEWER
+using EntityId = System.Int32;
+#endif
+
 using Animancer.TransitionLibraries;
 using System;
 using System.Collections.Generic;
@@ -34,13 +38,9 @@ namespace Animancer.Editor.TransitionLibraries
         /// opens it in the <see cref="TransitionLibraryWindow"/>.
         /// </summary>
         [OnOpenAsset]
-        private static bool OnOpenAsset(int instanceID, int line)
+        private static bool OnOpenAsset(EntityId entityId, int line)
         {
-#if UNITY_6000_3_OR_NEWER
-            var asset = EditorUtility.EntityIdToObject(instanceID);
-#else
-            var asset = EditorUtility.InstanceIDToObject(instanceID);
-#endif
+            var asset = Serialization.EntityIdToObject(entityId);
 
             if (asset is not TransitionLibraryAsset library)
                 return false;
@@ -94,7 +94,8 @@ namespace Animancer.Editor.TransitionLibraries
                 if (base.HasDataChanged)
                     return true;
 
-                if (_EditorData == null)
+                if (SourceObject == null ||
+                    _EditorData == null)
                     return false;
 
                 var sourceEditorData = SourceEditorData;
@@ -157,7 +158,7 @@ namespace Animancer.Editor.TransitionLibraries
         /************************************************************************************************************************/
 
         /// <summary>Called when an object is selected.</summary>
-        private void OnSelectionChange()
+        protected virtual void OnSelectionChange()
         {
             if (_Selection != null)
                 _Selection.OnSelectionChange();

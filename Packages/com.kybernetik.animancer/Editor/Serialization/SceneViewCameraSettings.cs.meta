@@ -1,5 +1,7 @@
 fileFormatVersion: 2
-guid: ddc1c2d634269b94891d46befabcb48b
+guid: a6e275238a799e24eb6ca8c0c83f6576
+timeCreated: 1516751545
+licenseType: Store
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -13,6 +15,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 293522
   packageName: Animancer Pro v8
-  packageVersion: 8.3.0
-  assetPath: Packages/com.kybernetik.animancer/Runtime/Core/Events/Invokables/AnimancerEventParameterTypes.cs
-  uploadId: 890006
+  packageVersion: 8.4.0
+  assetPath: Packages/com.kybernetik.animancer/Editor/Serialization/SceneViewCameraSettings.cs
+  uploadId: 938542

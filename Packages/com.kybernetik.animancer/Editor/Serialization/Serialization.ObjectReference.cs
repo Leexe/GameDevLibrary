@@ -2,18 +2,43 @@
 
 #if UNITY_EDITOR
 
+#if !UNITY_6000_3_OR_NEWER
+using EntityId = System.Int32;
+#endif
+
 using System;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-// Shared File Last Modified: 2026-01-17.
+// Shared File Last Modified: 2026-06-10.
 namespace Animancer.Editor
 // namespace InspectorGadgets.Editor
 {
     /// <summary>[Editor-Only] Various serialization utilities.</summary>
     public partial class Serialization
     {
+        /// <summary>[Editor-Only]
+        /// <list type="bullet">
+        /// <item>In Unity 6.3+: returns the entity ID of the object.</item>
+        /// <item>In older versions: returns the instance ID of the object.</item>
+        /// </list>
+        /// </summary>
+        public static EntityId GetEntityId(Object obj)
+#if UNITY_6000_3_OR_NEWER
+            => obj.GetEntityId();
+#else
+            => obj.GetInstanceID();
+#endif
+
+        /// <summary>[Editor-Only] Returns the object with the specified `entityId`.</summary>
+        public static Object EntityIdToObject(EntityId entityId)
+#if UNITY_6000_3_OR_NEWER
+            => EditorUtility.EntityIdToObject(entityId);
+#else
+            => EditorUtility.InstanceIDToObject(entityId);
+#endif
+
         /// <summary>[Editor-Only]
         /// Directly serializing an <see cref="UnityEngine.Object"/> reference doesn't always work (such as with scene
         /// objects when entering Play Mode), so this class also serializes their instance ID and uses that if the
@@ -25,11 +50,7 @@ namespace Animancer.Editor
             /************************************************************************************************************************/
 
             [SerializeField] private Object _Object;
-#if UNITY_6000_3_OR_NEWER
             [SerializeField] private EntityId _EntityID;
-#else
-            [SerializeField] private int _InstanceID;
-#endif
 
             /************************************************************************************************************************/
 
@@ -43,12 +64,8 @@ namespace Animancer.Editor
                 }
             }
 
-            /// <summary>The <see cref="Object.GetInstanceID"/>.</summary>
-#if UNITY_6000_3_OR_NEWER
+            /// <summary>The <see cref="GetEntityId"/>.</summary>
             public EntityId EntityID => _EntityID;
-#else
-            public int InstanceID => _InstanceID;
-#endif
 
             /************************************************************************************************************************/
 
@@ -60,30 +77,17 @@ namespace Animancer.Editor
             {
                 _Object = obj;
                 if (obj != null)
-                {
-#if UNITY_6000_3_OR_NEWER
-                    _EntityID = obj.GetEntityId();
-#else
-                    _InstanceID = obj.GetInstanceID();
-#endif
-                }
+                    _EntityID = GetEntityId(obj);
             }
 
             /************************************************************************************************************************/
 
             private void Initialize()
             {
-#if UNITY_6000_3_OR_NEWER
                 if (_Object == null)
-                    _Object = EditorUtility.EntityIdToObject(_EntityID);
+                    _Object = EntityIdToObject(_EntityID);
                 else
-                    _EntityID = _Object.GetEntityId();
-#else
-                if (_Object == null)
-                    _Object = EditorUtility.InstanceIDToObject(_InstanceID);
-                else
-                    _InstanceID = _Object.GetInstanceID();
-#endif
+                    _EntityID = GetEntityId(_Object);
             }
 
             /************************************************************************************************************************/
@@ -149,11 +153,7 @@ namespace Animancer.Editor
 
             /// <summary>Returns a string describing this object.</summary>
             public override string ToString()
-#if UNITY_6000_3_OR_NEWER
                 => $"Serialization.ObjectReference [{_EntityID}] {_Object}";
-#else
-                => $"Serialization.ObjectReference [{_InstanceID}] {_Object}";
-#endif
 
             /************************************************************************************************************************/
         }

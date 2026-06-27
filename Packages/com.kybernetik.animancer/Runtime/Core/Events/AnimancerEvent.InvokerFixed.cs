@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Animancer
 {
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerEvent
-    partial struct AnimancerEvent
+    partial struct AnimancerEvent // AnimancerEvent.InvokerFixed.cs
     {
         /// <summary>Executes <see cref="Invoker.InvokeAllAndClear"/> after animations in the Fixed Update cycle.</summary>
         /// https://kybernetik.com.au/animancer/api/Animancer/InvokerFixed

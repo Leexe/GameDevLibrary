@@ -370,6 +370,20 @@ namespace Febucci.TextAnimatorForUnity
 
         /// <inheritdoc cref="ITypewriterProvider.TriggerVisibleEvents"/>
         public void TriggerVisibleEvents() => Wrapper.TriggerVisibleEvents();
+
+        /// <summary>
+        /// Calculates the approximate total duration for the typewriter to show all characters,
+        /// by summing up the wait time for each character. Does not account for action tags,
+        /// callbacks, or effect durations.
+        /// </summary>
+        public float GetApproximateShowDuration() => Wrapper.GetApproximateShowDuration();
+
+        /// <summary>
+        /// Calculates the approximate total duration for the typewriter to hide all characters,
+        /// by summing up the disappearance wait time for each character. Does not account for
+        /// callbacks or effect durations.
+        /// </summary>
+        public float GetApproximateHideDuration() => Wrapper.GetApproximateHideDuration();
         #endregion
 
 
@@ -436,6 +450,8 @@ namespace Febucci.TextAnimatorForUnity
         protected virtual void OnEnable()
         {
             if(!initialized) return;
+
+            if (localSettings == null) return;
 
             if (!localSettings.useTypeWriter)
                 return;

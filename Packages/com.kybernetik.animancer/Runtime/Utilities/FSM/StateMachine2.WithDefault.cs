@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Animancer.FSM
 {
     /// https://kybernetik.com.au/animancer/api/Animancer.FSM/StateMachine_2
-    partial class StateMachine<TKey, TState>
+    partial class StateMachine<TKey, TState> // StateMachine2.WithDefault.cs
     {
         /// <summary>A <see cref="StateMachine{TKey, TState}"/> with a <see cref="DefaultKey"/>.</summary>
         /// <remarks>

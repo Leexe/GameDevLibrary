@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Animancer
 {
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerEvent
-    partial struct AnimancerEvent
+    partial struct AnimancerEvent // AnimancerEvent.ParameterBoxed.cs
     {
         /// <summary>
         /// An <see cref="Parameter{T}"/>s which internally boxes value types

@@ -19,7 +19,7 @@ namespace Animancer.Editor.TransitionLibraries
     {
         /************************************************************************************************************************/
 
-        [SerializeField]
+        [SerializeReference]
         private TransitionModifierTableGUI _TableGUI;
 
         /************************************************************************************************************************/

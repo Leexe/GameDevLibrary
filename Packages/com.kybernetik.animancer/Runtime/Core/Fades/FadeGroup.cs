@@ -23,7 +23,7 @@ namespace Animancer
     /// 
     /// https://kybernetik.com.au/animancer/api/Animancer/FadeGroup
     /// 
-    public partial class FadeGroup : Updatable,
+    public class FadeGroup : Updatable,
         ICloneable<FadeGroup>,
         ICopyable<FadeGroup>,
         IHasDescription
@@ -713,7 +713,8 @@ namespace Animancer
             /// <inheritdoc/>
             public override void Release(FadeGroup item)
             {
-                Debug.Assert(((IUpdatable)item).UpdatableIndex < 0,
+                Debug.Assert(
+                    !item.IsInList(),
                     $"Releasing {nameof(FadeGroup)} which is still registered for updates.",
                     item.Graph?.Component as Object);
 

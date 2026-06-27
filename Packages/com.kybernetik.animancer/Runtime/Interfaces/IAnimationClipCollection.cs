@@ -32,7 +32,7 @@ namespace Animancer
     /************************************************************************************************************************/
 
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerUtilities
-    public static partial class AnimancerUtilities
+    static partial class AnimancerUtilities // IAnimationClipCollection.cs
     {
         /************************************************************************************************************************/
 

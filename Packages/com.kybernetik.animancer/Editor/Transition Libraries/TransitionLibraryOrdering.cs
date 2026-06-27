@@ -21,101 +21,20 @@ namespace Animancer.Editor.TransitionLibraries
         public static void OnDropItem(
             this TransitionLibraryWindow window,
             object item,
+            int fromItemIndex,
             ListTargetCalculation target,
             SelectionType selectionType)
         {
+            if (fromItemIndex == target.Index)
+                return;
+
             window.RecordUndo();
             window.EditorData.TransitionSortMode = TransitionSortMode.Custom;
 
-            if (item is TransitionAssetBase transition)
-                OnDropTransition(window, transition, target, selectionType);
-            else if (item is TransitionGroup group)
-                OnDropGroup(window, group, target);
+            if (item is TransitionGroup group)
+                OnDropGroup(window, group, fromItemIndex, target);
             else
-                Debug.LogWarning($"Unhandled item type: {item}");
-        }
-
-        /************************************************************************************************************************/
-
-        /// <summary>Handles a drag and drop operation for a `transition`.</summary>
-        private static void OnDropTransition(
-            TransitionLibraryWindow window,
-            TransitionAssetBase transition,
-            ListTargetCalculation target,
-            SelectionType selectionType)
-        {
-            var transitions = window.Data.Transitions;
-            var fromTransitionIndex = Array.IndexOf(transitions, transition);
-
-            var fromItemIndex = window.Items.IndexOf(transition);
-            var fromGroup = window.Items.GetGroup(fromItemIndex);
-            var fromIndexWithinGroup = int.MaxValue;
-            if (fromGroup != null)
-            {
-                fromIndexWithinGroup = fromGroup.TransitionIndices.IndexOf(fromTransitionIndex);
-                if (fromIndexWithinGroup >= 0)
-                    fromGroup.TransitionIndices.RemoveAt(fromIndexWithinGroup);
-            }
-
-            var toGroup = window.Items.TryGet(target.Index, out var targetItem)
-                ? window.Items.GetGroup(target.Index)
-                : null;
-
-            // If dropping onto the top half of a group, drop outside that group.
-            if (target.LocalOffset < 0.5f && ReferenceEquals(toGroup, targetItem))
-            {
-                toGroup = null;
-
-                if (fromItemIndex < target.Index)
-                    target.Index--;
-            }
-
-            // Drop onto group or a transition in a group.
-            if (toGroup != null)
-            {
-                var groupIndex = window.Items.IndexOf(toGroup);
-                var indexWithinGroup = target.Index - groupIndex;
-
-                // If dropping into the top half of an item, insert above that item instead of below.
-                if (target.LocalOffset < 0.5f)
-                    indexWithinGroup--;
-
-                // If this item was just removed from earlier in the same list, adjust the new index.
-                if (fromGroup == toGroup && fromIndexWithinGroup < indexWithinGroup)
-                    indexWithinGroup--;
-
-                indexWithinGroup = Mathf.Clamp(indexWithinGroup, 0, toGroup.TransitionIndices.Count);
-
-                toGroup.TransitionIndices.Insert(indexWithinGroup, fromTransitionIndex);
-            }
-            else// Drop onto a transition with no group.
-            {
-                var toTransitionIndex = Array.IndexOf(transitions, targetItem);
-                if (toTransitionIndex >= 0)
-                {
-                    // If dropping into the top half of an item, insert above that item instead of below.
-                    if (target.LocalOffset >= 0.5f)
-                        toTransitionIndex++;
-
-                    // If this item was just removed from earlier in the transition list, adjust the new index.
-                    if (fromTransitionIndex < toTransitionIndex)
-                        toTransitionIndex--;
-                }
-                else if (target.Index < 0)// Above everything.
-                {
-                    toTransitionIndex = 0;
-                }
-                else// Below everything.
-                {
-                    toTransitionIndex = transitions.Length;
-                }
-
-                AdjustGroupIndices(window, fromItemIndex, target.Index);
-
-                TransitionLibrarySort.MoveTransition(window, fromTransitionIndex, toTransitionIndex);
-            }
-
-            window.Selection.Select(window, targetItem, fromTransitionIndex, selectionType);
+                OnDropTransition(window, fromItemIndex, target, selectionType);
         }
 
         /************************************************************************************************************************/
@@ -124,46 +43,272 @@ namespace Animancer.Editor.TransitionLibraries
         private static void OnDropGroup(
             TransitionLibraryWindow window,
             TransitionGroup group,
+            int fromItemIndex,
             ListTargetCalculation target)
         {
-            var fromItemIndex = window.Items.IndexOf(group);
+            var toGroup = window.Items.GetGroup(target.Index);
+            if (group == toGroup)
+                return;
+
+            int toTransitionIndex;
+
+            if (toGroup == null)
+            {
+                toTransitionIndex = window.Items.ItemToSourceIndex(target.Index);
+
+                if (target.LocalOffset > 0.5f)
+                    toTransitionIndex++;
+            }
+            else
+            {
+                toTransitionIndex = toGroup.Index;
+
+                if (!ReferenceEquals(window.Items.GetItem(target.Index), toGroup) ||
+                    target.LocalOffset > 0.5f)
+                    toTransitionIndex += toGroup.Count;
+            }
+
+            if (toTransitionIndex <= 0)
+                toTransitionIndex = 0;
+            else if (toTransitionIndex > window.Data.Transitions.Length)
+                toTransitionIndex = window.Data.Transitions.Length;
+
+            var fromTransitionIndex = group.Index;
+            if (toTransitionIndex > fromTransitionIndex)
+                toTransitionIndex -= group.Count;
 
             if (target.LocalOffset > 0.5f)
                 target.Index++;
 
-            var previousIndex = group.Index;
-            AdjustGroupIndices(window, fromItemIndex, target.Index);
-
-            if (target.Index > fromItemIndex)
-                target.Index += group.Index - previousIndex;
-
-            group.Index = window.Items.ItemToGroupIndex(target.Index);
-
-            TransitionGroupCache.SortGroups(window.EditorData.TransitionGroups);
-
-            window.Selection.Select(window, group, target.Index, SelectionType.Group);
+            MoveGroupTransitions(window, fromTransitionIndex, toTransitionIndex, group.Count);
+            MoveGroup(window, group, toGroup, target.Index, toTransitionIndex);
         }
 
         /************************************************************************************************************************/
 
-        /// <summary>Adjusts the <see cref="TransitionGroup.Index"/> for any groups an item is moved over.</summary>
-        private static void AdjustGroupIndices(
+        /// <summary>Moves the transitions within a group.</summary>
+        private static void MoveGroupTransitions(
             TransitionLibraryWindow window,
-            int movedFromItemIndex,
-            int movedToItemIndex)
+            int fromTransitionIndex,
+            int toTransitionIndex,
+            int count)
         {
-            var direction = Math.Sign(movedToItemIndex - movedFromItemIndex);
-            movedFromItemIndex = Mathf.Clamp(movedFromItemIndex, 0, window.Items.Count - 1);
-            movedToItemIndex = Mathf.Clamp(movedToItemIndex, 0, window.Items.Count - 1);
-            while (true)
+            // Order matters with multiple items depending on the direction of the move.
+            if (fromTransitionIndex < toTransitionIndex)
             {
-                if (window.Items.GetItem(movedFromItemIndex) is TransitionGroup group)
-                    group.Index -= direction;
+                for (int i = count - 1; i >= 0; i--)
+                {
+                    TransitionLibrarySort.MoveTransition(
+                        window,
+                        i + fromTransitionIndex,
+                        i + toTransitionIndex);
+                }
+            }
+            else if (fromTransitionIndex > toTransitionIndex)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    TransitionLibrarySort.MoveTransition(
+                        window,
+                        i + fromTransitionIndex,
+                        i + toTransitionIndex);
+                }
+            }
+        }
 
-                if (movedFromItemIndex == movedToItemIndex)
-                    break;
+        /************************************************************************************************************************/
 
-                movedFromItemIndex += direction;
+        private static void MoveGroup(
+            TransitionLibraryWindow window,
+            TransitionGroup moveGroup,
+            TransitionGroup toGroup,
+            int toItemIndex,
+            int toTransitionIndex)
+        {
+            moveGroup.Index = toTransitionIndex;
+
+            var groups = window.EditorData.TransitionGroups;
+            if (groups.Count <= 1)
+            {
+                window.Selection.Select(window, moveGroup, 0, SelectionType.Group);
+                return;
+            }
+
+            var fromGroupIndex = groups.IndexOf(moveGroup);
+
+            var toGroupIndex = 0;
+
+            if (toGroup != null)
+            {
+                toGroupIndex = groups.IndexOf(toGroup);
+
+                var toGroupItemIndex = window.Items.GroupToItemIndex(toGroupIndex);
+                if (toItemIndex > toGroupItemIndex)
+                    toGroupIndex++;
+            }
+            else
+            {
+                while (toGroupIndex < groups.Count &&
+                    groups[toGroupIndex].Index < toTransitionIndex)
+                {
+                    toGroupIndex++;
+                }
+            }
+
+            if (toGroupIndex > fromGroupIndex)
+                toGroupIndex--;
+
+            if (toGroupIndex == fromGroupIndex)
+                return;
+
+            groups.RemoveAt(fromGroupIndex);
+            groups.Insert(toGroupIndex, moveGroup);
+
+            if (toGroupIndex > fromGroupIndex)
+            {
+                for (int i = fromGroupIndex; i < toGroupIndex; i++)
+                    groups[i].Index -= moveGroup.Count;
+            }
+            else
+            {
+                for (int i = toGroupIndex + 1; i <= fromGroupIndex; i++)
+                    groups[i].Index += moveGroup.Count;
+            }
+
+            window.Selection.Select(window, moveGroup, toGroupIndex, SelectionType.Group);
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>Handles a drag and drop operation for a transition.</summary>
+        private static void OnDropTransition(
+            TransitionLibraryWindow window,
+            int fromItemIndex,
+            ListTargetCalculation target,
+            SelectionType selectionType)
+        {
+            AdjustGroupsOnTransitionMoved(
+                window,
+                fromItemIndex,
+                target,
+                out var fromTransitionIndex,
+                out var toTransitionIndex);
+
+            TransitionLibrarySort.MoveTransition(
+                window,
+                fromTransitionIndex,
+                toTransitionIndex);
+
+            if (window.Data.Transitions.TryGet(toTransitionIndex, out var transition))
+                window.Selection.Select(window, transition, toTransitionIndex, selectionType);
+        }
+
+        /************************************************************************************************************************/
+
+        /// <summary>Adjusts the indices of transition groups when a transition is moved.</summary>
+        private static void AdjustGroupsOnTransitionMoved(
+            TransitionLibraryWindow window,
+            int fromItemIndex,
+            ListTargetCalculation target,
+            out int fromTransitionIndex,
+            out int toTransitionIndex)
+        {
+            fromTransitionIndex = window.Items.ItemToSourceIndex(fromItemIndex);
+            var toItem = window.Items.GetItem(target.Index);
+            toTransitionIndex = toItem is TransitionGroup toGroup
+                ? toGroup.Index
+                : window.Items.ItemToSourceIndex(target.Index);
+
+            if (target.LocalOffset > 0.5f)
+                toTransitionIndex++;
+
+            if (toTransitionIndex > fromTransitionIndex)
+                toTransitionIndex--;
+
+            var fromGroup = window.Items.GetGroup(fromItemIndex);
+            toGroup = window.Items.GetGroup(target.Index);
+
+            if (fromGroup != null)
+            {
+                if (fromGroup == toGroup)
+                {
+                    if (ReferenceEquals(toItem, toGroup))
+                    {
+                        // Top half = move outside the group.
+                        if (target.LocalOffset <= 0.5f)
+                        {
+                            toGroup.Count--;
+                            toGroup.Index++;
+                        }
+                        else // Bottom half = reorder within the group.
+                        {
+                            toTransitionIndex--;
+                        }
+                    }
+
+                    return;
+                }
+
+                fromGroup.Count--;
+
+                if (fromGroup.Index >= toTransitionIndex)
+                    fromGroup.Index++;
+            }
+
+            if (toGroup != null)
+            {
+                // Drop directly onto a group.
+                if (ReferenceEquals(toItem, toGroup))
+                {
+                    // Top half = move outside the group.
+                    if (target.LocalOffset <= 0.5f)
+                    {
+                        if (toGroup.Index < fromTransitionIndex)
+                            toGroup.Index++;
+                    }
+                    else // Bottom half = add to the group.
+                    {
+                        toTransitionIndex--;
+
+                        toGroup.Count++;
+
+                        if (toGroup.Index > fromTransitionIndex)
+                            toGroup.Index--;
+                    }
+                }
+                else // Drop onto a transition in a group = add to the group.
+                {
+                    toGroup.Count++;
+
+                    if (toGroup.Index > fromTransitionIndex)
+                        toGroup.Index--;
+                }
+            }
+
+            int minTransitionIndex, maxTransitionIndex, increment;
+            if (fromTransitionIndex < toTransitionIndex)
+            {
+                minTransitionIndex = fromTransitionIndex;
+                maxTransitionIndex = toTransitionIndex;
+                increment = -1;
+            }
+            else
+            {
+                minTransitionIndex = toTransitionIndex;
+                maxTransitionIndex = fromTransitionIndex;
+                increment = 1;
+            }
+
+            var groups = window.EditorData.TransitionGroups;
+            for (int i = 0; i < groups.Count; i++)
+            {
+                var group = groups[i];
+                if (group == fromGroup ||
+                    group == toGroup ||
+                    !group.IsInRange(minTransitionIndex, maxTransitionIndex))
+                    continue;
+
+                group.Index += increment;
             }
         }
 

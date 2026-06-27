@@ -13,7 +13,7 @@ namespace Animancer
     /// </summary>
     /// https://kybernetik.com.au/animancer/api/Animancer/Validate
     /// 
-    public static partial class Validate
+    public static partial class Validate // Validate.cs
     {
         /************************************************************************************************************************/
 

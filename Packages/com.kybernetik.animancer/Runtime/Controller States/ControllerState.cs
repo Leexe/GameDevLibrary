@@ -23,7 +23,7 @@ namespace Animancer
     /// </remarks>
     /// https://kybernetik.com.au/animancer/api/Animancer/ControllerState
     /// 
-    public partial class ControllerState : AnimancerState,
+    public partial class ControllerState : AnimancerState, // ControllerState.cs
         ICopyable<ControllerState>,
         IParametizedState,
         IUpdatable

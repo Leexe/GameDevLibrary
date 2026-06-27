@@ -19,7 +19,7 @@ namespace Animancer.Editor.TransitionLibraries
     /// </remarks>
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor.TransitionLibraries/TransitionLibraryEditorDataInternal
     [Serializable]
-    public partial class TransitionLibraryEditorDataInternal :
+    public partial class TransitionLibraryEditorDataInternal : // TransitionLibraryEditorDataInternal.cs
         ICopyable<TransitionLibraryEditorDataInternal>,
         IEquatable<TransitionLibraryEditorDataInternal>
     {

@@ -5,7 +5,7 @@ using System;
 namespace Animancer
 {
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerEvent
-    partial struct AnimancerEvent
+    public partial struct AnimancerEvent // AnimancerEvent.ParameterTypes.cs
     {
         /************************************************************************************************************************/
         // Reference Types.

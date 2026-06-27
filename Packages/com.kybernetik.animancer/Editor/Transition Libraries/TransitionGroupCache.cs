@@ -13,11 +13,11 @@ namespace Animancer.Editor.TransitionLibraries
     {
         /************************************************************************************************************************/
 
-        private static readonly List<TransitionAssetBase> Transitions = new();
-
         private readonly List<object> Items = new();
+        private readonly List<int> ItemIndexToSourceIndex = new();
+        private readonly List<int> TransitionIndexToItemIndex = new();
+        private readonly List<int> GroupIndexToItemIndex = new();
         private readonly List<TransitionGroup> ItemToGroup = new();
-        private readonly Dictionary<object, int> ItemToIndex = new();
 
         /************************************************************************************************************************/
 
@@ -27,27 +27,49 @@ namespace Animancer.Editor.TransitionLibraries
 
         /************************************************************************************************************************/
 
-        /// <summary>Returns the index of the specified `item` in this cache.</summary>
-        public int IndexOf(object item)
-            => item != null && ItemToIndex.TryGetValue(item, out var index)
-            ? index
-            : -1;
+        /// <summary>Tries to get the item at the specified `itemIndex`.</summary>
+        public bool TryGet(int itemIndex, out object item)
+            => Items.TryGet(itemIndex, out item);
 
         /************************************************************************************************************************/
 
-        /// <summary>Tries to get the item at the specified index.</summary>
-        public bool TryGet(int index, out object item)
-            => Items.TryGet(index, out item);
+        /// <summary>Returns the item at the specified `itemIndex`.</summary>
+        public object GetItem(int itemIndex)
+            => Items.TryGet(itemIndex, out var item)
+            ? item
+            : null;
+
+        /// <summary>Returns the group containing the item at the specified `itemIndex`.</summary>
+        public TransitionGroup GetGroup(int itemIndex)
+            => ItemToGroup.TryGet(itemIndex, out var group)
+            ? group
+            : null;
 
         /************************************************************************************************************************/
 
-        /// <summary>Returns the item at the specified index.</summary>
-        public object GetItem(int index)
-            => Items[index];
+        /// <summary>
+        /// Converts the index of an item to its index in the source data,
+        /// i.e. the <see cref="Animancer.TransitionLibraries.TransitionLibraryDefinition.Transitions"/>
+        /// of <see cref="TransitionLibraryEditorDataInternal.TransitionGroups"/>.
+        /// </summary>
+        public int ItemToSourceIndex(int itemIndex)
+            => itemIndex < 0
+            ? -1
+            : itemIndex >= ItemIndexToSourceIndex.Count
+            ? ItemIndexToSourceIndex.Count
+            : ItemIndexToSourceIndex[itemIndex];
 
-        /// <summary>Returns the group containing the item at the specified index.</summary>
-        public TransitionGroup GetGroup(int index)
-            => ItemToGroup[index];
+        /// <summary>Converts the index of a transition to its index in the item list.</summary>
+        public int TransitionToItemIndex(int transitionIndex)
+            => TransitionIndexToItemIndex.TryGet(transitionIndex, out var itemIndex)
+            ? itemIndex
+            : int.MinValue;
+
+        /// <summary>Converts the index of a group to its index in the item list.</summary>
+        public int GroupToItemIndex(int groupIndex)
+            => GroupIndexToItemIndex.TryGet(groupIndex, out var itemIndex)
+            ? itemIndex
+            : int.MinValue;
 
         /************************************************************************************************************************/
 
@@ -83,32 +105,23 @@ namespace Animancer.Editor.TransitionLibraries
             List<TransitionGroup> groups)
         {
             Items.Clear();
-            Transitions.Clear();
+            ItemIndexToSourceIndex.Clear();
+            TransitionIndexToItemIndex.Clear();
+            GroupIndexToItemIndex.Clear();
             ItemToGroup.Clear();
-            ItemToIndex.Clear();
 
-            Transitions.AddRange(transitions);
-
-            SortGroups(groups);
-            GatherGroupedTransitions(groups);
-            GatherUnGroupedItems();
-
-            GatherGroupedItems(groups);
-            GatherItemIndices();
-
-            Transitions.Clear();
+            ValidateGroups(groups, transitions.Length);
+            GatherTransitions(transitions, groups);
         }
 
         /************************************************************************************************************************/
 
-        /// <summary>
-        /// Sorts the `groups` by <see cref="TransitionGroup.Index"/>
-        /// and removes any nulls.
-        /// </summary>
-        public static void SortGroups(List<TransitionGroup> groups)
+        /// <summary>Ensures that the `groups` don't overlap and are within valid bounds.</summary>
+        public static void ValidateGroups(
+            List<TransitionGroup> groups,
+            int transitionCount)
         {
-            var previousGroupIndex = int.MinValue;
-            var outOfOrder = false;
+            var previousGroupEnd = 0;
 
             for (int i = 0; i < groups.Count; i++)
             {
@@ -122,99 +135,88 @@ namespace Animancer.Editor.TransitionLibraries
                 }
 
                 var groupIndex = group.Index;
-                if (groupIndex < previousGroupIndex)
+                if (group.Index < previousGroupEnd)
                 {
-                    outOfOrder = true;
+                    group.ReduceCount(previousGroupEnd - groupIndex);
+
+                    group.Index = groupIndex = previousGroupEnd;
                 }
-                else if (groupIndex == previousGroupIndex)
+                else if (group.Index >= transitionCount)
                 {
-                    groupIndex++;
-                    group.Index = groupIndex;
+                    group.Index = transitionCount;
+                    group.Count = 0;
                 }
 
-                previousGroupIndex = groupIndex;
+                previousGroupEnd = groupIndex + group.Count;
+
+                if (previousGroupEnd > transitionCount)
+                {
+                    group.ReduceCount(previousGroupEnd - transitionCount);
+
+                    previousGroupEnd = transitionCount;
+                }
             }
-
-            if (outOfOrder)
-                groups.Sort(static (a, b) => a.Index.CompareTo(b.Index));
         }
 
         /************************************************************************************************************************/
 
-        /// <summary>
-        /// Grabs items from the <see cref="Transitions"/>
-        /// to fill the <see cref="TransitionGroup.Transitions"/>.
-        /// </summary>
-        private void GatherGroupedTransitions(List<TransitionGroup> groups)
+        /// <summary>Gathers the `transitions` and `groups` while arranging their associated indices.</summary>
+        private void GatherTransitions(
+            TransitionAssetBase[] transitions,
+            List<TransitionGroup> groups)
         {
+            var transitionIndex = 0;
+
+            // Iterate through each group and add preceding transitions, the group header, and group members.
             for (int iGroup = 0; iGroup < groups.Count; iGroup++)
             {
                 var group = groups[iGroup];
-                group.Transitions.Clear();
 
-                for (int iTransition = 0; iTransition < group.TransitionIndices.Count; iTransition++)
+                // Add transitions before this group that aren't part of any group.
+                while (transitionIndex < group.Index)
                 {
-                    var transitionIndex = group.TransitionIndices[iTransition];
-                    if (!Transitions.TryGetObject(transitionIndex, out var transition))
-                        continue;
-
-                    Transitions[transitionIndex] = null;
-                    group.Transitions.Add(transition);
+                    Items.Add(transitions[transitionIndex]);
+                    ItemIndexToSourceIndex.Add(transitionIndex);
+                    ItemToGroup.Add(null);
+                    TransitionIndexToItemIndex.Add(Items.Count - 1);
+                    transitionIndex++;
                 }
+
+                // Add the group header.
+                GroupIndexToItemIndex.Add(Items.Count);
+                Items.Add(group);
+                ItemIndexToSourceIndex.Add(iGroup);
+                ItemToGroup.Add(group);
+
+                // Add transitions inside the group (either as items if expanded, or map them to the header if collapsed).
+                var groupEnd = group.Index + group.Count;
+                for (int iTransition = group.Index; iTransition < groupEnd; iTransition++)
+                {
+                    if (iTransition >= transitions.Length)
+                        break;
+
+                    if (group.IsExpanded)
+                    {
+                        Items.Add(transitions[iTransition]);
+                        ItemIndexToSourceIndex.Add(iTransition);
+                        ItemToGroup.Add(group);
+                    }
+
+                    TransitionIndexToItemIndex.Add(Items.Count - 1);
+                }
+
+                transitionIndex = group.Index + group.Count;
             }
-        }
 
-        /************************************************************************************************************************/
-
-        /// <summary>Copies un-grouped transitions over to the <see cref="Items"/>.</summary>
-        private void GatherUnGroupedItems()
-        {
-            for (int i = 0; i < Transitions.Count; i++)
+            // Add any remaining transitions after the last group.
+            while (transitionIndex < transitions.Length)
             {
-                var transition = Transitions[i];
-                if (transition == null)
-                    continue;
-
-                Items.Add(transition);
+                Items.Add(transitions[transitionIndex]);
+                ItemIndexToSourceIndex.Add(transitionIndex);
                 ItemToGroup.Add(null);
+                TransitionIndexToItemIndex.Add(Items.Count - 1);
+                transitionIndex++;
             }
-        }
-
-        /************************************************************************************************************************/
-
-        /// <summary>Copies groups and grouped transitions over to the <see cref="Items"/>.</summary>
-        private void GatherGroupedItems(List<TransitionGroup> groups)
-        {
-            var expandedItemOffset = 0;
-            for (int iGroup = 0; iGroup < groups.Count; iGroup++)
-            {
-                var group = groups[iGroup];
-                group.Index = Mathf.Clamp(group.Index, 0, Transitions.Count + iGroup + 1);
-                var index = group.Index + expandedItemOffset;
-                index = Mathf.Clamp(index, 0, Items.Count);
-                Items.Insert(index, group);
-                ItemToGroup.Insert(index, group);
-
-                if (!group.IsExpanded)
-                    continue;
-
-                expandedItemOffset += group.Transitions.Count;
-                for (int iTransition = 0; iTransition < group.Transitions.Count; iTransition++)
-                {
-                    index++;
-                    Items.Insert(index, group.Transitions[iTransition]);
-                    ItemToGroup.Insert(index, group);
-                }
-            }
-        }
-
-        /************************************************************************************************************************/
-
-        /// <summary>Assigns the <see cref="ItemToIndex"/> for each of the <see cref="Items"/>.</summary>
-        private void GatherItemIndices()
-        {
-            for (int i = 0; i < Items.Count; i++)
-                ItemToIndex[Items[i]] = i;
         }
 
         /************************************************************************************************************************/

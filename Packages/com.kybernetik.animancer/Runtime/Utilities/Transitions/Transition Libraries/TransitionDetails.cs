@@ -45,6 +45,14 @@ namespace Animancer.TransitionLibraries
         }
 
         /************************************************************************************************************************/
+
+        /// <summary>Returns a description of this object.</summary>
+        public override readonly string ToString()
+            => $"{nameof(TransitionDetails)}(" +
+            $"{nameof(FadeDuration)}={FadeDuration}, " +
+            $"{nameof(NormalizedStartTime)}={NormalizedStartTime})";
+
+        /************************************************************************************************************************/
     }
 }
 

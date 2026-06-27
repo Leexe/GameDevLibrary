@@ -123,7 +123,7 @@ namespace Animancer.FSM
     /// 
     [HelpURL(StateExtensions.APIDocumentationURL + nameof(StateMachine<TState>) + "_1")]
     [Serializable]
-    public partial class StateMachine<TState> : IStateMachine
+    public partial class StateMachine<TState> : IStateMachine // StateMachine1.cs
         where TState : class, IState
     {
         /************************************************************************************************************************/

@@ -8,7 +8,7 @@ using System.Reflection;
 [assembly: AssemblyProduct("Animancer Pro")]
 [assembly: AssemblyCompany("Kybernetik")]
 [assembly: AssemblyCopyright("Copyright © Kybernetik 2018-2026")]
-[assembly: AssemblyVersion("8.3.0.36")]
+[assembly: AssemblyVersion("8.4.0.39")]
 
 #if UNITY_EDITOR
 

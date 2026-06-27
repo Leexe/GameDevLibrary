@@ -228,6 +228,23 @@ namespace Animancer
         }
 
         /************************************************************************************************************************/
+
+#if UNITY_ASSERTIONS || ANIMANCER_ON_PLAY_EVENTS
+        /// <summary>[Assert-Only] An event which is triggered whenever a state is played.</summary>
+        /// <remarks>
+        /// Some useful methods for this event are <see cref="AnimancerState.LogPlayingMessage"/>
+        /// and <see cref="AnimancerState.LogPlayingMessageDetailed"/>.
+        /// <para></para>
+        /// By default, this event only exists in the Unity Editor and in Development Builds.
+        /// To enable it in regular Release Builds, go to
+        /// <c>Edit -> Project Settings -> Player -> Other Settings -> Scripting Define Symbols</c>
+        /// and add <c>ANIMANCER_ON_PLAY_EVENTS</c> to the list.
+        /// </remarks>
+        public ref Action<AnimancerState> OnPlay
+            => ref Graph.OnPlay;
+#endif
+
+        /************************************************************************************************************************/
         #region Update Mode
         /************************************************************************************************************************/
 

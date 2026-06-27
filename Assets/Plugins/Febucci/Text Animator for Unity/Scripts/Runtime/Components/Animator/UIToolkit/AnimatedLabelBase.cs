@@ -15,6 +15,7 @@ using Febucci.Parsing.Core;
 using Febucci.Parsing.Regions;
 using Febucci.TextAnimatorCore.Settings;
 using Febucci.TextAnimatorCore.Text;
+using Febucci.TextAnimatorCore.Time;
 using Febucci.TextAnimatorForUnity.Actions;
 using Febucci.TextAnimatorForUnity.Parsing;
 using UnityEngine;
@@ -373,6 +374,9 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
             if(!Application.isPlaying)
                 return (float)UnityEditor.EditorApplication.timeSinceStartup;
             #endif
+
+            if (animationSettings?.Settings?.timeScale == TimeScale.Unscaled)
+                return UnityEngine.Time.unscaledTime;
 
             return UnityEngine.Time.time;
         }

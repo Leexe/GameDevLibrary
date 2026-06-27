@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Animancer.Editor.TransitionLibraries
 {
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor.TransitionLibraries/TransitionLibraryEditorDataInternal
-    public partial class TransitionLibraryEditorDataInternal
+    partial class TransitionLibraryEditorDataInternal // TransitionGroup.cs
     {
         /************************************************************************************************************************/
 
@@ -55,10 +55,34 @@ namespace Animancer.Editor.TransitionLibraries
         private int _Index;
 
         /// <summary>[<see cref="SerializeField"/>]
-        /// The display index of this group within the <see cref="TransitionGroupCache.Items"/>.
+        /// The display index of the first transition in this group.
         /// </summary>
         public ref int Index
             => ref _Index;
+
+        /************************************************************************************************************************/
+
+        [SerializeField]
+        private int _Count;
+
+        /// <summary>[<see cref="SerializeField"/>]
+        /// The number of transitions in this group.
+        /// </summary>
+        public ref int Count
+            => ref _Count;
+
+        /// <summary>Reduces the <see cref="Count"/> and ensures it doesn't go below zero.</summary>
+        public void ReduceCount(int amount)
+        {
+            _Count -= amount;
+            if (_Count < 0)
+                _Count = 0;
+        }
+
+        /// <summary>Does the specified range contain this group?</summary>
+        public bool IsInRange(int min, int max)
+            => _Index <= max
+            && _Index + _Count > min;
 
         /************************************************************************************************************************/
 
@@ -68,33 +92,6 @@ namespace Animancer.Editor.TransitionLibraries
         /// <summary>[<see cref="SerializeField"/>] Is this group currently showing its contents?</summary>
         public ref bool IsExpanded
             => ref _IsExpanded;
-
-        /************************************************************************************************************************/
-
-        [SerializeField]
-        private List<int> _TransitionIndices;
-
-        /// <summary>[<see cref="SerializeField"/>]
-        /// The indices of the transitions in the <see cref="Animancer.TransitionLibraries.TransitionLibraryDefinition"/>.
-        /// </summary>
-        public ref List<int> TransitionIndices
-        {
-            get
-            {
-                _TransitionIndices ??= new();
-                return ref _TransitionIndices;
-            }
-        }
-
-        /************************************************************************************************************************/
-
-        [NonSerialized]
-        private List<TransitionAssetBase> _Transitions;
-
-        /// <summary>The transitions referenced by <see cref="TransitionIndices"/>.</summary>
-        /// <remarks>This list is temporarily filled during GUI calls in the <see cref="TransitionLibraryWindow"/>.</remarks>
-        public List<TransitionAssetBase> Transitions
-            => _Transitions ??= new();
 
         /************************************************************************************************************************/
         #endregion
@@ -111,8 +108,8 @@ namespace Animancer.Editor.TransitionLibraries
             => other != null
             && _Name == other._Name
             && _Index == other._Index
-            && _IsExpanded == other._IsExpanded
-            && AnimancerUtilities.ContentsAreEqual(TransitionIndices, other.TransitionIndices);
+            && _Count == other._Count
+            && _IsExpanded == other._IsExpanded;
 
         /// <summary>Are all fields in `a` equal to the equivalent fields in `b`?</summary>
         public static bool operator ==(TransitionGroup a, TransitionGroup b)
@@ -131,8 +128,8 @@ namespace Animancer.Editor.TransitionLibraries
             => AnimancerUtilities.Hash(1598151553,
                 _Name.GetHashCode(),
                 _Index.GetHashCode(),
-                _IsExpanded.GetHashCode(),
-                TransitionIndices.GetHashCode());
+                _Count.GetHashCode(),
+                _IsExpanded.GetHashCode());
 
         /************************************************************************************************************************/
 
@@ -141,17 +138,15 @@ namespace Animancer.Editor.TransitionLibraries
         {
             _Name = copyFrom._Name;
             _Index = copyFrom._Index;
+            _Count = copyFrom._Count;
             _IsExpanded = copyFrom._IsExpanded;
-
-            TransitionIndices.Clear();
-            TransitionIndices.AddRange(copyFrom.TransitionIndices);
         }
 
         /************************************************************************************************************************/
 
         /// <inheritdoc/>
         public override string ToString()
-            => $"{nameof(TransitionGroup)}({_Name}, {_Index}, {TransitionIndices.Count})";
+            => $"{_Name}, ({_Index}, {_Count})";
 
         /************************************************************************************************************************/
         #endregion

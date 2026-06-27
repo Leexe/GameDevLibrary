@@ -36,7 +36,7 @@ namespace Animancer.TransitionLibraries
         /************************************************************************************************************************/
 
         /// <summary>[Pro-Only] The number of transitions in this library.</summary>
-        public int Count
+        public int TransitionCount
             => TransitionModifiers.Count;
 
         /// <summary>[Pro-Only] The number of transitions in this library plus any additional aliases.</summary>
@@ -192,7 +192,8 @@ namespace Animancer.TransitionLibraries
             if (definition == null)
                 return;
 
-            var count = definition.Transitions.Length;
+            var transitions = definition.Transitions;
+            var count = transitions.Length;
 
             if (TransitionModifiers.Capacity < count)
             {
@@ -201,15 +202,37 @@ namespace Animancer.TransitionLibraries
                 KeyedTransitionModifiers.EnsureCapacity(capacity);
             }
 
+            var transitionIndexRemap = ListPool<int>.Instance.Acquire();
+
             for (int i = 0; i < count; i++)
             {
-                var transition = definition.Transitions[i];
+                var transition = transitions[i];
                 if (transition != null)
+                {
+                    transitionIndexRemap.Add(KeyedTransitionModifiers.Count);
                     SetTransition(transition);
+                }
+                else
+                {
+                    transitionIndexRemap.Add(-1);
+                }
             }
 
             for (int i = 0; i < definition.Modifiers.Length; i++)
-                SetModifier(definition.Modifiers[i]);
+            {
+                var modifier = definition.Modifiers[i];
+
+                if (transitionIndexRemap.TryGet(modifier.FromIndex, out var fromIndex) &&
+                    transitionIndexRemap.TryGet(modifier.ToIndex, out var toIndex) &&
+                    fromIndex != -1 &&
+                    toIndex != -1)
+                {
+                    modifier = modifier.WithIndices(fromIndex, toIndex);
+                    SetModifier(modifier);
+                }
+            }
+
+            ListPool<int>.Instance.Release(transitionIndexRemap);
 
             if (definition.AliasAllTransitions)
             {
@@ -220,8 +243,9 @@ namespace Animancer.TransitionLibraries
                     if (transition == null)
                         continue;
 
+                    var alias = StringReference.Get(transition.name);
                     var modifier = TransitionModifiers[modifierIndex++];
-                    KeyedTransitionModifiers[StringReference.Get(transition.name)] = modifier;
+                    KeyedTransitionModifiers[alias] = modifier;
                 }
             }
 
@@ -530,26 +554,30 @@ namespace Animancer.TransitionLibraries
 
         /// <summary>
         /// Calls <see cref="AnimancerLayer.Play(ITransition, float, FadeMode)"/>
-        /// with the fade duration potentially modified by this library.
+        /// with the details potentially modified by this library.
         /// </summary>
         public AnimancerState Play(
             AnimancerLayer layer,
             ITransition transition)
             => TryGetTransition(transition, out var modifier)
             ? Play(layer, modifier)
-            : layer.Play(transition);
+            : layer.Play(transition, transition.FadeDuration, transition.FadeMode);
 
         /// <summary>
         /// Calls <see cref="AnimancerLayer.Play(ITransition, float, FadeMode)"/>
-        /// with the fade duration potentially modified by this library.
+        /// with the details potentially modified by this library.
         /// </summary>
         public AnimancerState Play(
             AnimancerLayer layer,
-            TransitionModifierGroup transition)
+            TransitionModifierGroup modifier)
         {
-            var from = layer.CurrentState?.Key;
-            var to = transition.Transition;
-            var details = transition.GetDetails(from);
+            var to = modifier.Transition;
+
+            var currentState = layer.CurrentState;
+            if (currentState == null)
+                return layer.Play(to, to.FadeDuration, to.FadeMode);
+
+            var details = modifier.GetDetails(currentState.Key);
 
             if (float.IsNaN(details.FadeDuration))
                 details.FadeDuration = to.FadeDuration;

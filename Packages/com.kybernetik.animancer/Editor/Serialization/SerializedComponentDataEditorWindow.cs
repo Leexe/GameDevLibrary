@@ -2,8 +2,11 @@
 
 #if UNITY_EDITOR
 
+#if !UNITY_6000_3_OR_NEWER
+using EntityId = System.Int32;
+#endif
+
 using System;
-using UnityEditor;
 using UnityEngine;
 
 namespace Animancer.Editor
@@ -20,7 +23,7 @@ namespace Animancer.Editor
         /************************************************************************************************************************/
 
         [SerializeField] private GameObject _SourceGameObject;
-        [SerializeField] private int _SourceComponentInstanceID;
+        [SerializeField] private EntityId _SourceComponentEntityId;
 
         /************************************************************************************************************************/
 
@@ -42,11 +45,7 @@ namespace Animancer.Editor
 
                 if (source == null && _SourceGameObject != null)
                 {
-#if UNITY_6000_3_OR_NEWER
-                    var component = EditorUtility.EntityIdToObject(_SourceComponentInstanceID);
-#else
-                    var component = EditorUtility.InstanceIDToObject(_SourceComponentInstanceID);
-#endif
+                    var component = Serialization.EntityIdToObject(_SourceComponentEntityId);
                     source = base.SourceObject = component as TObject;
                 }
 
@@ -70,7 +69,7 @@ namespace Animancer.Editor
             if (SourceObject != null)
             {
                 _SourceGameObject = SourceObject.gameObject;
-                _SourceComponentInstanceID = SourceObject.GetInstanceID();
+                _SourceComponentEntityId = Serialization.GetEntityId(SourceObject);
             }
         }
 

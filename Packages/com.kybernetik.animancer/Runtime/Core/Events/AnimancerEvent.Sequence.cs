@@ -7,12 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Animancer
 {
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerEvent
-    partial struct AnimancerEvent
+    partial struct AnimancerEvent // AnimancerEvent.Sequence.cs
     {
         /// <summary>
         /// A variable-size list of <see cref="AnimancerEvent"/>s which keeps itself sorted
@@ -27,7 +26,7 @@ namespace Animancer
         /// </remarks>
         /// https://kybernetik.com.au/animancer/api/Animancer/Sequence
         /// 
-        public partial class Sequence :
+        public partial class Sequence : // AnimancerEvent.Sequence.cs
             IEnumerable<AnimancerEvent>,
             ICloneable<Sequence>
         {
@@ -791,24 +790,25 @@ namespace Animancer
 
             /// <summary>[Pro-Only]
             /// Adds the specified `callback` to every event with the specified `name`
-            /// and returns the number of events that were found.
+            /// and returns the `callback` if any events were found in case it needs to be removed later.
+            /// Otherwise, this method returns <c>null</c>.
             /// </summary>
             /// <exception cref="ArgumentNullException">
             /// Use <see cref="DummyCallback"/> or <see cref="InvokeBoundCallback"/> instead of <c>null</c>.
             /// </exception>
             /// <seealso cref="AddCallback(StringReference, Action)"/>
             /// <seealso cref="IndexOf(StringReference, int)"/>
-            public int AddCallbacks(StringReference name, Action callback)
+            public Action AddCallbacks(StringReference name, Action callback)
             {
-                var count = 0;
+                var addedAny = false;
                 var index = -1;
                 while (true)
                 {
                     index = IndexOf(name, index + 1);
                     if (index < 0)
-                        return count;
+                        return addedAny ? callback : null;
 
-                    count++;
+                    addedAny = true;
                     AddCallback(index, callback);
                 }
             }
@@ -845,30 +845,29 @@ namespace Animancer
                 => AddCallback(IndexOfRequired(name), callback);
 
             /// <summary>[Pro-Only]
-            /// Adds the specified `callback` to every event with the specified `name`
-            /// and returns the number of events that were found.
-            /// <see cref="GetCurrentParameter{T}"/> will be used to get the callback's parameter.
+            /// Adds the specified `callback` to every event with the specified `name`.
+            /// <see cref="GetCurrentParameter{T}"/> will be used to get the callback's parameter
+            /// and the parametized callback will be returned in case it needs to be removed later.
+            /// If no events are found, this method returns <c>null</c>.
             /// </summary>
             /// <exception cref="ArgumentNullException">The `callback` is <c>null</c>.</exception>
             /// <seealso cref="AddCallback{T}(StringReference, Action{T})"/>
             /// <seealso cref="IndexOf(StringReference, int)"/>
-            public int AddCallbacks<T>(StringReference name, Action<T> callback)
+            public Action AddCallbacks<T>(StringReference name, Action<T> callback)
             {
                 Action parametized = null;
 
-                var count = 0;
                 var index = -1;
                 while (true)
                 {
                     index = IndexOf(name, index + 1);
                     if (index < 0)
-                        return count;
+                        return parametized;
 
                     AssertContainsParameter<T>(_Events[index].callback);
 
                     parametized ??= Parametize(callback);
 
-                    count++;
                     AddCallback(index, parametized);
                 }
             }

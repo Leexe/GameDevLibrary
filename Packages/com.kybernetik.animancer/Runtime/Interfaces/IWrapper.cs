@@ -22,7 +22,7 @@ namespace Animancer
     }
 
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerUtilities
-    public partial class AnimancerUtilities
+    partial class AnimancerUtilities // IWrapper.cs
     {
         /************************************************************************************************************************/
 

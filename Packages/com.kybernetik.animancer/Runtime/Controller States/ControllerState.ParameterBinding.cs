@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Animancer
 {
     /// https://kybernetik.com.au/animancer/api/Animancer/ControllerState
-    partial class ControllerState
+    partial class ControllerState // ControllerState.ParameterBinding.cs
     {
         /************************************************************************************************************************/
 

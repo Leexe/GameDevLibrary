@@ -13,7 +13,7 @@ namespace Animancer
     /// </summary>
     /// https://kybernetik.com.au/animancer/api/Animancer/SequenceState
     /// 
-    public partial class SequenceState : ParentState,
+    public class SequenceState : ParentState,
         ICopyable<SequenceState>,
         IUpdatable
     {

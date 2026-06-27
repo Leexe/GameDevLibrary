@@ -201,19 +201,19 @@ namespace Animancer.Editor.TransitionLibraries
             switch (mode)
             {
                 case TransitionSortMode.Name:
-                    Sort(library, editorData, Static<CompareName>.Instance);
+                    Sort(library, Static<CompareName>.Instance);
                     break;
 
                 case TransitionSortMode.Path:
-                    Sort(library, editorData, Static<ComparePath>.Instance);
+                    Sort(library, Static<ComparePath>.Instance);
                     break;
 
                 case TransitionSortMode.TypeThenName:
-                    Sort(library, editorData, Static<CompareTypeThenName>.Instance);
+                    Sort(library, Static<CompareTypeThenName>.Instance);
                     break;
 
                 case TransitionSortMode.TypeThenPath:
-                    Sort(library, editorData, Static<CompareTypeThenPath>.Instance);
+                    Sort(library, Static<CompareTypeThenPath>.Instance);
                     break;
             }
         }
@@ -229,7 +229,6 @@ namespace Animancer.Editor.TransitionLibraries
         /// <summary>Sorts the <see cref="TransitionLibraryDefinition.Transitions"/>.</summary>
         public static void Sort(
             TransitionLibraryDefinition library,
-            TransitionLibraryEditorDataInternal editorData,
             IComparer<TransitionAssetBase> comparer)
         {
             var transitions = library.Transitions;
@@ -263,7 +262,7 @@ namespace Animancer.Editor.TransitionLibraries
             for (int i = 0; i < count; i++)
                 _OldIndexToNew[newIndexToOld[i]] = i;
 
-            SetTransitions(library, editorData, _SortingTransitions, _OldIndexToNew, count);
+            SetTransitions(library, _SortingTransitions, _OldIndexToNew, count);
         }
 
         /************************************************************************************************************************/
@@ -274,7 +273,6 @@ namespace Animancer.Editor.TransitionLibraries
         /// </summary>
         public static void SetTransitions(
             TransitionLibraryDefinition library,
-            TransitionLibraryEditorDataInternal editorData,
             TransitionAssetBase[] newTransitions,
             int[] oldIndexToNew,
             int count)
@@ -315,23 +313,6 @@ namespace Animancer.Editor.TransitionLibraries
             }
 
             library.SortAliases();
-
-            var groups = editorData.TransitionGroups;
-            for (int iGroup = 0; iGroup < groups.Count; iGroup++)
-            {
-                var group = groups[iGroup];
-                var transitionIndices = group.TransitionIndices;
-                for (int iTransition = transitionIndices.Count - 1; iTransition >= 0; iTransition--)
-                {
-                    var index = transitionIndices[iTransition];
-                    var isValid = true;
-                    index = ConvertIndex(index, oldIndexToNew, count, ref isValid);
-                    if (isValid)
-                        transitionIndices[iTransition] = index;
-                    else
-                        transitionIndices.RemoveAt(iTransition);
-                }
-            }
         }
 
         /************************************************************************************************************************/
@@ -407,7 +388,6 @@ namespace Animancer.Editor.TransitionLibraries
 
             SetTransitions(
                 definition,
-                editorData,
                 transitions,
                 indices,
                 transitions.Length);

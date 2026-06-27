@@ -23,7 +23,7 @@ namespace Animancer
     }
 
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerUtilities
-    public static partial class AnimancerUtilities
+    partial class AnimancerUtilities // IMotion.cs
     {
         /************************************************************************************************************************/
 
@@ -36,7 +36,7 @@ namespace Animancer
                 averageAngularSpeed = unityMotion.averageAngularSpeed;
                 return true;
             }
-            else if (AnimancerUtilities.TryGetWrappedObject(motion, out IMotion iMotion))
+            else if (TryGetWrappedObject(motion, out IMotion iMotion))
             {
                 averageAngularSpeed = iMotion.AverageAngularSpeed;
                 return true;
@@ -59,7 +59,7 @@ namespace Animancer
                 averageVelocity = unityMotion.averageSpeed;
                 return true;
             }
-            else if (AnimancerUtilities.TryGetWrappedObject(motion, out IMotion iMotion))
+            else if (TryGetWrappedObject(motion, out IMotion iMotion))
             {
                 averageVelocity = iMotion.AverageVelocity;
                 return true;

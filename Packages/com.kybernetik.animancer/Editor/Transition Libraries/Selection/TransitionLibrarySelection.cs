@@ -162,10 +162,10 @@ namespace Animancer.Editor.TransitionLibraries
                 case SelectionType.Modifier:
                     name = "Transition Modifier";
 
-                    var hasTransitions = _Window.Data.TryGetTransition(_FromIndex, out transition);
+                    var hasTransitions = _Window.Data.Transitions.TryGet(_FromIndex, out transition);
                     FromTransition = transition;
 
-                    hasTransitions |= _Window.Data.TryGetTransition(_ToIndex, out transition);
+                    hasTransitions |= _Window.Data.Transitions.TryGet(_ToIndex, out transition);
                     ToTransition = transition;
 
                     if (_Window.Data.TryGetModifier(_FromIndex, _ToIndex, out var modifier))
@@ -184,7 +184,11 @@ namespace Animancer.Editor.TransitionLibraries
 
                 case SelectionType.Group:
                     name = "Transition Group";
-                    return _Selected is TransitionGroup;
+                    if (!_Window.EditorData.TransitionGroups.TryGet(_FromIndex, out var selected))
+                        return false;
+
+                    _Selected = selected;
+                    return true;
 
                 default:
                     return false;
@@ -205,7 +209,7 @@ namespace Animancer.Editor.TransitionLibraries
         public void Select(
             TransitionLibraryWindow window,
             object select,
-            int index,
+            int sourceIndex,
             SelectionType type)
         {
             switch (type)
@@ -216,13 +220,13 @@ namespace Animancer.Editor.TransitionLibraries
                     break;
 
                 case SelectionType.FromTransition:
-                    _FromIndex = index;
+                    _FromIndex = sourceIndex;
                     _ToIndex = -1;
                     break;
 
                 case SelectionType.ToTransition:
                     _FromIndex = -1;
-                    _ToIndex = index;
+                    _ToIndex = sourceIndex;
                     break;
 
                 case SelectionType.Modifier:
@@ -241,8 +245,8 @@ namespace Animancer.Editor.TransitionLibraries
                 case SelectionType.Group:
                     if (select is TransitionGroup group)
                     {
-                        _FromIndex = index;
-                        _ToIndex = index;
+                        _FromIndex = sourceIndex;
+                        _ToIndex = sourceIndex;
                         break;
                     }
                     else

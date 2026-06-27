@@ -327,7 +327,7 @@ namespace Animancer
     }
 
     /// https://kybernetik.com.au/animancer/api/Animancer/Validate
-    public static partial class Validate
+    static partial class Validate // OptionalWarning.cs
     {
         /************************************************************************************************************************/
 

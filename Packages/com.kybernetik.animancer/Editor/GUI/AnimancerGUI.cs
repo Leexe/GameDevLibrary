@@ -13,7 +13,7 @@ namespace Animancer.Editor
 {
     /// <summary>[Editor-Only] Various GUI utilities used throughout Animancer.</summary>
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor/AnimancerGUI
-    public static partial class AnimancerGUI
+    public static partial class AnimancerGUI // AnimancerGUI.cs
     {
         /************************************************************************************************************************/
         #region Standard Values
@@ -748,8 +748,16 @@ namespace Animancer.Editor
             {
                 if (_EditorGuiTextEditor == null)
                 {
-                    var field = typeof(EditorGUI).GetField("s_RecycledEditor", AnimancerReflection.StaticBindings);
-                    _EditorGuiTextEditor = field.GetValue(null) as TextEditor;
+                    const string MemberName = "s_RecycledEditor";
+                    var field = typeof(EditorGUI).GetField(MemberName, AnimancerReflection.StaticBindings);
+                    _EditorGuiTextEditor = field?.GetValue(null) as TextEditor;
+
+                    if (_EditorGuiTextEditor == null)
+                    {
+                        var property = typeof(EditorGUI).GetProperty(MemberName, AnimancerReflection.StaticBindings);
+                        _EditorGuiTextEditor = property?.GetValue(null) as TextEditor;
+                    }
+
                     _EditorGuiTextEditor ??= new();
                 }
 

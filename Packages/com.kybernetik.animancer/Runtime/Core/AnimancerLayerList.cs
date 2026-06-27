@@ -133,6 +133,15 @@ namespace Animancer
         /// </code></remarks>
         public static int DefaultCapacity { get; set; } = 4;
 
+#if UNITY_EDITOR
+        /// <summary>[Editor-Only] Resets static fields in case the Play Mode Domain Reload is disabled.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Initialize()
+        {
+            DefaultCapacity = 4;
+        }
+#endif
+
         /// <summary>[Pro-Only]
         /// If the <see cref="DefaultCapacity"/> is below the specified `min`, this method increases it to that value.
         /// </summary>

@@ -2,7 +2,7 @@
 
 namespace Animancer.FSM
 {
-    public partial class StateMachine<TKey, TState>
+    partial class StateMachine<TKey, TState> // StateMachine2.InputBuffer.cs
     {
         /// <summary>
         /// A simple system that can <see cref="StateMachine{TState}.InputBuffer{TStateMachine}.State"/> a state then

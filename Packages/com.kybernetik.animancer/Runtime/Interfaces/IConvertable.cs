@@ -20,7 +20,7 @@ namespace Animancer
 
     /// <summary>Utility methods for <see cref="IConvertable{T}"/>.</summary>
     /// https://kybernetik.com.au/animancer/api/Animancer/ConvertableUtilities
-    public static partial class ConvertableUtilities
+    public static class ConvertableUtilities
     {
         /************************************************************************************************************************/
 

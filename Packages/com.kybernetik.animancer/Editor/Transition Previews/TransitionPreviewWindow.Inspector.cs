@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace Animancer.Editor.Previews
 {
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor.Previews/TransitionPreviewWindow
-    partial class TransitionPreviewWindow
+    partial class TransitionPreviewWindow // TransitionPreviewWindow.Inspector.cs
     {
         /// <summary>[Internal] Custom Inspector for the <see cref="TransitionPreviewWindow"/>.</summary>
         /// <remarks>

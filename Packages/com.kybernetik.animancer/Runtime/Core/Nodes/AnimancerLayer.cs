@@ -33,6 +33,19 @@ namespace Animancer
         #region Fields and Properties
         /************************************************************************************************************************/
 
+#if UNITY_EDITOR
+        /// <summary>[Editor-Only] Resets static fields in case the Play Mode Domain Reload is disabled.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Initialize()
+        {
+            DefaultCapacity = 8;
+            WeightlessThreshold = 0.1f;
+            MaxCloneCount = 3;
+        }
+#endif
+
+        /************************************************************************************************************************/
+
         /// <summary>[Internal] Creates a new <see cref="AnimancerLayer"/>.</summary>
         protected internal AnimancerLayer(AnimancerGraph graph, int index)
         {
@@ -1336,12 +1349,13 @@ namespace Animancer
 
         /// <summary>Is the <see cref="CurrentState"/> playing and hasn't yet reached its end?</summary>
         /// <remarks>
-        /// This method is called by <see cref="IEnumerator.MoveNext"/> so this object can be used as a custom yield
-        /// instruction to wait until it finishes.
+        /// This property is used by <see cref="IEnumerator.MoveNext"/>
+        /// so this object can be used as a custom yield instruction to wait until it finishes.
         /// </remarks>
-        public override bool IsPlayingAndNotEnding()
+        public override bool IsApproachingEnd
             => _CurrentState != null
-            && _CurrentState.IsPlayingAndNotEnding();
+            && !_CurrentState.IsInterrupted
+            && _CurrentState.IsApproachingEnd;
 
         /************************************************************************************************************************/
 

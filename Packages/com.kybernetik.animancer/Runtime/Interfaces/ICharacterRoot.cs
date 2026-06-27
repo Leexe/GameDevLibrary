@@ -49,7 +49,7 @@ namespace Animancer
     /************************************************************************************************************************/
 
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerUtilities
-    public static partial class AnimancerUtilities
+    partial class AnimancerUtilities // ICharacterRoot.cs
     {
         /************************************************************************************************************************/
 

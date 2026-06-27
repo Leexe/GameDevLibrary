@@ -111,6 +111,7 @@ namespace Animancer.Editor.TransitionLibraries
             var group = new TransitionGroup
             {
                 Name = $"Transition Group {groups.Count}",
+                Index = window.Data.Transitions.Length,
             };
 
             groups.Add(group);

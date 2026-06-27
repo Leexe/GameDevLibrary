@@ -120,9 +120,9 @@ namespace Animancer.Editor.TransitionLibraries
                     area.xMin += IndentSize;
 
                 var transitions = Window.Data.Transitions;
-                var transitionIndex = Array.IndexOf(transitions, transition);
+                var transitionIndex = Window.Items.ItemToSourceIndex(itemIndex);
 
-                DoTransitionGUI(area, transition, transitionIndex);
+                DoTransitionGUI(area, transition, itemIndex, transitionIndex);
 
                 NextVerticalArea(ref area);
 
@@ -142,6 +142,7 @@ namespace Animancer.Editor.TransitionLibraries
                     ref groupArea,
                     Window,
                     group,
+                    itemIndex,
                     SelectionType.Group,
                     CalculateTarget);
 
@@ -184,7 +185,7 @@ namespace Animancer.Editor.TransitionLibraries
         /************************************************************************************************************************/
 
         /// <summary>Draws a `transition`.</summary>
-        private void DoTransitionGUI(Rect area, TransitionAssetBase transition, int index)
+        private void DoTransitionGUI(Rect area, TransitionAssetBase transition, int itemIndex, int transitionIndex)
         {
             var addArea = StealFromLeft(ref area, ButtonWidth, StandardSpacing);
 
@@ -192,6 +193,7 @@ namespace Animancer.Editor.TransitionLibraries
                 ref area,
                 Window,
                 transition,
+                itemIndex,
                 SelectionType.ToTransition,
                 CalculateTarget);
 
@@ -208,7 +210,7 @@ namespace Animancer.Editor.TransitionLibraries
 
             if (GUI.Button(addArea, "Add"))
             {
-                var alias = new NamedIndex(null, index);
+                var alias = new NamedIndex(null, transitionIndex);
                 Window.RecordUndo().AddAlias(alias);
             }
         }

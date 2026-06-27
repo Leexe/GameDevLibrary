@@ -15,7 +15,7 @@ namespace Animancer.Editor.TransitionLibraries
     /// </summary>
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor.TransitionLibraries/TransitionLibraryEditorDataAsset
     [AnimancerHelpUrl(typeof(TransitionLibraryEditorDataAsset))]
-    public partial class TransitionLibraryEditorDataAsset : ScriptableObject
+    public partial class TransitionLibraryEditorDataAsset : ScriptableObject // TransitionLibraryEditorDataAsset.cs
     {
         /************************************************************************************************************************/
 

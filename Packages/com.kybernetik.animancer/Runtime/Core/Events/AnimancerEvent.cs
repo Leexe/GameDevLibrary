@@ -18,7 +18,7 @@ namespace Animancer
     /// </remarks>
     /// https://kybernetik.com.au/animancer/api/Animancer/AnimancerEvent
     /// 
-    public partial struct AnimancerEvent : IEquatable<AnimancerEvent>
+    public partial struct AnimancerEvent : IEquatable<AnimancerEvent> // AnimancerEvent.cs
     {
         /************************************************************************************************************************/
         #region Event
@@ -155,6 +155,15 @@ namespace Animancer
         /// <summary>The custom parameter of the event currently being triggered.</summary>
         /// <remarks>Cleared after the event is finished.</remarks>
         public static object CurrentParameter { get; private set; }
+
+#if UNITY_EDITOR
+        /// <summary>[Editor-Only] Resets static fields in case the Play Mode Domain Reload is disabled.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Initialize()
+        {
+            CurrentParameter = default;
+        }
+#endif
 
         /// <summary>Calls <see cref="ConvertableUtilities.ConvertOrThrow"/> on the <see cref="CurrentParameter"/>.</summary>
         public static T GetCurrentParameter<T>()

@@ -10,7 +10,7 @@ using static Animancer.Editor.AnimancerGUI;
 namespace Animancer.Editor.Previews
 {
     /// https://kybernetik.com.au/animancer/api/Animancer.Editor.Previews/TransitionPreviewWindow
-    partial class TransitionPreviewWindow
+    partial class TransitionPreviewWindow // TransitionPreviewWindow.Animations.cs
     {
         /// <summary>Animation details for the <see cref="TransitionPreviewWindow"/>.</summary>
         /// <remarks>
