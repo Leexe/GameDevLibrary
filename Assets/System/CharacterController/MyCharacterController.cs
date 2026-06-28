@@ -687,24 +687,27 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	private void OnEnable()
 	{
-		InputManager.Instance.OnJumpPerformed.AddListener(JumpRequested);
-		InputManager.Instance.OnDashPerformed.AddListener(DashRequested);
+		InputManager.Instance.OnJumpPerformed += JumpRequested;
+		InputManager.Instance.OnDashPerformed += DashRequested;
 
-		InputManager.Instance.OnMovement.AddListener(OnMovementInput);
-		InputManager.Instance.OnCrouchPerformed.AddListener(OnCrouchStart);
-		InputManager.Instance.OnCrouchRelease.AddListener(OnCrouchRelease);
+		InputManager.Instance.OnMovement += OnMovementInput;
+		InputManager.Instance.OnCrouchPerformed += OnCrouchStart;
+		InputManager.Instance.OnCrouchRelease += OnCrouchRelease;
 
 		OnStaminaRecharging.AddListener(TriggerStaminaRechargeEvent);
 	}
 
 	private void OnDisable()
 	{
-		InputManager.Instance?.OnJumpPerformed.RemoveListener(JumpRequested);
-		InputManager.Instance?.OnDashPerformed.RemoveListener(DashRequested);
+		if (InputManager.Instance)
+		{
+			InputManager.Instance.OnJumpPerformed -= JumpRequested;
+			InputManager.Instance.OnDashPerformed -= DashRequested;
 
-		InputManager.Instance?.OnMovement.RemoveListener(OnMovementInput);
-		InputManager.Instance?.OnCrouchPerformed.RemoveListener(OnCrouchStart);
-		InputManager.Instance?.OnCrouchRelease.RemoveListener(OnCrouchRelease);
+			InputManager.Instance.OnMovement -= OnMovementInput;
+			InputManager.Instance.OnCrouchPerformed -= OnCrouchStart;
+			InputManager.Instance.OnCrouchRelease -= OnCrouchRelease;
+		}
 
 		OnStaminaRecharging.RemoveListener(TriggerStaminaRechargeEvent);
 	}

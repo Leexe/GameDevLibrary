@@ -34,7 +34,7 @@ public class BacklogController : MonoBehaviour
 		_dialogueState = _dialogueController.DialogueState;
 		_dialogueState.OnDisplayDialogue += AddToBacklog;
 		_dialogueState.AddBlockingCondition(() => IsOpen);
-		InputManager.Instance.OnBacklogPerformed.AddListener(ToggleBacklog);
+		InputManager.Instance.OnBacklogPerformed += ToggleBacklog;
 
 		_backlogCanvas.alpha = 0f;
 		_backlogCanvas.blocksRaycasts = false;
@@ -48,7 +48,7 @@ public class BacklogController : MonoBehaviour
 
 		if (InputManager.Instance)
 		{
-			InputManager.Instance.OnBacklogPerformed.RemoveListener(ToggleBacklog);
+			InputManager.Instance.OnBacklogPerformed -= ToggleBacklog;
 		}
 	}
 

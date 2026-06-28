@@ -1,4 +1,12 @@
-# Input Manager v1.2
+# Input Manager v1.3
+
+## v1.3
+- Replaced `UnityEvent` declarations with C# `event Action` delegates for all input events, removing the `UnityEngine.Events` dependency.
+- Introduced a reusable `ActionBinding` system that encapsulates `performed`/`canceled` subscriptions, replacing individual `InputAction` fields and named handler methods.
+- Consolidated action setup into `BindAction()` helper with automatic null-checking and warning logs for missing actions.
+- Updated all subscribers (`MyCharacterController`, `DialogueController`, `BacklogController`, `ShootingSystem`) from `.AddListener()`/`.RemoveListener()` to `+=`/`-=` syntax.
+- Added explicit `if (InputManager.Instance)` null guards in `OnDisable` across subscribers, replacing the `?.` null-conditional pattern which is incompatible with C# event operators.
+- Fixed a bug in `ShootingSystem.OnDisable` where `OnChangeGun` was incorrectly calling `AddListener` instead of `RemoveListener`.
 
 ## v1.2
 - Modernized to an event-driven architecture using `.performed` and `.canceled` callbacks for all discrete inputs, guaranteeing no dropped input frames.

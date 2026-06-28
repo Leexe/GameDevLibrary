@@ -146,20 +146,23 @@ public class ShootingSystem : MonoBehaviour
 
 	private void OnEnable()
 	{
-		InputManager.Instance.OnReloadPerformed.AddListener(OnReloadInput);
-		InputManager.Instance.OnChangeGun.AddListener(ChangeStatusEffect);
+		InputManager.Instance.OnReloadPerformed += OnReloadInput;
+		InputManager.Instance.OnChangeGun += ChangeStatusEffect;
 
-		InputManager.Instance.OnShootingPerformed.AddListener(OnShootingStart);
-		InputManager.Instance.OnShootingReleased.AddListener(OnShootingStop);
+		InputManager.Instance.OnShootingPerformed += OnShootingStart;
+		InputManager.Instance.OnShootingReleased += OnShootingStop;
 	}
 
 	private void OnDisable()
 	{
-		InputManager.Instance?.OnReloadPerformed.RemoveListener(OnReloadInput);
-		InputManager.Instance?.OnChangeGun.AddListener(ChangeStatusEffect);
+		if (InputManager.Instance)
+		{
+			InputManager.Instance.OnReloadPerformed -= OnReloadInput;
+			InputManager.Instance.OnChangeGun -= ChangeStatusEffect;
 
-		InputManager.Instance?.OnShootingPerformed.RemoveListener(OnShootingStart);
-		InputManager.Instance?.OnShootingReleased.RemoveListener(OnShootingStop);
+			InputManager.Instance.OnShootingPerformed -= OnShootingStart;
+			InputManager.Instance.OnShootingReleased -= OnShootingStop;
+		}
 	}
 
 	private void HandleFireBuffer(float deltaTime)

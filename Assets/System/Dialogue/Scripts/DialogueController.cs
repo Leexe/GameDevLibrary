@@ -52,7 +52,7 @@ public class DialogueController : MonoBehaviour
 		DialogueState.OnChoiceSelect += ContinueStory;
 		DialogueState.OnTypewriterFinish += SetTypewriterInactive;
 		DialogueState.OnTypewriterFinish += DisplayChoices;
-		InputManager.Instance.OnContinueStoryPerformed.AddListener(ContinueStory);
+		InputManager.Instance.OnContinueStoryPerformed += ContinueStory;
 	}
 
 	private void OnDisable()
@@ -64,7 +64,7 @@ public class DialogueController : MonoBehaviour
 
 		if (InputManager.Instance)
 		{
-			InputManager.Instance.OnContinueStoryPerformed.RemoveListener(ContinueStory);
+			InputManager.Instance.OnContinueStoryPerformed -= ContinueStory;
 		}
 	}
 
