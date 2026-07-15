@@ -109,9 +109,10 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
             float fontSize = resolvedStyle.fontSize;
             float lastY = 0;
             float heightThreshold = 0;
+            string plainText = animator.TextWithoutAnyTag;
 
             // Skip leading whitespace/newlines before first glyph
-            while (charIndex < targetCharacters && char.IsWhiteSpace(text[charIndex]))
+            while (charIndex < targetCharacters && char.IsWhiteSpace(plainText[charIndex]))
             {
                 charIndex++;
             }
@@ -120,6 +121,7 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
             {
                 float currentY = glyph.vertices[0].position.y;
                 SetupCharIndexUITkShenanigans(ref charIndex,
+                    plainText,
                     glyphIndex,
                     hasAdvancedTextGeneration,
                     currentY,
@@ -171,7 +173,7 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
 
                 ref var charInfo = ref copy.info;
                 charInfo.pointSize = fontSize;
-                charInfo.character = animator.TextWithoutAnyTag[charIndex];
+                charInfo.character = plainText[charIndex];
                 charInfo.isRendered = true;
 
                 copy.info = charInfo;
@@ -246,14 +248,14 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
         bool ShouldSkipCharacter(char character)
             => char.IsWhiteSpace(character);
 
-        void SetupCharIndexUITkShenanigans(ref int charIndex, int glyphIndex, bool hasAdvancedTextGeneration,
+        void SetupCharIndexUITkShenanigans(ref int charIndex, string plainText, int glyphIndex, bool hasAdvancedTextGeneration,
             float currentY, float lastY, float heightThreshold)
         {
             if (!hasAdvancedTextGeneration)
             {
                 // UITK provides ONLY glyphs for rendered words, so we need to skip spaces
                 while (charIndex < CharactersCountWithoutTAnimTags
-                       && ShouldSkipCharacter(text[charIndex]))
+                       && ShouldSkipCharacter(plainText[charIndex]))
                 {
                     charIndex++;
                 }
@@ -265,13 +267,13 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
                 // DDDDDD:
 
                 // skips trailing spaces before newlines
-                while (charIndex < targetCharacters && text[charIndex] == ' ')
+                while (charIndex < targetCharacters && plainText[charIndex] == ' ')
                 {
                     int nextNonSpace = charIndex;
-                    while (nextNonSpace < targetCharacters && text[nextNonSpace] == ' ')
+                    while (nextNonSpace < targetCharacters && plainText[nextNonSpace] == ' ')
                         nextNonSpace++;
 
-                    if (nextNonSpace < targetCharacters && text[nextNonSpace] == '\n')
+                    if (nextNonSpace < targetCharacters && plainText[nextNonSpace] == '\n')
                     {
                         charIndex = nextNonSpace; // Jump to newline position
                         break;
@@ -290,7 +292,7 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
 
                 // skip all consecutive newlines
                 bool foundNewline = false;
-                while (charIndex < targetCharacters && text[charIndex] == '\n')
+                while (charIndex < targetCharacters && plainText[charIndex] == '\n')
                 {
                     charIndex++;
                     foundNewline = true;
@@ -299,7 +301,7 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
                 // skip leading spaces after newlines
                 if (foundNewline)
                 {
-                    while (charIndex < targetCharacters && text[charIndex] == ' ')
+                    while (charIndex < targetCharacters && plainText[charIndex] == ' ')
                     {
                         charIndex++;
                     }
@@ -316,9 +318,10 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
             int glyphIndex = 0;
             float lastY = 0;
             float heightThreshold = 0;
+            string plainText = animator.TextWithoutAnyTag;
 
             // Skip leading whitespace/newlines before first glyph
-            while (charIndex < currents.Length && charIndex < CharactersCountWithoutTAnimTags && char.IsWhiteSpace(text[charIndex]))
+            while (charIndex < currents.Length && charIndex < CharactersCountWithoutTAnimTags && char.IsWhiteSpace(plainText[charIndex]))
             {
                 charIndex++;
             }
@@ -335,7 +338,7 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
                     heightThreshold = Mathf.Abs((glyph.vertices[1].position.y - lastY) / 2f);
                 }
 
-                SetupCharIndexUITkShenanigans(ref charIndex, glyphIndex, hasAdvancedTextGeneration, currentY, lastY, heightThreshold);
+                SetupCharIndexUITkShenanigans(ref charIndex, plainText, glyphIndex, hasAdvancedTextGeneration, currentY, lastY, heightThreshold);
 
                 if (charIndex >= currents.Length) break;
 
@@ -403,6 +406,11 @@ namespace Febucci.TextAnimatorForUnity // direct namespace for the UITK builder
                 CopyGlyphs(glyphs, hasAdvancedTextGeneration);
                 shouldBeCopied = false;
             }
+
+            // This animate call repopulates hiddend character before start animating. This prevents 
+            // having 1 frame showing all the text. This brings back fix from 869bydzw2 without breaking
+            // fix in 869cuycxv
+            animator.Animate(0);
 
             PasteGlyphs(glyphs, hasAdvancedTextGeneration);
             onSyncedContext = false;

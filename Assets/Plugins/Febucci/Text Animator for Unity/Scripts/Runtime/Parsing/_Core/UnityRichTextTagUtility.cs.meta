@@ -1,7 +1,11 @@
 fileFormatVersion: 2
-guid: b1b615c712ca44d0ba7c87badca1c39a
-AssemblyDefinitionImporter:
+guid: 1ab1bb9f4ee34d229885a20693382ba2
+MonoImporter:
   externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -10,5 +14,5 @@ AssetOrigin:
   productId: 341308
   packageName: Text Animator for Unity | UI Toolkit and Text Mesh Pro
   packageVersion: 3.14.0
-  assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Integrations/InputSystem/Febucci.TextAnimatorForUnity.Input.Runtime.asmdef
+  assetPath: Assets/Plugins/Febucci/Text Animator for Unity/Scripts/Runtime/Parsing/_Core/UnityRichTextTagUtility.cs
   uploadId: 949864

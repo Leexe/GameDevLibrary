@@ -241,11 +241,13 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
 
         TextParser uitkParser;
         UIToolkitLabelTagParser uiToolkitLabelTagParser;
+        UIToolkitLabelTagParser uiToolkitStripTagParser;
         public AnimatedLabelBase()
         {
             try
             {
                 uiToolkitLabelTagParser = new UIToolkitLabelTagParser(this, '<', '/', '>');
+                uiToolkitStripTagParser = new UIToolkitLabelTagParser(this, '<', '/', '>', preserveRichTextTags: false);
             }
             catch(Exception e)
             {
@@ -361,7 +363,7 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
         protected virtual void OnTextParsed()
         {
             text = animator.TextWithoutTextAnimatorTags;
-            CharactersCountWithoutTAnimTags = text.Length;
+            CharactersCountWithoutTAnimTags = animator.TextWithoutAnyTag.Length;
             schedule.Execute(MarkDirtyRepaint);
             #if UNITY_6000_3_OR_NEWER
             schedule.Execute(MarkDirtyText);
@@ -415,7 +417,7 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
 
         public string GetStrippedTextWithoutAnyTags(string textWithoutTAnimTags)
         {
-            return uitkParser.ParseText(textWithoutTAnimTags, uiToolkitLabelTagParser);
+            return uitkParser.ParseText(textWithoutTAnimTags, uiToolkitStripTagParser);
         }
 
         public abstract string GetFullText();

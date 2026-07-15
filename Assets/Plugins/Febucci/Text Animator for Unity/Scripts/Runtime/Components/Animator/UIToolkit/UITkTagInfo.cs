@@ -12,11 +12,13 @@ namespace Febucci.TextAnimatorForUnity.Parsing
     {
         public readonly string tagOpening;
         public readonly bool increasesTextLength;
+        public readonly char textReplacement;
 
-        public UITkTagInfo(string tagOpening, bool increasesTextLength = false)
+        public UITkTagInfo(string tagOpening, bool increasesTextLength = false, char textReplacement = '\0')
         {
             this.tagOpening = tagOpening;
             this.increasesTextLength = increasesTextLength;
+            this.textReplacement = textReplacement;
         }
     }
 }

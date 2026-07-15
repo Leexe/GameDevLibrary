@@ -6,6 +6,7 @@
 // =======================================================
 
 using System.Text;
+using Febucci.TextAnimatorForUnity.Parsing;
 
 namespace Febucci.TextAnimatorForUnity.TextMeshPro
 {
@@ -81,7 +82,7 @@ namespace Febucci.TextAnimatorForUnity.TextMeshPro
 
             foreach (var lookupTag in lookups)
             {
-                if (fullTag.StartsWith(lookupTag.tagOpening, true, System.Globalization.CultureInfo.InvariantCulture))
+                if (UnityRichTextTagUtility.MatchesTagOpening(fullTag, lookupTag.tagOpening))
                 {
                     finalTextBuilder.Append(fullTag);
                     if (lookupTag.increasesTextLength) realTextIndex++;

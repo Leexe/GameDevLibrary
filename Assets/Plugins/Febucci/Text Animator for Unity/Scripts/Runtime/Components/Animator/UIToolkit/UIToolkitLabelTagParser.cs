@@ -14,6 +14,7 @@ namespace Febucci.TextAnimatorForUnity.Parsing
     class UIToolkitLabelTagParser : Febucci.Parsing.Core.TagParserBase
     {
         readonly UnityEngine.UIElements.TextElement attachedTextElement;
+        readonly bool preserveRichTextTags;
 
         static readonly UITkTagInfo[] lookups = new[]
         {
@@ -46,8 +47,8 @@ namespace Febucci.TextAnimatorForUnity.Parsing
             new UITkTagInfo("<s>"), new UITkTagInfo("</s>"),
             new UITkTagInfo("<size="), new UITkTagInfo("</size>"),
             new UITkTagInfo("<smallcaps>"), new UITkTagInfo("</smallcaps>"),
-            new UITkTagInfo("<space=", true),
-            new UITkTagInfo("<sprite", true), new UITkTagInfo("<sprite ", true),
+            new UITkTagInfo("<space=", true, ' '),
+            new UITkTagInfo("<sprite", true, '\uFFFC'), new UITkTagInfo("<sprite ", true, '\uFFFC'),
             new UITkTagInfo("<style="), new UITkTagInfo("</style>"),
             new UITkTagInfo("<sub>"), new UITkTagInfo("</sub>"),
             new UITkTagInfo("<sup>"), new UITkTagInfo("</sup>"),
@@ -55,13 +56,14 @@ namespace Febucci.TextAnimatorForUnity.Parsing
             new UITkTagInfo("<uppercase>"), new UITkTagInfo("</uppercase>"),
             new UITkTagInfo("<voffset="), new UITkTagInfo("</voffset>"),
             new UITkTagInfo("<width="), new UITkTagInfo("</width>"),
-            new UITkTagInfo("<br>", true)
+            new UITkTagInfo("<br>", true, '\n')
         };
 
-        public UIToolkitLabelTagParser(TextElement attachedTextElement, char openingBracket, char closingTagSymbol, char closingBracket)
+        public UIToolkitLabelTagParser(TextElement attachedTextElement, char openingBracket, char closingTagSymbol, char closingBracket, bool preserveRichTextTags = true)
             : base(openingBracket, closingTagSymbol, closingBracket)
         {
             this.attachedTextElement = attachedTextElement;
+            this.preserveRichTextTags = preserveRichTextTags;
         }
 
         public override bool TryProcessingTag(string textInsideBrackets, int tagLength, ref int realTextIndex, StringBuilder finalTextBuilder, int internalOrder)
@@ -74,10 +76,20 @@ namespace Febucci.TextAnimatorForUnity.Parsing
 
             foreach (var lookupTag in lookups)
             {
-                if (fullTag.StartsWith(lookupTag.tagOpening, true, System.Globalization.CultureInfo.InvariantCulture))
+                if (UnityRichTextTagUtility.MatchesTagOpening(fullTag, lookupTag.tagOpening))
                 {
-                    finalTextBuilder.Append(fullTag);
-                    if (lookupTag.increasesTextLength) realTextIndex++;
+                    if (preserveRichTextTags)
+                    {
+                        finalTextBuilder.Append(fullTag);
+                    }
+                    else if (lookupTag.increasesTextLength)
+                    {
+                        finalTextBuilder.Append(lookupTag.textReplacement);
+                    }
+
+                    if (lookupTag.increasesTextLength)
+                        realTextIndex++;
+
                     return true;
                 }
             }
