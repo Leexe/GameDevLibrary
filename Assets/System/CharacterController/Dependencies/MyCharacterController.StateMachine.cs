@@ -429,13 +429,20 @@ public partial class MyCharacterController
 		if (_motor.GroundingStatus.IsStableOnGround)
 		{
 			// Ground Jump, if the player has jumps, requested the jumps, and has not jumped during the jump cooldown period
-			if (GetJumps > 0 && _timeSinceJumpRequested <= _jumpBuffer && _canJump && _jumpCooldownTimer <= 0)
+			if (
+				_toggleJump
+				&& GetJumps > 0
+				&& _timeSinceJumpRequested <= _jumpBuffer
+				&& _canJump
+				&& _jumpCooldownTimer <= 0
+			)
 			{
 				TransitionState(MovementStates.GroundJump);
 			}
 			// Slide, if the player is pressing the crouch button, and they are moving past a certain threshold or are moving down a slope
 			else if (
 				_crouchDown
+				&& _slideToggle
 				&& (
 					(
 						MovementState == MovementStates.Sliding
@@ -447,8 +454,8 @@ public partial class MyCharacterController
 			{
 				TransitionState(MovementStates.Sliding);
 			}
-			// Crouch, if the player presses the crouch button and are not fast enough
-			else if (_crouchDown)
+			// Crouch, if the player presses the crouch button and are not fast enough to slide
+			else if (_crouchDown && _crouchToggle)
 			{
 				TransitionState(MovementStates.Crouching);
 			}

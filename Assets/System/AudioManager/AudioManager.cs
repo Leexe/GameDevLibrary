@@ -237,7 +237,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	/// <summary>
 	///     Switches the music track
 	/// </summary>
-	public void SwitchMusic(EventReference music, bool playOnSwitch = true)
+	public void PlayMusic(EventReference music, bool playOnSwitch = true)
 	{
 		SwitchTrack(music, ref _currentMusicReference, ref _musicTrack, _musicTrackInstances);
 		if (playOnSwitch)

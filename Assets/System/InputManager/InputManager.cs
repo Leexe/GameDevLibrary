@@ -7,7 +7,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 {
 	// Action Maps
 	private const string PlayerActionMap = "Player";
-	private const string VisualNovelActionMap = "VisualNovel";
+	private const string DialogueActionMap = "Dialogue";
 	private const string UIActionMap = "UI";
 
 	// References
@@ -16,6 +16,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 
 	// Events
 	public event Action<Vector2> OnMovement;
+	public event Action OnZoomPerformed;
 	public event Action OnJumpPerformed;
 	public event Action OnDashPerformed;
 	public event Action OnShootingPerformed;
@@ -24,6 +25,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	public event Action OnCrouchPerformed;
 	public event Action OnCrouchRelease;
 	public event Action OnChangeGun;
+	public event Action OnInteractPerformed;
 	public event Action OnContinueStoryPerformed;
 	public event Action OnEscapePerformed;
 	public event Action OnBacklogPerformed;
@@ -75,8 +77,10 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		BindAction("ContinueStory", performed: () => OnContinueStoryPerformed?.Invoke());
 		BindAction("Escape", performed: () => OnEscapePerformed?.Invoke());
 		BindAction("Backlog", performed: () => OnBacklogPerformed?.Invoke());
+		BindAction("Zoom", performed: () => OnZoomPerformed?.Invoke());
 		BindAction("Jump", performed: () => OnJumpPerformed?.Invoke());
 		BindAction("Dash", performed: () => OnDashPerformed?.Invoke());
+		BindAction("Interact", performed: () => OnInteractPerformed?.Invoke());
 		BindAction(
 			"Shoot",
 			performed: () => OnShootingPerformed?.Invoke(),
@@ -181,19 +185,19 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	/// Enable VisualNovel Input
+	///     Enable all Visual Novel specific inputs.
 	/// </summary>
 	public void EnableVisualNovelInput()
 	{
-		InputActions?.FindActionMap(VisualNovelActionMap)?.Enable();
+		InputActions?.FindActionMap(DialogueActionMap)?.Enable();
 	}
 
 	/// <summary>
-	/// Disable VisualNovel Input
+	///     Disable all Visual Novel specific inputs.
 	/// </summary>
 	public void DisableVisualNovelInput()
 	{
-		InputActions?.FindActionMap(VisualNovelActionMap)?.Disable();
+		InputActions?.FindActionMap(DialogueActionMap)?.Disable();
 	}
 
 	/** Action Binding System **/

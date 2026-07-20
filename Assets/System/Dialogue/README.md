@@ -1,5 +1,11 @@
 # Dialogue System v1.1
 
+## v1.2
+- Added `OnDialogueStarted` and `OnDialogueEnded` events.
+- Added external function bindings for `QuestManager` (`IsQuestCompleted`, `IsQuestActive`, `StartQuest`, `CompleteQuest`).
+- Updated `DialogueSFX` to properly track and stop the current ambience using `_currentAmbienceKey`.
+- Updated `DialogueSFX` to use the renamed `AudioManager.PlayMusic`.
+
 ## v1.1
 - Replaced the static `DialogueEvents` class with an instanced `DialogueState` event hub class.
 - Added a branching dialogue choice system (`DialogueChoicesController` and `DialogueChoiceBox`).

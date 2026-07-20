@@ -1,5 +1,9 @@
 # Input Manager v1.3
 
+## v1.4
+- Renamed `VisualNovelActionMap` to `DialogueActionMap`.
+- Added new input action bindings for `Zoom` and `Interact`.
+
 ## v1.3
 - Replaced `UnityEvent` declarations with C# `event Action` delegates for all input events, removing the `UnityEngine.Events` dependency.
 - Introduced a reusable `ActionBinding` system that encapsulates `performed`/`canceled` subscriptions, replacing individual `InputAction` fields and named handler methods.

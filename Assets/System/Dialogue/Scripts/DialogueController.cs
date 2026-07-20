@@ -35,6 +35,13 @@ public class DialogueController : MonoBehaviour
 
 	private bool ChoicesAvailable => _story.currentChoices.Count > 0;
 
+	#region Events
+
+	public event Action<string> OnDialogueStarted;
+	public event Action OnDialogueEnded;
+
+	#endregion
+
 	#region Unity Functions
 
 	private void Awake()
@@ -44,6 +51,12 @@ public class DialogueController : MonoBehaviour
 
 		// prevent continuing if paused
 		DialogueState.AddBlockingCondition(() => Time.timeScale == 0f);
+
+		// Bind External Functions
+		_story.BindExternalFunction("IsQuestCompleted", (string questId) => IsQuestCompleted(questId));
+		_story.BindExternalFunction("IsQuestActive", (string questId) => IsQuestActive(questId));
+		_story.BindExternalFunction("StartQuest", (string questId) => StartQuest(questId));
+		_story.BindExternalFunction("CompleteQuest", (string questId) => CompleteQuest(questId));
 	}
 
 	private void OnEnable()
@@ -126,6 +139,30 @@ public class DialogueController : MonoBehaviour
 
 	#endregion
 
+	#region External Functions
+
+	private bool IsQuestCompleted(string questId)
+	{
+		return QuestManager.Instance.IsQuestCompleted(questId);
+	}
+
+	private bool IsQuestActive(string questId)
+	{
+		return QuestManager.Instance.IsQuestActive(questId);
+	}
+
+	private void StartQuest(string questId)
+	{
+		QuestManager.Instance.StartQuest(questId);
+	}
+
+	private void CompleteQuest(string questId)
+	{
+		QuestManager.Instance.CompleteQuest(questId);
+	}
+
+	#endregion
+
 	#region Story Managers
 
 	/// <summary>
@@ -144,6 +181,7 @@ public class DialogueController : MonoBehaviour
 		}
 
 		_storyPlaying = true;
+		OnDialogueStarted?.Invoke(knotName);
 
 		if (knotName == "")
 		{
@@ -229,6 +267,7 @@ public class DialogueController : MonoBehaviour
 		_typewriterPlaying = false;
 
 		DialogueState.EndStory();
+		OnDialogueEnded?.Invoke();
 	}
 
 	#endregion

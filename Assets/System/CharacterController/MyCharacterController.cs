@@ -96,79 +96,104 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	[TabGroup("Settings", "Sliding")]
 	[Header("Sliding")]
+	[Tooltip("Toggle the slide")]
+	[SerializeField]
+	private bool _slideToggle = true;
+
+	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("How much the player's current speed is multiplied when they slide after landing on the ground")]
 	[Range(0f, 1f)]
 	[SerializeField]
 	private float _slideConditionalSpeedMult = 0.05f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("Upper limit to how much speed the slide can give")]
 	[SerializeField]
 	private float _slideForceMax = 2f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("How long after landing on the ground, can the player get the slide speed mult")]
 	[SerializeField]
 	private float _slideSpeedMultBuffer = 0.1f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("The max speed a slide can have when going down a hill relative to the base speed")]
 	[SerializeField]
 	private float _slideSlopeSpeedMult = 4f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("How long the player is slide for after initiating a slide")]
 	[SerializeField]
 	private float _slideStunDuration = 0.6f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("Velocity threshold needed to enter a slide")]
 	[SerializeField]
 	private float _slideSpeedThreshold = 10f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("Velocity threshold needed to exit a slide")]
 	[SerializeField]
 	private float _slideSpeedExitThreshold = 6f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("How much the player is allowed to redirect their movement while sliding")]
 	[SerializeField]
 	private float _slidingRotationSmoothing = 2f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("How smooth the slide slow down is")]
 	[SerializeField]
 	private float _slidingDragSmoothing = 3f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("How fast the slide increases in speed down a slope")]
 	[SerializeField]
 	private float _slideBuildUpSmoothing = 1f;
 
 	[TabGroup("Settings", "Sliding")]
+	[ShowIf("_slideToggle")]
 	[Tooltip("The percentage of velocity slowdown on the slide")]
 	[SerializeField]
 	private float _slideSlowDown = 0.85f;
 
 	[TabGroup("Settings", "Crouch")]
 	[Header("Crouching")]
+	[Tooltip("Toggle to allow crouching")]
+	[SerializeField]
+	private bool _crouchToggle = true;
+
+	[TabGroup("Settings", "Crouch")]
+	[ShowIf("_crouchToggle")]
 	[Tooltip("How fast the player moves while in crouching relative to their base movespeed")]
 	[SerializeField]
 	private float _crouchSpeedMult = 0.5f;
 
 	[TabGroup("Settings", "Crouch")]
+	[ShowIf("_crouchToggle")]
 	[Tooltip("How long it takes for the player to crouch and uncrouch")]
 	[SerializeField]
 	private float _crouchTransitionTime = 0.2f;
 
 	[TabGroup("Settings", "Crouch")]
+	[ShowIf("_crouchToggle")]
 	[Tooltip("The percentage of the player's height when crouching")]
 	[Range(0f, 1f)]
 	[SerializeField]
 	private float _crouchCapsuleHeightMult = 0.5f;
 
 	[TabGroup("Settings", "Crouch")]
+	[ShowIf("_crouchToggle")]
 	[Tooltip("The percentage of the player's YOffset when crouching")]
 	[Range(0f, 1f)]
 	[SerializeField]
@@ -235,16 +260,24 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	[TabGroup("Settings", "Jump")]
 	[Header("Jumps")]
+	[Tooltip("Toggle Jumping")]
+	[SerializeField]
+	private bool _toggleJump = true;
+
+	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("Allow jumps on steep slopes")]
 	[SerializeField]
 	private bool _allowJumpWhileSliding = true;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("How high the player jumps")]
 	[SerializeField]
 	private float _jumpForce = 10f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip(
 		"How much the player's horizontal velocity is slowed down after landing, 0 to max slow down and 1 to have no slowdown"
 	)]
@@ -253,34 +286,46 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private float _landingSlowDownMult = 0.85f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("How high the player jumps in the air")]
 	[SerializeField]
 	private float _airJumpForce = 14f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("A buffer for the jump input")]
 	[SerializeField]
 	private float _jumpBuffer = 0.3f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("Time it takes to jump again")]
 	[SerializeField]
 	private float _jumpCooldown = 0.05f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("Time after leaving stable ground where the player can still jump")]
 	[SerializeField]
 	private float _coyoteTime = 0.15f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("Time at the apex of a player's jump where gravity is reduced")]
 	[SerializeField]
 	private float _jumpHangInterval = 0.3f;
 
 	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("The number of jumps the player has")]
 	[SerializeField]
 	private int _maxJumps = 2;
+
+	[TabGroup("Settings", "Wall")]
+	[Header("General")]
+	[Tooltip("How close to a wall a player has to be to start wall running")]
+	[SerializeField]
+	private float _wallCheckDistance = 0.5f;
 
 	[TabGroup("Settings", "Wall")]
 	[Header("Wall Running")]
@@ -388,11 +433,6 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	[ShowIf("_allowWallJump")]
 	[SerializeField]
 	private float _airRotationMult = 1f;
-
-	[TabGroup("Settings", "Wall")]
-	[Tooltip("How close to a wall a player has to be to start wall running")]
-	[SerializeField]
-	private float _wallCheckDistance = 0.5f;
 
 	[TabGroup("Settings", "Stamina")]
 	[Header("Stamina")]
@@ -634,7 +674,7 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	public bool IsDashing =>
 		MovementState == MovementStates.GroundDashing || MovementState == MovementStates.AirDashing;
 
-	public bool IsFalling => CurrentVelocity.y < 0.1;
+	public bool IsFalling => !IsGrounded && CurrentVelocity.y < -1f;
 
 	public bool IsGrounded => _motor.GroundingStatus.FoundAnyGround;
 
@@ -699,7 +739,7 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	private void OnDisable()
 	{
-		if (InputManager.Instance)
+		if (InputManager.Instance != null)
 		{
 			InputManager.Instance.OnJumpPerformed -= JumpRequested;
 			InputManager.Instance.OnDashPerformed -= DashRequested;

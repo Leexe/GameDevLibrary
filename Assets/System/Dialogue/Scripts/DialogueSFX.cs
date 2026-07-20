@@ -31,6 +31,7 @@ public class DialogueSFX : MonoBehaviour
 	private DialogueState _dialogueState;
 	private Tween _fadeOutTween;
 	private float _volume = 1f;
+	private string _currentAmbienceKey;
 
 	private void OnEnable()
 	{
@@ -121,14 +122,26 @@ public class DialogueSFX : MonoBehaviour
 	{
 		if (key == "none")
 		{
-			AudioManager.Instance.StopAmbience();
+			if (!string.IsNullOrEmpty(_currentAmbienceKey))
+			{
+				AudioManager.Instance.StopAmbience(_currentAmbienceKey);
+				_currentAmbienceKey = null;
+			}
 			return;
 		}
 
 		PlayAudioFromDictionary(
 			key,
 			_vnDictionary.AmbienceMap,
-			ambience => AudioManager.Instance.PlayAmbience(key, ambience),
+			ambience =>
+			{
+				if (!string.IsNullOrEmpty(_currentAmbienceKey) && _currentAmbienceKey != key)
+				{
+					AudioManager.Instance.StopAmbience(_currentAmbienceKey);
+				}
+				AudioManager.Instance.PlayAmbience(key, ambience);
+				_currentAmbienceKey = key;
+			},
 			"Ambience"
 		);
 	}
@@ -144,12 +157,7 @@ public class DialogueSFX : MonoBehaviour
 			return;
 		}
 
-		PlayAudioFromDictionary(
-			key,
-			_vnDictionary.MusicMap,
-			music => AudioManager.Instance.SwitchMusic(music),
-			"Music"
-		);
+		PlayAudioFromDictionary(key, _vnDictionary.MusicMap, music => AudioManager.Instance.PlayMusic(music), "Music");
 	}
 
 	/// <summary>

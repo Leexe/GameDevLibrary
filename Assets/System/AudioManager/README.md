@@ -1,5 +1,9 @@
 # Audio Manager v1.3
 
+## v1.4
+- Renamed `SwitchMusic` to `PlayMusic` to match internal semantics.
+- Updated `FMODEvents` with new audio references (WindowsXP_Bgm, Footsteps, Jump, LightCandle, BeachBall, ButtonClick, Falling_LoopSfx).
+
 ## v1.3
 - Changed ambience to be a dictionary style, where multiple ambiences can be instantiated and queried using keys
 
