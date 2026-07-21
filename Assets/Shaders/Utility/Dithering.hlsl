@@ -1,6 +1,11 @@
 #ifndef DITHERING_HLSL
 #define DITHERING_HLSL
 
+static const float bayerMatrix2x2[4] = {
+     0.0/4.0,  2.0/4.0,
+     3.0/4.0,  1.0/4.0
+};
+
 static const float bayerMatrix4x4[16] = {
      0.0/16.0,  8.0/16.0,  2.0/16.0, 10.0/16.0,
     12.0/16.0,  4.0/16.0, 14.0/16.0,  6.0/16.0,
