@@ -1,4 +1,4 @@
-# Character Controller v1.1
+# Character Controller v1.2
 
 ## v1.2
 - Added Inspector toggles for Jump, Slide, and Crouch behaviors (`_toggleJump`, `_slideToggle`, `_crouchToggle`) with `[ShowIf]` attribute support.

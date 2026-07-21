@@ -985,6 +985,7 @@ MonoBehaviour:
   _airDeceleration: 0.5
   _airControlRate: 5
   _drag: 0.01
+  _slideToggle: 1
   _slideConditionalSpeedMult: 0.05
   _slideForceMax: 2
   _slideSpeedMultBuffer: 0.1
@@ -996,6 +997,7 @@ MonoBehaviour:
   _slidingDragSmoothing: 3
   _slideBuildUpSmoothing: 1
   _slideSlowDown: 0.85
+  _crouchToggle: 1
   _crouchSpeedMult: 0.5
   _crouchTransitionTime: 0.1
   _crouchCapsuleHeightMult: 0.5
@@ -1011,6 +1013,7 @@ MonoBehaviour:
   _downwardsDashStun: 0.8
   _downwardsDashBuffer: 0.5
   _downwardsDashLimit: 4
+  _toggleJump: 1
   _allowJumpWhileSliding: 1
   _jumpForce: 10
   _landingSlowDownMult: 0.85
@@ -1020,6 +1023,7 @@ MonoBehaviour:
   _coyoteTime: 0.15
   _jumpHangInterval: 0.3
   _maxJumps: 2
+  _wallCheckDistance: 0.5
   _allowWallRun: 1
   _wallRunInitialHorVelocityMult: 0.5
   _wallRunInitialVertVelocityMult: 0.5
@@ -1037,7 +1041,6 @@ MonoBehaviour:
   _wallJumpCooldown: 0.4
   _restrictAirRotationTime: 1
   _airRotationMult: 1
-  _wallCheckDistance: 0.5
   _maxStaminaCharges: 3
   _staminaBaseRechargeRate: 2
   _baseGravity: {x: 0, y: -30, z: 0}
@@ -1996,6 +1999,16 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: OnInteractableEnter
+      Entry: 6
+      Data: 
+    - Name: OnInteractableExit
+      Entry: 6
+      Data: 
+    - Name: OnItemPickUp
+      Entry: 6
+      Data: 
+  RunTime: 0
 --- !u!4 &1294196521
 Transform:
   m_ObjectHideFlags: 0
@@ -2669,6 +2682,10 @@ MonoBehaviour:
   MainCameraGameObject: {fileID: 330585543}
   _cinemachine: {fileID: 1514091683}
   _defaultCameraSensitivity: 1.125
+  _playerCamera: {fileID: 0}
+  _panTilt: {fileID: 0}
+  _inputAxisController: {fileID: 0}
+  _focusTweenDuration: 0.5
 --- !u!1 &1989525582
 GameObject:
   m_ObjectHideFlags: 0
