@@ -5,30 +5,36 @@ using UnityEngine;
 public class SwayingObject : MonoBehaviour
 {
 	/* Position Shake */
+	private enum PositionTweenType
+	{
+		None,
+		Shake,
+		Smooth,
+	}
 
 	[FoldoutGroup("Position Shake")]
 	[SerializeField]
-	private bool _positionShakeEnable = true;
+	private PositionTweenType _positionTweenType = PositionTweenType.Shake;
 
 	[FoldoutGroup("Position Shake")]
 	[SerializeField]
-	[ShowIf("@_positionShakeEnable")]
+	[ShowIf("@_positionTweenType != PositionTweenType.None")]
 	private Vector3 _positionStrength = new(5f, 5f, 0f);
 
 	[FoldoutGroup("Position Shake")]
 	[SerializeField]
-	[ShowIf("@_positionShakeEnable")]
+	[ShowIf("@_positionTweenType == PositionTweenType.Shake")]
 	[MinValue(0.01f)]
 	private float _positionFrequency = 0.5f;
 
 	[FoldoutGroup("Position Shake")]
 	[SerializeField]
-	[ShowIf("@_positionShakeEnable")]
+	[ShowIf("@_positionTweenType != PositionTweenType.None")]
 	private Ease _positionEase = Ease.Linear;
 
 	[FoldoutGroup("Position Shake")]
 	[SerializeField]
-	[ShowIf("@_positionShakeEnable")]
+	[ShowIf("@_positionTweenType != PositionTweenType.None")]
 	private float _positionDuration = 5f;
 
 	/* Rotation Tween */
@@ -92,9 +98,14 @@ public class SwayingObject : MonoBehaviour
 
 	[FoldoutGroup("General Settings")]
 	[SerializeField]
+	private bool _activateOnStart = true;
+
+	[FoldoutGroup("General Settings")]
+	[SerializeField]
 	private bool _useUnscaledTime;
 
 	private Vector3 _initialPosition;
+	private Vector3 _endPosition;
 	private Vector3 _initialRotation;
 	private Vector3 _initialScale;
 
@@ -111,7 +122,12 @@ public class SwayingObject : MonoBehaviour
 
 	private void Start()
 	{
-		StartTween();
+		_endPosition = _initialPosition + _positionStrength;
+
+		if (_activateOnStart)
+		{
+			StartTween();
+		}
 	}
 
 	private void OnDisable()
@@ -125,7 +141,7 @@ public class SwayingObject : MonoBehaviour
 	{
 		StopTween();
 
-		if (_positionShakeEnable)
+		if (_positionTweenType == PositionTweenType.Shake)
 		{
 			transform.localPosition = _initialPosition;
 
@@ -141,6 +157,15 @@ public class SwayingObject : MonoBehaviour
 						enableFalloff: false
 					)
 				);
+		}
+
+		if (_positionTweenType == PositionTweenType.Smooth)
+		{
+			transform.localPosition = _initialPosition;
+
+			_positionTween = Sequence
+				.Create(-1, useUnscaledTime: _useUnscaledTime, cycleMode: Sequence.SequenceCycleMode.Yoyo)
+				.Chain(Tween.LocalPosition(transform, _endPosition, _positionDuration, ease: _positionEase));
 		}
 
 		if (_rotationTweenEnable)
@@ -197,7 +222,7 @@ public class SwayingObject : MonoBehaviour
 	{
 		StopTween();
 
-		if (_positionShakeEnable)
+		if (_positionTweenType != PositionTweenType.None)
 		{
 			Tween.LocalPosition(transform, _initialPosition, tweenDuration, _positionEase);
 		}
