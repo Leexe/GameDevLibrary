@@ -1,4 +1,7 @@
-# Dialogue System v1.1
+# Dialogue System v1.3
+
+## v1.3
+- Added `_canvasFadeToggle` option in `VisualNovelUI` to enable/disable canvas group fading during story panel transitions.
 
 ## v1.2
 - Added `OnDialogueStarted` and `OnDialogueEnded` events.

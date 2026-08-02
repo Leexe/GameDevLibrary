@@ -22,20 +22,42 @@ public class CameraManager : MonoSingleton<CameraManager>
 	private CinemachinePanTilt _panTilt;
 
 	[SerializeField]
+	private CinemachineBasicMultiChannelPerlin _perlin;
+
+	[SerializeField]
 	private CinemachineInputAxisController _inputAxisController;
 
 	[Header("Focus Settings")]
 	[SerializeField]
 	private float _focusTweenDuration = 0.5f;
 
-	private Sequence _focusSequence;
+	[Header("Screen Shake Settings")]
+	[SerializeField]
+	private float _defaultShakeAmplitude = 1.0f;
+
+	[SerializeField]
+	private float _defaultShakeFrequency = 1.0f;
+
+	[SerializeField]
+	private float _shakeResetDuration = 0.3f;
 
 	private CinemachineInputAxisController _cinemachineInputAxisController;
+
+	private Sequence _focusSequence;
+	private Vector3 _initialCameraLocalPos;
+	private Sequence _shakeSequence;
+	private Tween _shakeTween;
 	public float CameraSensitivity { get; private set; }
+
+	private void Start()
+	{
+		_initialCameraLocalPos = MainCameraGameObject.transform.localPosition;
+	}
 
 	private void OnDisable()
 	{
 		ClearFocus();
+		StopShake();
 	}
 
 	protected override void OnInitialized()
@@ -44,6 +66,34 @@ public class CameraManager : MonoSingleton<CameraManager>
 
 		CameraSensitivity = 1f;
 		_cinemachineInputAxisController = _cinemachine.GetComponent<CinemachineInputAxisController>();
+	}
+
+	public void StartContinuousShake(float amplitude = -1f, float frequency = -1f)
+	{
+		_shakeTween.Stop();
+		_shakeSequence.Stop();
+
+		float amp = amplitude > 0f ? amplitude : _defaultShakeAmplitude;
+		float freq = frequency > 0f ? frequency : _defaultShakeFrequency;
+
+		_perlin.AmplitudeGain = amp;
+		_perlin.FrequencyGain = freq;
+	}
+
+	public void TriggerShake(float amplitude = -1f, float frequency = -1f, float duration = 0.5f)
+	{
+		StartContinuousShake(amplitude, frequency);
+		Tween.Delay(this, duration, () => StopShake());
+	}
+
+	public void StopShake(float resetDuration = -1f)
+	{
+		float dur = resetDuration >= 0f ? resetDuration : _shakeResetDuration;
+
+		_shakeSequence.Stop();
+		_shakeTween.Stop();
+
+		_shakeTween = Tween.Custom(_perlin.AmplitudeGain, 0f, dur, val => _perlin.AmplitudeGain = val);
 	}
 
 	private void LockCamera()
@@ -102,8 +152,7 @@ public class CameraManager : MonoSingleton<CameraManager>
 	public void FocusOn(Transform target)
 	{
 		// Disable Camera Movement
-		if (_inputAxisController != null)
-			_inputAxisController.enabled = false;
+		_inputAxisController.enabled = false;
 
 		Vector3 direction = target.position - _playerCamera.transform.position;
 		if (direction == Vector3.zero)
@@ -134,8 +183,8 @@ public class CameraManager : MonoSingleton<CameraManager>
 				startPan,
 				finalTargetPan,
 				_focusTweenDuration,
-				onValueChange: newVal => _panTilt.PanAxis.Value = newVal,
-				ease: Ease.InOutSine
+				newVal => _panTilt.PanAxis.Value = newVal,
+				Ease.InOutSine
 			)
 		);
 
@@ -144,8 +193,8 @@ public class CameraManager : MonoSingleton<CameraManager>
 				_panTilt.TiltAxis.Value,
 				targetTilt,
 				_focusTweenDuration,
-				onValueChange: newVal => _panTilt.TiltAxis.Value = newVal,
-				ease: Ease.InOutSine
+				newVal => _panTilt.TiltAxis.Value = newVal,
+				Ease.InOutSine
 			)
 		);
 	}
@@ -154,6 +203,8 @@ public class CameraManager : MonoSingleton<CameraManager>
 	{
 		_focusSequence.Stop();
 		if (_inputAxisController != null)
+		{
 			_inputAxisController.enabled = true;
+		}
 	}
 }

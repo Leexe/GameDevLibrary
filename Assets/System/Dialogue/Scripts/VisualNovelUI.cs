@@ -66,9 +66,15 @@ public class VisualNovelUI : MonoBehaviour
 	[TitleGroup("Default Values")]
 	[FoldoutGroup("Default Values/Canvas Element")]
 	[SerializeField]
+	private bool _canvasFadeToggle;
+
+	[FoldoutGroup("Default Values/Canvas Element")]
+	[ShowIf("_canvasFadeToggle")]
+	[SerializeField]
 	private float _canvasFadeInDuration = 0.5f;
 
 	[FoldoutGroup("Default Values/Canvas Element")]
+	[ShowIf("_canvasFadeToggle")]
 	[SerializeField]
 	private float _canvasFadeOutDuration = 1f;
 
@@ -268,15 +274,18 @@ public class VisualNovelUI : MonoBehaviour
 	/// <param name="knotName">Name of the Ink knot being started (unused for UI).</param>
 	private void EnableStoryPanel(string knotName)
 	{
-		_canvasAlphaTween.Stop();
-		_canvasAlphaTween = Tween.Custom(
-			_dialogueCanvasGroup.alpha,
-			1,
-			_canvasFadeInDuration,
-			newVal => _dialogueCanvasGroup.alpha = newVal
-		);
-		_dialogueCanvasGroup.interactable = true;
-		_dialogueCanvasGroup.blocksRaycasts = true;
+		if (_canvasFadeToggle)
+		{
+			_canvasAlphaTween.Stop();
+			_canvasAlphaTween = Tween.Custom(
+				_dialogueCanvasGroup.alpha,
+				1,
+				_canvasFadeInDuration,
+				newVal => _dialogueCanvasGroup.alpha = newVal
+			);
+			_dialogueCanvasGroup.interactable = true;
+			_dialogueCanvasGroup.blocksRaycasts = true;
+		}
 	}
 
 	/// <summary>
@@ -284,16 +293,19 @@ public class VisualNovelUI : MonoBehaviour
 	/// </summary>
 	private void DisableStoryPanel()
 	{
-		_canvasAlphaTween.Stop();
-		_canvasAlphaTween = Tween.Custom(
-			_dialogueCanvasGroup,
-			_dialogueCanvasGroup.alpha,
-			0,
-			_canvasFadeOutDuration,
-			(group, newVal) => group.alpha = newVal
-		);
-		_dialogueCanvasGroup.interactable = false;
-		_dialogueCanvasGroup.blocksRaycasts = false;
+		if (_canvasFadeToggle)
+		{
+			_canvasAlphaTween.Stop();
+			_canvasAlphaTween = Tween.Custom(
+				_dialogueCanvasGroup,
+				_dialogueCanvasGroup.alpha,
+				0,
+				_canvasFadeOutDuration,
+				(group, newVal) => group.alpha = newVal
+			);
+			_dialogueCanvasGroup.interactable = false;
+			_dialogueCanvasGroup.blocksRaycasts = false;
+		}
 	}
 
 	#endregion

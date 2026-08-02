@@ -232,6 +232,7 @@ public class AudioManager : PersistentMonoSingleton<AudioManager>
 	public void StopMusic(bool fadeOut = true)
 	{
 		StopInstance(_musicTrack, fadeOut);
+		_currentMusicReference = default;
 	}
 
 	/// <summary>

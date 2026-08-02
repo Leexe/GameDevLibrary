@@ -1,4 +1,7 @@
-# Audio Manager v1.3
+# Audio Manager v1.5
+
+## v1.5
+- Updated `StopMusic()` to reset `_currentMusicReference` state to default.
 
 ## v1.4
 - Renamed `SwitchMusic` to `PlayMusic` to match internal semantics.
