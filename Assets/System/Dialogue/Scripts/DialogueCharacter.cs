@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class VNCharacter : MonoBehaviour
+public class DialogueCharacter : MonoBehaviour
 {
 	[FoldoutGroup("References")]
 	[SerializeField]

@@ -735,7 +735,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSFX
   _dialogueController: {fileID: 4496430893499754350}
   _hiddenTypewriter: {fileID: 5793672468084525755}
-  _vnDictionary: {fileID: 11400000, guid: 69438eb58cf3a43199336230d6e29349, type: 2}
+  _dialogueDictionary: {fileID: 11400000, guid: 69438eb58cf3a43199336230d6e29349, type: 2}
   _fadeDuration: 1
 --- !u!1 &2473196004849829492
 GameObject:
@@ -2047,10 +2047,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eec51d2cdb99e41b59ad526615d05f92, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VisualNovelUI
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueUI
   _dialogueController: {fileID: 4496430893499754350}
   _typewriter: {fileID: 1186690133704978293}
-  _visualNovelDictionary: {fileID: 11400000, guid: 69438eb58cf3a43199336230d6e29349, type: 2}
+  _dialogueDictionary: {fileID: 11400000, guid: 69438eb58cf3a43199336230d6e29349, type: 2}
   _characterPrefab: {fileID: 6477682457468806699, guid: 074b4cd2895de4266bd3802bf7e001e0, type: 3}
   _leftSpriteTransform: {fileID: 5813942347806033913}
   _centerSpriteTransform: {fileID: 368189074489385404}

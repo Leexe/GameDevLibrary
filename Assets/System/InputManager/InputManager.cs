@@ -54,7 +54,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		if (InputActions != null)
 		{
 			EnablePlayerInput();
-			EnableVisualNovelInput();
+			EnableDialogueInput();
 			SubscribeEvents();
 		}
 	}
@@ -64,7 +64,7 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 		if (IsActiveInstance && InputActions != null)
 		{
 			DisablePlayerInput();
-			DisableVisualNovelInput();
+			DisableDialogueInput();
 		}
 		UnsubscribeEvents();
 	}
@@ -185,17 +185,17 @@ public class InputManager : PersistentMonoSingleton<InputManager>
 	}
 
 	/// <summary>
-	///     Enable all Visual Novel specific inputs.
+	///     Enable all Dialogue specific inputs.
 	/// </summary>
-	public void EnableVisualNovelInput()
+	public void EnableDialogueInput()
 	{
 		InputActions?.FindActionMap(DialogueActionMap)?.Enable();
 	}
 
 	/// <summary>
-	///     Disable all Visual Novel specific inputs.
+	///     Disable all Dialogue specific inputs.
 	/// </summary>
-	public void DisableVisualNovelInput()
+	public void DisableDialogueInput()
 	{
 		InputActions?.FindActionMap(DialogueActionMap)?.Disable();
 	}

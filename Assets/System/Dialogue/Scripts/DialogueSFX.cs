@@ -19,7 +19,7 @@ public class DialogueSFX : MonoBehaviour
 
 	[FoldoutGroup("References")]
 	[SerializeField]
-	private VisualNovelDictionarySO _vnDictionary;
+	private DialogueDictionarySO _dialogueDictionary;
 
 	[FoldoutGroup("Voice Fade Out")]
 	[SerializeField]
@@ -90,7 +90,7 @@ public class DialogueSFX : MonoBehaviour
 	private void SetSpeakingCharacter(string characterName)
 	{
 		_charactersTalking = true;
-		if (_vnDictionary.VoicesMap.TryGetValue(characterName, out VoiceSO voice))
+		if (_dialogueDictionary.VoicesMap.TryGetValue(characterName, out VoiceSO voice))
 		{
 			_currentCharacterVoice = voice;
 		}
@@ -112,7 +112,7 @@ public class DialogueSFX : MonoBehaviour
 	/// </summary>
 	private void PlaySFX(string key)
 	{
-		PlayAudioFromDictionary(key, _vnDictionary.SFXMap, sfx => AudioManager.Instance.PlayOneShot(sfx), "SFX");
+		PlayAudioFromDictionary(key, _dialogueDictionary.SFXMap, sfx => AudioManager.Instance.PlayOneShot(sfx), "SFX");
 	}
 
 	/// <summary>
@@ -132,7 +132,7 @@ public class DialogueSFX : MonoBehaviour
 
 		PlayAudioFromDictionary(
 			key,
-			_vnDictionary.AmbienceMap,
+			_dialogueDictionary.AmbienceMap,
 			ambience =>
 			{
 				if (!string.IsNullOrEmpty(_currentAmbienceKey) && _currentAmbienceKey != key)
@@ -157,7 +157,7 @@ public class DialogueSFX : MonoBehaviour
 			return;
 		}
 
-		PlayAudioFromDictionary(key, _vnDictionary.MusicMap, music => AudioManager.Instance.PlayMusic(music), "Music");
+		PlayAudioFromDictionary(key, _dialogueDictionary.MusicMap, music => AudioManager.Instance.PlayMusic(music), "Music");
 	}
 
 	/// <summary>
@@ -176,7 +176,7 @@ public class DialogueSFX : MonoBehaviour
 		}
 		else
 		{
-			Debug.LogWarning($"VisualNovelSFX: {debugContext} key '{key}' not found in dictionary.");
+			Debug.LogWarning($"DialogueSFX: {debugContext} key '{key}' not found in dictionary.");
 		}
 	}
 }

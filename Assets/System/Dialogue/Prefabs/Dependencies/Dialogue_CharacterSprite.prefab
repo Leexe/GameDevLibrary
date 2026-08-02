@@ -145,7 +145,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec64fe4d9b53840dda6bb00320d0b9b9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VNCharacter
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueCharacter
   _image: {fileID: 3910391314466856373}
   _tempImage: {fileID: 5934128069814191627}
   _layoutElement: {fileID: 3126890387745756920}

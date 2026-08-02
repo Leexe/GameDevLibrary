@@ -11,12 +11,11 @@ using UnityEngine.UI;
 ///     Handles the visual novel UI presentation layer.
 ///     Subscribes to DialogueEvents for decoupled communication with DialogueController.
 /// </summary>
-public class VisualNovelUI : MonoBehaviour
+public class DialogueUI : MonoBehaviour
 {
 	[FoldoutGroup("References/Game References")]
 	[SerializeField]
 	private DialogueController _dialogueController;
-
 
 	[TitleGroup("References")]
 	[FoldoutGroup("References/Game References")]
@@ -25,7 +24,7 @@ public class VisualNovelUI : MonoBehaviour
 
 	[FoldoutGroup("References/Game References")]
 	[SerializeField]
-	private VisualNovelDictionarySO _visualNovelDictionary;
+	private DialogueDictionarySO _dialogueDictionary;
 
 	[FoldoutGroup("References/Character Sprite References")]
 	[SerializeField]
@@ -98,8 +97,8 @@ public class VisualNovelUI : MonoBehaviour
 	[SerializeField]
 	private Color _flashColor = Color.indianRed;
 
-	private readonly Dictionary<string, VNCharacter> _activeCharacters = new();
-	private Dictionary<string, Action<VNCharacter, string[]>> _animationHandlers;
+	private readonly Dictionary<string, DialogueCharacter> _activeCharacters = new();
+	private Dictionary<string, Action<DialogueCharacter, string[]>> _animationHandlers;
 
 	// Private Variables
 	private Tween _canvasAlphaTween;
@@ -145,7 +144,9 @@ public class VisualNovelUI : MonoBehaviour
 
 	private void InitializeAnimationHandlers()
 	{
-		_animationHandlers = new Dictionary<string, Action<VNCharacter, string[]>>(StringComparer.OrdinalIgnoreCase)
+		_animationHandlers = new Dictionary<string, Action<DialogueCharacter, string[]>>(
+			StringComparer.OrdinalIgnoreCase
+		)
 		{
 			{
 				"shake",
@@ -224,14 +225,14 @@ public class VisualNovelUI : MonoBehaviour
 			_backgroundImage.color = Color.clear;
 			return;
 		}
-		if (_visualNovelDictionary.BackgroundSpriteMap.TryGetValue(backgroundKey, out Sprite bgSprite))
+		if (_dialogueDictionary.BackgroundSpriteMap.TryGetValue(backgroundKey, out Sprite bgSprite))
 		{
 			_backgroundImage.color = Color.white;
 			_backgroundImage.sprite = bgSprite;
 		}
 		else
 		{
-			Debug.LogWarning($"[VisualNovelUI] Background sprite not found for key: {backgroundKey}");
+			Debug.LogWarning($"[DialogueUI] Background sprite not found for key: {backgroundKey}");
 		}
 	}
 
@@ -320,8 +321,6 @@ public class VisualNovelUI : MonoBehaviour
 		_typewriter.SkipTypewriter();
 	}
 
-
-
 	#endregion
 
 	#region Character Sprite
@@ -343,15 +342,15 @@ public class VisualNovelUI : MonoBehaviour
 		Transform targetParent = GetLayoutParentTransform(characterPosition);
 
 		// Snapshot positions of existing characters in target group before layout changes
-		Dictionary<VNCharacter, Vector3> positionSnapshots = SnapshotLayoutGroupPositions(targetParent);
+		Dictionary<DialogueCharacter, Vector3> positionSnapshots = SnapshotLayoutGroupPositions(targetParent);
 
 		// This character has not been created yet, instantiate it
-		if (!_activeCharacters.TryGetValue(characterName, out VNCharacter character))
+		if (!_activeCharacters.TryGetValue(characterName, out DialogueCharacter character))
 		{
-			character = Instantiate(_characterPrefab, targetParent).GetComponent<VNCharacter>();
+			character = Instantiate(_characterPrefab, targetParent).GetComponent<DialogueCharacter>();
 			if (character == null)
 			{
-				Debug.LogWarning("[VisualNovelUI] Character Prefab Doesn't Have VNCharacter");
+				Debug.LogWarning("[DialogueUI] Character Prefab Doesn't Have DialogueCharacter");
 				return;
 			}
 
@@ -377,7 +376,7 @@ public class VisualNovelUI : MonoBehaviour
 			{
 				// Snapshot the source group before moving
 				Transform sourceParent = GetLayoutGroupParent(character);
-				Dictionary<VNCharacter, Vector3> sourceSnapshots = SnapshotLayoutGroupPositions(sourceParent);
+				Dictionary<DialogueCharacter, Vector3> sourceSnapshots = SnapshotLayoutGroupPositions(sourceParent);
 
 				// Save old position and move to new parent
 				Vector3 oldPosition = character.GetPosition();
@@ -416,13 +415,13 @@ public class VisualNovelUI : MonoBehaviour
 		// Update Sprite if key provided
 		if (!string.IsNullOrEmpty(spriteKey))
 		{
-			if (_visualNovelDictionary.CharacterSpriteMap.TryGetValue(spriteKey, out Sprite newSprite))
+			if (_dialogueDictionary.CharacterSpriteMap.TryGetValue(spriteKey, out Sprite newSprite))
 			{
 				character.SwitchSprite(newSprite);
 			}
 			else
 			{
-				Debug.LogWarning($"[VisualNovelUI] Character sprite not found for key: {spriteKey}");
+				Debug.LogWarning($"[DialogueUI] Character sprite not found for key: {spriteKey}");
 			}
 		}
 	}
@@ -435,21 +434,21 @@ public class VisualNovelUI : MonoBehaviour
 	/// <param name="args">Arguments for the animation.</param>
 	private void PlayAnimation(string characterName, string animationID, string[] args)
 	{
-		if (!_activeCharacters.TryGetValue(characterName, out VNCharacter character))
+		if (!_activeCharacters.TryGetValue(characterName, out DialogueCharacter character))
 		{
 			Debug.LogWarning(
-				$"[VisualNovelUI] Cannot play animation '{animationID}'. Character '{characterName}' not found."
+				$"[DialogueUI] Cannot play animation '{animationID}'. Character '{characterName}' not found."
 			);
 			return;
 		}
 
-		if (_animationHandlers.TryGetValue(animationID, out Action<VNCharacter, string[]> handler))
+		if (_animationHandlers.TryGetValue(animationID, out Action<DialogueCharacter, string[]> handler))
 		{
 			handler(character, args);
 		}
 		else
 		{
-			Debug.LogWarning($"[VisualNovelUI] Unknown animation '{animationID}' for character '{characterName}'.");
+			Debug.LogWarning($"[DialogueUI] Unknown animation '{animationID}' for character '{characterName}'.");
 		}
 	}
 
@@ -464,11 +463,11 @@ public class VisualNovelUI : MonoBehaviour
 	/// <param name="fadeDuration">Duration of fade out.</param>
 	private void RemoveCharacter(string characterName, float fadeDuration)
 	{
-		if (_activeCharacters.TryGetValue(characterName, out VNCharacter character))
+		if (_activeCharacters.TryGetValue(characterName, out DialogueCharacter character))
 		{
 			// Snapshot positions of characters in layout group
 			Transform layoutGroup = GetLayoutGroupParent(character);
-			Dictionary<VNCharacter, Vector3> snapshots = SnapshotLayoutGroupPositions(layoutGroup);
+			Dictionary<DialogueCharacter, Vector3> snapshots = SnapshotLayoutGroupPositions(layoutGroup);
 
 			// Move character to a new parent that doesn't have a layout group
 			character.SetParent(_nonLayoutParent);
@@ -495,7 +494,7 @@ public class VisualNovelUI : MonoBehaviour
 	{
 		var activeTransforms = new HashSet<Transform>();
 
-		foreach (VNCharacter character in _activeCharacters.Values)
+		foreach (DialogueCharacter character in _activeCharacters.Values)
 		{
 			if (character != null)
 			{
@@ -558,10 +557,10 @@ public class VisualNovelUI : MonoBehaviour
 	/// </summary>
 	/// <param name="layoutGroup">The layout group transforms snapshot.</param>
 	/// <returns>Dictionary mapping characters to their current positions.</returns>
-	private Dictionary<VNCharacter, Vector3> SnapshotLayoutGroupPositions(Transform layoutGroup)
+	private Dictionary<DialogueCharacter, Vector3> SnapshotLayoutGroupPositions(Transform layoutGroup)
 	{
-		var snapshots = new Dictionary<VNCharacter, Vector3>();
-		foreach (KeyValuePair<string, VNCharacter> character in _activeCharacters)
+		var snapshots = new Dictionary<DialogueCharacter, Vector3>();
+		foreach (KeyValuePair<string, DialogueCharacter> character in _activeCharacters)
 		{
 			if (character.Value != null && character.Value.transform.parent == layoutGroup)
 			{
@@ -577,7 +576,7 @@ public class VisualNovelUI : MonoBehaviour
 	/// </summary>
 	/// <param name="snapshots">Dictionary of characters and their old positions.</param>
 	/// <param name="duration">Duration of the tween animation.</param>
-	private void AnimateLayoutGroupCharacters(Dictionary<VNCharacter, Vector3> snapshots, float duration)
+	private void AnimateLayoutGroupCharacters(Dictionary<DialogueCharacter, Vector3> snapshots, float duration)
 	{
 		if (snapshots.Count == 0)
 		{
@@ -586,7 +585,7 @@ public class VisualNovelUI : MonoBehaviour
 
 		// Get the layout group from the first character in snapshots
 		Transform layoutGroup = null;
-		foreach (KeyValuePair<VNCharacter, Vector3> character in snapshots)
+		foreach (KeyValuePair<DialogueCharacter, Vector3> character in snapshots)
 		{
 			if (character.Key != null)
 			{
@@ -604,7 +603,7 @@ public class VisualNovelUI : MonoBehaviour
 		LayoutRebuilder.ForceRebuildLayoutImmediate(layoutGroup as RectTransform);
 
 		// Capture target positions and start tweens
-		foreach (KeyValuePair<VNCharacter, Vector3> character in snapshots)
+		foreach (KeyValuePair<DialogueCharacter, Vector3> character in snapshots)
 		{
 			if (character.Key != null)
 			{
@@ -630,11 +629,11 @@ public class VisualNovelUI : MonoBehaviour
 	}
 
 	/// <summary>
-	///     Get the layout group parent from a VNCharacter.
+	///     Get the layout group parent from a DialogueCharacter.
 	/// </summary>
 	/// <param name="character">The character to get the layout group parent from.</param>
 	/// <returns>The layout group parent.</returns>
-	private Transform GetLayoutGroupParent(VNCharacter character)
+	private Transform GetLayoutGroupParent(DialogueCharacter character)
 	{
 		return character.transform.parent;
 	}

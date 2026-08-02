@@ -4,11 +4,11 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [CreateAssetMenu(
-	fileName = "VisualNovelDictionary",
-	menuName = "ScriptableObjects/VisualNovel/VisualNovelDictionary",
+	fileName = "DialogueDictionary",
+	menuName = "ScriptableObjects/Dialogue/DialogueDictionary",
 	order = 1
 )]
-public class VisualNovelDictionarySO : SerializedScriptableObject
+public class DialogueDictionarySO : SerializedScriptableObject
 {
 	public Dictionary<string, EventReference> MusicMap = new();
 	public Dictionary<string, EventReference> SFXMap = new();

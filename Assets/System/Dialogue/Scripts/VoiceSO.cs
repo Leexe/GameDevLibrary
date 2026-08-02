@@ -3,7 +3,7 @@ using FMODUnity;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "VoiceSO", menuName = "ScriptableObjects/VisualNovel/VoiceSO", order = 1)]
+[CreateAssetMenu(fileName = "VoiceSO", menuName = "ScriptableObjects/Dialogue/VoiceSO", order = 1)]
 public class VoiceSO : SerializedScriptableObject
 {
 	[Tooltip("A list of sounds that the voice will be composed of")]
