@@ -4,11 +4,20 @@ using UnityEngine;
 
 public class BoidSpawner : MonoBehaviour
 {
+	[System.Serializable]
+	public struct BoidPrefabWeight
+	{
+		public GameObject Prefab;
+
+		[Min(1)]
+		public int Weight;
+	}
+
 	#region Fields
 
 	[Header("Prefabs")]
 	[SerializeField]
-	private List<GameObject> _boidPrefabs;
+	private List<BoidPrefabWeight> _boidPrefabs;
 
 	[Header("Spawn")]
 	[SerializeField]
@@ -129,11 +138,34 @@ public class BoidSpawner : MonoBehaviour
 		_runtimeRoot = null;
 	}
 
+	private GameObject GetRandomPrefab()
+	{
+		int totalWeight = 0;
+		for (int i = 0; i < _boidPrefabs.Count; i++)
+		{
+			totalWeight += _boidPrefabs[i].Weight;
+		}
+
+		int randomValue = Random.Range(0, totalWeight);
+		int currentWeight = 0;
+
+		for (int i = 0; i < _boidPrefabs.Count; i++)
+		{
+			currentWeight += _boidPrefabs[i].Weight;
+			if (randomValue < currentWeight)
+			{
+				return _boidPrefabs[i].Prefab;
+			}
+		}
+
+		return _boidPrefabs[0].Prefab;
+	}
+
 	private BoidAgent CreateBoid(int index)
 	{
 		// Spawn Boid
 		Vector3 spawnPosition = transform.position + GetRandomSpawnOffset();
-		GameObject randomPrefab = _boidPrefabs[Random.Range(0, _boidPrefabs.Count)];
+		GameObject randomPrefab = GetRandomPrefab();
 		GameObject boidGameObject = Instantiate(randomPrefab, spawnPosition, Quaternion.identity, _runtimeRoot);
 		boidGameObject.name = $"Boid_{index:000}";
 		boidGameObject.transform.SetParent(_runtimeRoot.transform, false);

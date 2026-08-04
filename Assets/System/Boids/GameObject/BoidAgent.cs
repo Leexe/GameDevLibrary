@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 public class BoidAgent : MonoBehaviour
 {
@@ -18,6 +18,10 @@ public class BoidAgent : MonoBehaviour
 	[SerializeField]
 	[Min(0.1f)]
 	private float _rotationalSharpness = 10f;
+
+	[SerializeField]
+	[Min(0f)]
+	private float _bankMultiplier = 1.5f;
 
 	[Title("Behavior Distances")]
 	[SerializeField]
@@ -136,8 +140,14 @@ public class BoidAgent : MonoBehaviour
 		_rb.linearVelocity = Vector3.ClampMagnitude(nextVelocity, _maxSpeed);
 		if (_rb.linearVelocity.sqrMagnitude > 0.1f)
 		{
-			var lookDirection = Vector3.ProjectOnPlane(_rb.linearVelocity, Vector3.up);
-			var targetRotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
+			Vector3 velocityDir = _rb.linearVelocity.normalized;
+			Quaternion targetRotation = Quaternion.LookRotation(velocityDir, Vector3.up);
+
+			Vector3 localAcceleration = transform.InverseTransformDirection(acceleration);
+			float rollAngle = -localAcceleration.x * _bankMultiplier;
+
+			targetRotation *= Quaternion.Euler(0, 0, rollAngle);
+
 			transform.rotation = Quaternion.Slerp(
 				transform.rotation,
 				targetRotation,

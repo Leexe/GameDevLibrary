@@ -45,11 +45,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidSpawner
   _boidPrefabs:
-  - {fileID: 4283689763499998187, guid: a66d881f859905946b576f884ab3fcc6, type: 3}
-  - {fileID: 4283689763499998187, guid: 04d26759106c2471b89db92143e7f4c0, type: 3}
+  - Prefab: {fileID: 4283689763499998187, guid: 04d26759106c2471b89db92143e7f4c0, type: 3}
+    Weight: 10
+  - Prefab: {fileID: 4283689763499998187, guid: a66d881f859905946b576f884ab3fcc6, type: 3}
+    Weight: 90
   _boidCount: 200
   _spawnBoundaries: {x: 7, y: 3, z: 7}
-  _boidScale: 1
+  _boidScale: 1.5
   _baseSpeed: 7
   _speedVariance: 1.5
   _flockBoundsSize: {x: 40, y: 30, z: 40}

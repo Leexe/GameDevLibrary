@@ -247,7 +247,8 @@ MonoBehaviour:
   _maxSpeed: 5
   _accelerationForce: 25
   _rotationalSharpness: 25
-  _seperationDistance: 1.5
+  _bankMultiplier: 0.75
+  _seperationDistance: 1.75
   _alignmentDistance: 3.5
   _cohesionDistance: 4
   _seperationWeight: 4
