@@ -1,4 +1,3 @@
-using System;
 using KinematicCharacterController;
 using Movement;
 using PrimeTween;
@@ -287,6 +286,13 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	[TabGroup("Settings", "Jump")]
 	[ShowIf("_toggleJump")]
+	[Tooltip("If the player performs a bunny hop, how much of the player's horizontal velocity should be slowed down")]
+	[Range(0f, 2f)]
+	[SerializeField]
+	private float _bunnyHopSlowDownMult = 0.95f;
+
+	[TabGroup("Settings", "Jump")]
+	[ShowIf("_toggleJump")]
 	[Tooltip("How high the player jumps in the air")]
 	[SerializeField]
 	private float _airJumpForce = 14f;
@@ -518,6 +524,9 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	[HideInInspector]
 	public UnityEvent OnLanding;
+
+	[HideInInspector]
+	public UnityEvent OnBunnyHop;
 
 	[HideInInspector]
 	public UnityEvent OnSlideStart;

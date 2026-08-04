@@ -1,10 +1,6 @@
-using System;
 using KinematicCharacterController;
 using Movement;
-using PrimeTween;
-using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Events;
 
 public partial class MyCharacterController
 {
@@ -238,11 +234,17 @@ public partial class MyCharacterController
 
 		if (_motor.GroundingStatus.IsStableOnGround && !_motor.LastGroundingStatus.IsStableOnGround)
 		{
-			// Player has landed on the ground, keep their horizontal velocity the same
-			AddVelocity(
-				(Vector3.ProjectOnPlane(VelocityLastFrame, _motor.CharacterUp) - CurrentHorVelocity)
-					* _landingSlowDownMult
-			);
+			float retention = _landingSlowDownMult;
+
+			// If they landed and are instantly jumping again, don't slow them down
+			if (_timeSinceJumpRequested <= _jumpBuffer)
+			{
+				OnBunnyHop?.Invoke();
+				retention = _bunnyHopSlowDownMult;
+			}
+
+			// Multiply the horizontal velocity by the retention amount.
+			MultHorVelocityMagnitude(retention);
 			OnLanding?.Invoke();
 		}
 	}

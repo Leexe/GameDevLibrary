@@ -1017,6 +1017,7 @@ MonoBehaviour:
   _allowJumpWhileSliding: 1
   _jumpForce: 10
   _landingSlowDownMult: 0.85
+  _bunnyHopSlowDownMult: 1
   _airJumpForce: 14
   _jumpBuffer: 0.3
   _jumpCooldown: 0.05
@@ -1080,6 +1081,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnLanding:
+    m_PersistentCalls:
+      m_Calls: []
+  OnBunnyHop:
     m_PersistentCalls:
       m_Calls: []
   OnSlideStart:
