@@ -6,6 +6,7 @@ public struct BoidData
 	public Vector3 Position;
 	public Vector3 Velocity;
 	public Vector3 Forward;
+	public Vector3 Up;
 	public float MaxSpeed;
 }
 
@@ -50,6 +51,10 @@ public class BoidSpawnerCompute : MonoBehaviour
 	[SerializeField]
 	[Min(0.1f)]
 	private float _rotationalSharpness = 10f;
+
+	[SerializeField]
+	[Min(0f)]
+	private float _bankMultiplier = 1.5f;
 
 	[Title("Behavior Distances")]
 	[SerializeField]
@@ -114,6 +119,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	private static readonly int BoundsWeight = Shader.PropertyToID("boundsWeight");
 	private static readonly int BoundsCenter = Shader.PropertyToID("boundsCenter");
 	private static readonly int BoidScale = Shader.PropertyToID("_BoidScale");
+	private static readonly int BankMultiplier = Shader.PropertyToID("bankMultiplier");
 
 	#endregion
 
@@ -131,14 +137,15 @@ public class BoidSpawnerCompute : MonoBehaviour
 				Position = transform.position + GetRandomSpawnOffset(),
 				Velocity = velocity,
 				Forward = velocity,
+				Up = Vector3.up,
 				MaxSpeed = Mathf.Max(0.1f, _baseSpeed + Random.Range(-_speedVariance, _speedVariance)),
 			};
 		}
 
 		// Create Compute Buffer
 		// Float = 4 Bytes, Float3 = 12 Bytes.
-		// Position(12) + Velocity(12) + Forward(12) + MaxSpeed(4) = 40 Bytes
-		_boidBuffer = new ComputeBuffer(_boidCount, 40);
+		// Position(12) + Velocity(12) + Forward(12) + Up(12) + MaxSpeed(4) = 52 Bytes
+		_boidBuffer = new ComputeBuffer(_boidCount, 52);
 
 		// Send Data to GPU
 		_boidBuffer.SetData(boidsArray);
@@ -194,6 +201,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	{
 		_boidComputeShader.SetFloat(AccelerationForce, _accelerationForce);
 		_boidComputeShader.SetFloat(RotationalSharpness, _rotationalSharpness);
+		_boidComputeShader.SetFloat(BankMultiplier, _bankMultiplier);
 
 		_boidComputeShader.SetFloat(SeparationDistanceSqr, _seperationDistance * _seperationDistance);
 		_boidComputeShader.SetFloat(AlignmentDistanceSqr, _alignmentDistance * _alignmentDistance);

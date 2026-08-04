@@ -45,21 +45,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidSpawnerCompute
   _boidComputeShader: {fileID: 7200000, guid: 5e6dc4c067c424799a8a867461d798e9, type: 3}
-  _boidMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  _boidMesh: {fileID: -4441828831550524064, guid: 21dcbec531f6f5849a1ce187d4cb2e3b, type: 3}
   _boidMaterial: {fileID: 2100000, guid: 07184c7cbaf1b4fc49ae5d5c0b740012, type: 2}
-  _boidCount: 400
+  _boidCount: 1000
   _spawnBoundaries: {x: 14, y: 6, z: 14}
-  _boidScale: 0.5
-  _baseSpeed: 7
-  _speedVariance: 1.5
-  _accelerationForce: 18
-  _rotationalSharpness: 10
-  _seperationDistance: 1.5
-  _alignmentDistance: 3.5
+  _boidScale: 0.2
+  _baseSpeed: 4.5
+  _speedVariance: 2
+  _accelerationForce: 8
+  _rotationalSharpness: 4
+  _bankMultiplier: 2.5
+  _seperationDistance: 2.5
+  _alignmentDistance: 3
   _cohesionDistance: 4.5
-  _seperationWeight: 1.6
-  _alignmentWeight: 1
-  _cohesionWeight: 1.2
-  _boundsWeight: 2.5
+  _seperationWeight: 3
+  _alignmentWeight: 2.5
+  _cohesionWeight: 1
+  _boundsWeight: 5
   _flockBoundsSize: {x: 60, y: 30, z: 60}
   _flockBoundsInnerRatio: 0.85

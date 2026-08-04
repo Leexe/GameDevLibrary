@@ -2,8 +2,10 @@ Shader "Custom/BoidInstancedURP"
 {
     Properties
     {
-        _BaseColor ("Base Color", Color) = (0.2, 0.6, 1.0, 1)
-        _BoidScale ("Boid Scale", Float) = 0.5
+        _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
+        _MainTex ("Texture", 2D) = "white" {}
+        [HideInInspector] _BoidScale ("Boid Scale", Float) = 0.5
+        _RotationOffset ("Rotation Offset (XYZ)", Vector) = (0, 0, 0, 0)
     }
     SubShader
     {
@@ -34,25 +36,33 @@ Shader "Custom/BoidInstancedURP"
             struct Meshdata
             {
                 float4 positionOS : POSITION;
+                float2 uv : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Interpolators
             {
                 float4 positionCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseColor;
+                float4 _MainTex_ST;
                 float _BoidScale;
+                float4 _RotationOffset;
             CBUFFER_END
+
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
 
             struct BoidData
             {
                 float3 position;
                 float3 velocity;
                 float3 forward;
+                float3 up;
                 float maxSpeed;
             };
 
@@ -66,19 +76,14 @@ Shader "Custom/BoidInstancedURP"
                 Interpolators output = (Interpolators)0;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
+                
+                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 BoidData boid = boidsBuffer[input.instanceID];
 
-                // Build a rotation matrix so the boid faces its forward vector
                 float3 forward = normalize(boid.forward);
-                float3 up = float3(0, 1, 0);
-                
-                if (abs(forward.y) > 0.999) 
-                {
-                    up = float3(0, 0, 1);
-                }
-                    
+                float3 up = normalize(boid.up);
                 float3 right = normalize(cross(up, forward));
                 up = cross(forward, right);
 
@@ -90,8 +95,21 @@ Shader "Custom/BoidInstancedURP"
                     0,       0,    0,         1
                 );
 
+                // Apply a local XYZ rotation offset (convert degrees to radians)
+                float3 rad = _RotationOffset.xyz * 0.0174532925;
+                float3 s, c;
+                sincos(rad, s, c);
+                
+                // Build standard rotation matrices
+                float3x3 rX = float3x3(1, 0, 0, 0, c.x, -s.x, 0, s.x, c.x);
+                float3x3 rY = float3x3(c.y, 0, s.y, 0, 1, 0, -s.y, 0, c.y);
+                float3x3 rZ = float3x3(c.z, -s.z, 0, s.z, c.z, 0, 0, 0, 1);
+
+                // Apply rotations in Unity's standard Z -> X -> Y order
+                float3 rotatedPosOS = mul(rY, mul(rX, mul(rZ, input.positionOS.xyz)));
+
                 // Transform the local vertex to world space using our custom matrix
-                float3 positionWS = mul(objectToWorld, input.positionOS).xyz;
+                float3 positionWS = mul(objectToWorld, float4(rotatedPosOS, 1.0)).xyz;
                 
                 // Project to the camera's clipping space
                 output.positionCS = TransformWorldToHClip(positionWS);
@@ -106,7 +124,8 @@ Shader "Custom/BoidInstancedURP"
             half4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                return _BaseColor;
+                half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+                return texColor * _BaseColor;
             }
             ENDHLSL
         }

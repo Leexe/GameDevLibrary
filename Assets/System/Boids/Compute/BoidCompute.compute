@@ -1,10 +1,13 @@
 #pragma kernel UpdateBoids
 
+#define DEG2RAD 0.0174532925
+
 struct BoidData
 {
     float3 position;
     float3 velocity;
     float3 forward;
+    float3 up;
     float maxSpeed;
 };
 
@@ -14,6 +17,7 @@ uint numBoids;
 float deltaTime;
 float accelerationForce;
 float rotationalSharpness;
+float bankMultiplier;
 
 float separationDistanceSqr;
 float alignmentDistanceSqr;
@@ -115,7 +119,16 @@ void UpdateBoids(uint3 id : SV_DispatchThreadID)
     if (currentSpeed > 0.1)
     {
         float3 targetForward = myBoid.velocity / currentSpeed;
+        
+        float3 globalUp = float3(0, 1, 0);
+        float3 right = normalize(cross(globalUp, targetForward));
+        float lateralAcc = dot(acceleration, right);
+        
+        float rollAngle = lateralAcc * bankMultiplier * DEG2RAD;
+        float3 targetUp = normalize(globalUp * cos(rollAngle) + right * sin(rollAngle));
+        
         myBoid.forward = normalize(lerp(myBoid.forward, targetForward, deltaTime * rotationalSharpness));
+        myBoid.up = normalize(lerp(myBoid.up, targetUp, deltaTime * rotationalSharpness));
     }
 
     myBoid.position += myBoid.velocity * deltaTime;
