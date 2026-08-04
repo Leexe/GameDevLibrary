@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Sirenix.OdinInspector;
 
 public class BoidAgent : MonoBehaviour
 {
 	#region Fields
 
-	[Header("Movement")]
+	[Title("Movement")]
 	[SerializeField]
 	[Min(0.1f)]
 	private float _maxSpeed = 7f;
@@ -18,7 +19,7 @@ public class BoidAgent : MonoBehaviour
 	[Min(0.1f)]
 	private float _rotationalSharpness = 10f;
 
-	[Header("Behavior Distances")]
+	[Title("Behavior Distances")]
 	[SerializeField]
 	[Min(0.1f)]
 	private float _seperationDistance = 1.5f;
@@ -31,7 +32,7 @@ public class BoidAgent : MonoBehaviour
 	[Min(0.1f)]
 	private float _cohesionDistance = 4.5f;
 
-	[Header("Behavior Weights")]
+	[Title("Behavior Weights")]
 	[SerializeField]
 	[Min(0f)]
 	private float _seperationWeight = 1.6f;
@@ -52,7 +53,7 @@ public class BoidAgent : MonoBehaviour
 	[Min(0f)]
 	private float _obstacleWeight = 3f;
 
-	[Header("Obstacle Avoidance")]
+	[Title("Obstacle Avoidance")]
 	[SerializeField]
 	private bool _avoidObstacles = true;
 
@@ -76,8 +77,8 @@ public class BoidAgent : MonoBehaviour
 
 	private Vector3 _boundsCenter;
 	private BoidSpawner _spawner;
-	private float _boundsRadius = 25f;
-	private float _innerBoundsRadius = 20f;
+	private Vector3 _boundsSize = new(50f, 50f, 50f);
+	private float _boundsInnerRatio = 0.85f;
 	private bool _useBounds = true;
 
 	private float _seperationDistanceSqr;
@@ -224,10 +225,30 @@ public class BoidAgent : MonoBehaviour
 		}
 
 		Vector3 offset = Position - _boundsCenter;
-		float distance = offset.magnitude;
+		Vector3 extents = _boundsSize * 0.5f;
+		Vector3 innerExtents = extents * _boundsInnerRatio;
 
-		float strength = Mathf.InverseLerp(_innerBoundsRadius, _boundsRadius, distance);
-		return (_boundsCenter - Position).normalized * strength;
+		Vector3 steer = Vector3.zero;
+
+		if (Mathf.Abs(offset.x) > innerExtents.x)
+		{
+			float strength = Mathf.InverseLerp(innerExtents.x, extents.x, Mathf.Abs(offset.x));
+			steer.x = -Mathf.Sign(offset.x) * strength;
+		}
+
+		if (Mathf.Abs(offset.y) > innerExtents.y)
+		{
+			float strength = Mathf.InverseLerp(innerExtents.y, extents.y, Mathf.Abs(offset.y));
+			steer.y = -Mathf.Sign(offset.y) * strength;
+		}
+
+		if (Mathf.Abs(offset.z) > innerExtents.z)
+		{
+			float strength = Mathf.InverseLerp(innerExtents.z, extents.z, Mathf.Abs(offset.z));
+			steer.z = -Mathf.Sign(offset.z) * strength;
+		}
+
+		return steer;
 	}
 
 	protected Vector3 ComputeObstacleAvoidance()
@@ -283,11 +304,11 @@ public class BoidAgent : MonoBehaviour
 		return avoidance.normalized;
 	}
 
-	public void ConfigureBounds(Vector3 boundsCenter, float radius, float innerRadius, bool enabled = true)
+	public void ConfigureBounds(Vector3 boundsCenter, Vector3 size, float innerRatio, bool enabled = true)
 	{
 		_boundsCenter = boundsCenter;
-		_boundsRadius = radius;
-		_innerBoundsRadius = innerRadius;
+		_boundsSize = size;
+		_boundsInnerRatio = innerRatio;
 		_useBounds = enabled;
 	}
 

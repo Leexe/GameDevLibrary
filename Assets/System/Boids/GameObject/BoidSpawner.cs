@@ -30,11 +30,11 @@ public class BoidSpawner : MonoBehaviour
 	private float _speedVariance = 1.5f;
 
 	[SerializeField]
-	private float _flockBoundsRadius = 30f;
+	private Vector3 _flockBoundsSize = new(60f, 30f, 60f);
 
 	[SerializeField]
 	[Tooltip(
-		"The normalized ratio of the flock bounds radius at which boids begin softly steering back toward the center."
+		"The normalized ratio of the flock bounds size at which boids begin softly steering back toward the center."
 	)]
 	[Range(0f, 1f)]
 	private float _flockBoundsInnerRatio = 0.85f;
@@ -140,7 +140,7 @@ public class BoidSpawner : MonoBehaviour
 		// Get Boid Agent
 		BoidAgent boidAgent = boidGameObject.GetComponent<BoidAgent>();
 		boidAgent.ConfigureBoidSpawnerReference(this);
-		boidAgent.ConfigureBounds(transform.position, _flockBoundsRadius, _flockBoundsInnerRatio * _flockBoundsRadius);
+		boidAgent.ConfigureBounds(transform.position, _flockBoundsSize, _flockBoundsInnerRatio);
 		boidAgent.ConfigureSpeed(_baseSpeed + Random.Range(-_speedVariance, _speedVariance));
 
 		return boidAgent;
@@ -214,10 +214,10 @@ public class BoidSpawner : MonoBehaviour
 		Gizmos.DrawWireCube(transform.position, _spawnBoundaries * 2f);
 
 		Gizmos.color = new Color(0f, 0f, 1f, 0.5f);
-		Gizmos.DrawWireSphere(transform.position, _flockBoundsRadius);
+		Gizmos.DrawWireCube(transform.position, _flockBoundsSize);
 
 		Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
-		Gizmos.DrawWireSphere(transform.position, _flockBoundsRadius * _flockBoundsInnerRatio);
+		Gizmos.DrawWireCube(transform.position, _flockBoundsSize * _flockBoundsInnerRatio);
 	}
 
 	#endregion

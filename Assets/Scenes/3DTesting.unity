@@ -2926,6 +2926,14 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6543037766470470481, guid: be1f558b039e44021909b9d6f8e26747, type: 3}
+      propertyPath: _flockBoundsSize.x
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 6543037766470470481, guid: be1f558b039e44021909b9d6f8e26747, type: 3}
+      propertyPath: _flockBoundsSize.z
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 6543037766470470481, guid: be1f558b039e44021909b9d6f8e26747, type: 3}
       propertyPath: _flockBoundsInnerRatio
       value: 0.8
       objectReference: {fileID: 0}
