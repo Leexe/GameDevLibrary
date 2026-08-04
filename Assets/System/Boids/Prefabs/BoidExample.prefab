@@ -114,8 +114,8 @@ MonoBehaviour:
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 209
-  _obstacleProbeRadius: 0.7
-  _obstacleLookAhead: 5
+  _obstacleProbeRadius: 1
+  _obstacleLookAhead: 8
   _floorClearance: 0.8
 --- !u!1 &8310913611213240975
 GameObject:

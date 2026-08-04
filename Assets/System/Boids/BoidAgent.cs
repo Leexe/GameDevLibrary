@@ -52,14 +52,6 @@ public class BoidAgent : MonoBehaviour
 	[Min(0f)]
 	private float _obstacleWeight = 3f;
 
-	[Header("Neighbor Query")]
-	[SerializeField]
-	private LayerMask _neighborMask = ~0;
-
-	[SerializeField]
-	[Min(8)]
-	private int _maxNeighborColliders = 128;
-
 	[Header("Obstacle Avoidance")]
 	[SerializeField]
 	private bool _avoidObstacles = true;
@@ -81,7 +73,6 @@ public class BoidAgent : MonoBehaviour
 
 	private Rigidbody _rb;
 	private readonly List<BoidAgent> _neighbors = new(32);
-	private Collider[] _neighborHits;
 
 	private Vector3 _boundsCenter;
 	private BoidSpawner _spawner;
@@ -103,8 +94,6 @@ public class BoidAgent : MonoBehaviour
 	protected void Awake()
 	{
 		_rb = GetComponent<Rigidbody>();
-		int bufferSize = Mathf.Max(8, _maxNeighborColliders);
-		_neighborHits = new Collider[bufferSize];
 
 		_seperationDistanceSqr = _seperationDistance * _seperationDistance;
 		_alignmentDistanceSqr = _alignmentDistance * _alignmentDistance;
@@ -152,43 +141,7 @@ public class BoidAgent : MonoBehaviour
 	protected void FindNeighbors()
 	{
 		_neighbors.Clear();
-		int hitCount = Physics.OverlapSphereNonAlloc(
-			transform.position,
-			_neighborScanRadius,
-			_neighborHits,
-			_neighborMask,
-			QueryTriggerInteraction.Collide
-		);
-
-		for (int i = 0; i < hitCount; i++)
-		{
-			Collider hit = _neighborHits[i];
-			if (!hit)
-			{
-				continue;
-			}
-
-			BoidAgent agent = null;
-			if (_spawner != null)
-			{
-				int id = hit.attachedRigidbody ? hit.attachedRigidbody.GetInstanceID() : hit.GetInstanceID();
-				_spawner.BoidColliderAgentMap.TryGetValue(id, out agent);
-			}
-
-			if (agent == null)
-			{
-				agent = hit.attachedRigidbody
-					? hit.attachedRigidbody.GetComponent<BoidAgent>()
-					: hit.GetComponent<BoidAgent>();
-			}
-
-			if (!agent || agent == this)
-			{
-				continue;
-			}
-
-			_neighbors.Add(agent);
-		}
+		_spawner.GetNeighbors(this, _neighborScanRadius, _neighbors);
 	}
 
 	protected Vector3 ComputeSocialSteering()

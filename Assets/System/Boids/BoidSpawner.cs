@@ -39,12 +39,16 @@ public class BoidSpawner : MonoBehaviour
 	[Range(0f, 1f)]
 	private float _flockBoundsInnerRatio = 0.85f;
 
+	[Header("Grid")]
+	[SerializeField]
+	private float _cellSize = 4.5f;
+
 	[Header("Debug")]
 	[SerializeField]
 	private bool _enableOnStart;
 
 	private readonly List<BoidAgent> _spawnBoids = new();
-	public Dictionary<int, BoidAgent> BoidColliderAgentMap = new();
+	private readonly Dictionary<Vector3Int, List<BoidAgent>> _spatialGrid = new();
 	private Transform _runtimeRoot;
 
 	#endregion
@@ -56,6 +60,33 @@ public class BoidSpawner : MonoBehaviour
 		if (_enableOnStart)
 		{
 			SpawnFlock();
+		}
+	}
+
+	private void FixedUpdate()
+	{
+		foreach (var cell in _spatialGrid.Values)
+		{
+			cell.Clear();
+		}
+
+		for (int i = 0; i < _spawnBoids.Count; i++)
+		{
+			BoidAgent boid = _spawnBoids[i];
+
+			Vector3 pos = boid.transform.position;
+			Vector3Int cellCoord = new Vector3Int(
+				Mathf.FloorToInt(pos.x / _cellSize),
+				Mathf.FloorToInt(pos.y / _cellSize),
+				Mathf.FloorToInt(pos.z / _cellSize)
+			);
+
+			if (!_spatialGrid.TryGetValue(cellCoord, out List<BoidAgent> cellList))
+			{
+				cellList = new List<BoidAgent>();
+				_spatialGrid[cellCoord] = cellList;
+			}
+			cellList.Add(boid);
 		}
 	}
 
@@ -85,7 +116,7 @@ public class BoidSpawner : MonoBehaviour
 		}
 
 		_spawnBoids.Clear();
-		BoidColliderAgentMap.Clear();
+		_spatialGrid.Clear();
 
 		if (!_runtimeRoot)
 		{
@@ -112,11 +143,48 @@ public class BoidSpawner : MonoBehaviour
 		boidAgent.ConfigureBounds(transform.position, _flockBoundsRadius, _flockBoundsInnerRatio * _flockBoundsRadius);
 		boidAgent.ConfigureSpeed(_baseSpeed + Random.Range(-_speedVariance, _speedVariance));
 
-		// Add to Dictionary
-		Rigidbody body = boidGameObject.GetComponent<Rigidbody>();
-		BoidColliderAgentMap[body.GetInstanceID()] = boidAgent;
-
 		return boidAgent;
+	}
+
+	public void GetNeighbors(BoidAgent agent, float scanRadius, List<BoidAgent> results)
+	{
+		results.Clear();
+		float scanRadiusSqr = scanRadius * scanRadius;
+		Vector3 pos = agent.transform.position;
+
+		Vector3Int centerCell = new Vector3Int(
+			Mathf.FloorToInt(pos.x / _cellSize),
+			Mathf.FloorToInt(pos.y / _cellSize),
+			Mathf.FloorToInt(pos.z / _cellSize)
+		);
+
+		for (int x = -1; x <= 1; x++)
+		{
+			for (int y = -1; y <= 1; y++)
+			{
+				for (int z = -1; z <= 1; z++)
+				{
+					Vector3Int neighborCell = centerCell + new Vector3Int(x, y, z);
+
+					if (_spatialGrid.TryGetValue(neighborCell, out List<BoidAgent> cellBoids))
+					{
+						for (int i = 0; i < cellBoids.Count; i++)
+						{
+							BoidAgent otherBoid = cellBoids[i];
+							if (otherBoid == agent)
+							{
+								continue;
+							}
+
+							if ((otherBoid.transform.position - pos).sqrMagnitude <= scanRadiusSqr)
+							{
+								results.Add(otherBoid);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private Vector3 GetRandomSpawnOffset()
