@@ -18,7 +18,6 @@ Shader "Custom/BoidInstancedURP"
         float4 _MainTex_ST;
         float  _Metallic;
         float  _Smoothness;
-        float  _BoidScale;
         float4 _RotationOffset;
         int    _InstanceOffset;
     CBUFFER_END
@@ -26,16 +25,7 @@ Shader "Custom/BoidInstancedURP"
     TEXTURE2D(_MainTex);
     SAMPLER(sampler_MainTex);
 
-    struct BoidData
-    {
-        float3 position;
-        float3 velocity;
-        float3 forward;
-        float3 up;
-        float  maxSpeed;
-    };
-
-    StructuredBuffer<BoidData> boidsBuffer;
+    StructuredBuffer<float4x4> transformBuffer;
 
     #define DEG2RAD 0.0174532925
 
@@ -47,12 +37,7 @@ Shader "Custom/BoidInstancedURP"
         out float3 positionWS, out float3 normalWS)
     {
     #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-        BoidData boid = boidsBuffer[instanceID + _InstanceOffset];
-
-        float3 forward = normalize(boid.forward);
-        float3 up = normalize(boid.up);
-        float3 right = normalize(cross(up, forward));
-        up = cross(forward, right);
+        float4x4 o2w = transformBuffer[instanceID + _InstanceOffset];
    
         // Rotation Offset
         float3 rad = _RotationOffset.xyz * DEG2RAD;
@@ -65,14 +50,8 @@ Shader "Custom/BoidInstancedURP"
         float3 rotatedPosOS = mul(localRotation, positionOS.xyz);
         float3 rotatedNormalOS = mul(localRotation, normalOS);
 
-        positionWS = rotatedPosOS.x * right   * _BoidScale
-                   + rotatedPosOS.y * up      * _BoidScale
-                   + rotatedPosOS.z * forward * _BoidScale
-                   + boid.position;
-
-        normalWS = normalize(rotatedNormalOS.x * right
-                           + rotatedNormalOS.y * up
-                           + rotatedNormalOS.z * forward);
+        positionWS = mul(o2w, float4(rotatedPosOS, 1.0)).xyz;
+        normalWS = normalize(mul((float3x3)o2w, rotatedNormalOS));
     #else
         positionWS = TransformObjectToWorld(positionOS.xyz);
         normalWS   = TransformObjectToWorldNormal(normalOS);
@@ -82,12 +61,7 @@ Shader "Custom/BoidInstancedURP"
     void GetBoidPositionWS(float4 positionOS, uint instanceID, out float3 positionWS)
     {
     #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-        BoidData boid = boidsBuffer[instanceID + _InstanceOffset];
-
-        float3 forward = normalize(boid.forward);
-        float3 up = normalize(boid.up);
-        float3 right = normalize(cross(up, forward));
-        up = cross(forward, right);
+        float4x4 o2w = transformBuffer[instanceID + _InstanceOffset];
    
         // Rotation Offset
         float3 rad = _RotationOffset.xyz * DEG2RAD;
@@ -99,10 +73,7 @@ Shader "Custom/BoidInstancedURP"
         float3x3 localRotation = mul(rY, mul(rX, rZ));
         float3 rotatedPosOS = mul(localRotation, positionOS.xyz);
 
-        positionWS = rotatedPosOS.x * right   * _BoidScale
-                   + rotatedPosOS.y * up      * _BoidScale
-                   + rotatedPosOS.z * forward * _BoidScale
-                   + boid.position;
+        positionWS = mul(o2w, float4(rotatedPosOS, 1.0)).xyz;
     #else
         positionWS = TransformObjectToWorld(positionOS.xyz);
     #endif

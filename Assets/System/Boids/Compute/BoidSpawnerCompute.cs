@@ -109,11 +109,13 @@ public class BoidSpawnerCompute : MonoBehaviour
 	private float _flockBoundsInnerRatio = 0.85f;
 
 	private ComputeBuffer _boidBuffer;
+	private ComputeBuffer _transformBuffer;
 	private int _kernelIndex;
 
 	// Cached Named Properties
 
 	private static readonly int BoidsBuffer = Shader.PropertyToID("boidsBuffer");
+	private static readonly int TransformBuffer = Shader.PropertyToID("transformBuffer");
 	private static readonly int NumBoids = Shader.PropertyToID("numBoids");
 	private static readonly int SeparationDistanceSqr = Shader.PropertyToID("separationDistanceSqr");
 	private static readonly int AlignmentDistanceSqr = Shader.PropertyToID("alignmentDistanceSqr");
@@ -128,7 +130,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	private static readonly int BoundsInnerRatio = Shader.PropertyToID("boundsInnerRatio");
 	private static readonly int BoundsWeight = Shader.PropertyToID("boundsWeight");
 	private static readonly int BoundsCenter = Shader.PropertyToID("boundsCenter");
-	private static readonly int BoidScale = Shader.PropertyToID("_BoidScale");
+	private static readonly int BoidScale = Shader.PropertyToID("boidScale");
 	private static readonly int BankMultiplier = Shader.PropertyToID("bankMultiplier");
 
 	#endregion
@@ -156,6 +158,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		// Float = 4 Bytes, Float3 = 12 Bytes.
 		// Position(12) + Velocity(12) + Forward(12) + Up(12) + MaxSpeed(4) = 52 Bytes
 		_boidBuffer = new ComputeBuffer(_boidCount, 52);
+		_transformBuffer = new ComputeBuffer(_boidCount, 64);
 
 		// Send Data to GPU
 		_boidBuffer.SetData(boidsArray);
@@ -164,6 +167,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		_kernelIndex = _boidComputeShader.FindKernel("UpdateBoids");
 
 		_boidComputeShader.SetBuffer(_kernelIndex, BoidsBuffer, _boidBuffer);
+		_boidComputeShader.SetBuffer(_kernelIndex, TransformBuffer, _transformBuffer);
 		_boidComputeShader.SetInt(NumBoids, _boidCount);
 
 		UpdateComputeShaderProperties();
@@ -220,7 +224,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		int currentOffset = 0;
 		foreach (var variant in _boidVariants)
 		{
-			variant.Material.SetBuffer(BoidsBuffer, _boidBuffer);
+			variant.Material.SetBuffer(TransformBuffer, _transformBuffer);
 			variant.Material.SetInt("_InstanceOffset", currentOffset);
 
 			Graphics.DrawMeshInstancedIndirect(
@@ -264,10 +268,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		_boidComputeShader.SetFloat(BoundsInnerRatio, _flockBoundsInnerRatio);
 		_boidComputeShader.SetFloat(BoundsWeight, _boundsWeight);
 
-		foreach (var variant in _boidVariants)
-		{
-			variant.Material.SetFloat(BoidScale, _boidScale);
-		}
+		_boidComputeShader.SetFloat(BoidScale, _boidScale);
 	}
 
 	private void OnDestroy()
@@ -275,6 +276,11 @@ public class BoidSpawnerCompute : MonoBehaviour
 		if (_boidBuffer != null)
 		{
 			_boidBuffer.Release();
+		}
+
+		if (_transformBuffer != null)
+		{
+			_transformBuffer.Release();
 		}
 
 		if (_boidVariants != null)

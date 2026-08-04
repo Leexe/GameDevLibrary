@@ -12,8 +12,10 @@ struct BoidData
 };
 
 RWStructuredBuffer<BoidData> boidsBuffer;
+RWStructuredBuffer<float4x4> transformBuffer;
 
 uint numBoids;
+float boidScale;
 float deltaTime;
 float accelerationForce;
 float rotationalSharpness;
@@ -139,4 +141,18 @@ void UpdateBoids(uint3 id : SV_DispatchThreadID)
     myBoid.position += myBoid.velocity * deltaTime;
 
     boidsBuffer[myIndex] = myBoid;
+
+    float3 fwd = normalize(myBoid.forward);
+    float3 upDir = normalize(myBoid.up);
+    float3 rightDir = normalize(cross(upDir, fwd));
+    upDir = cross(fwd, rightDir);
+
+    float4x4 o2w = float4x4(
+        rightDir.x * boidScale, upDir.x * boidScale, fwd.x * boidScale, myBoid.position.x,
+        rightDir.y * boidScale, upDir.y * boidScale, fwd.y * boidScale, myBoid.position.y,
+        rightDir.z * boidScale, upDir.z * boidScale, fwd.z * boidScale, myBoid.position.z,
+        0, 0, 0, 1
+    );
+
+    transformBuffer[myIndex] = o2w;
 }

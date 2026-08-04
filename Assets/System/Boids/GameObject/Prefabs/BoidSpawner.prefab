@@ -51,7 +51,7 @@ MonoBehaviour:
     Weight: 90
   _boidCount: 250
   _spawnBoundaries: {x: 7, y: 3, z: 7}
-  _boidScale: 1
+  _boidScale: 1.5
   _flockBoundsSize: {x: 40, y: 20, z: 40}
   _flockBoundsInnerRatio: 0.8
   _cellSize: 4.5
