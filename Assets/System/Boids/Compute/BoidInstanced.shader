@@ -4,7 +4,6 @@ Shader "Custom/BoidInstancedURP"
     {
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _MainTex ("Texture", 2D) = "white" {}
-        [HideInInspector] _BoidScale ("Boid Scale", Float) = 0.5
         _RotationOffset ("Rotation Offset (XYZ)", Vector) = (0, 0, 0, 0)
     }
     SubShader
@@ -52,6 +51,7 @@ Shader "Custom/BoidInstancedURP"
                 float4 _MainTex_ST;
                 float _BoidScale;
                 float4 _RotationOffset;
+                int _InstanceOffset;
             CBUFFER_END
 
             TEXTURE2D(_MainTex);
@@ -80,7 +80,7 @@ Shader "Custom/BoidInstancedURP"
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
 
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                BoidData boid = boidsBuffer[input.instanceID];
+                BoidData boid = boidsBuffer[input.instanceID + _InstanceOffset];
 
                 float3 forward = normalize(boid.forward);
                 float3 up = normalize(boid.up);

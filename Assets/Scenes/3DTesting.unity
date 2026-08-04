@@ -3139,6 +3139,34 @@ PrefabInstance:
       propertyPath: m_Name
       value: Boid Compute
       objectReference: {fileID: 0}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.data[0].Mesh
+      value: 
+      objectReference: {fileID: -4441828831550524064, guid: 21dcbec531f6f5849a1ce187d4cb2e3b, type: 3}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.data[1].Mesh
+      value: 
+      objectReference: {fileID: -4441828831550524064, guid: 21dcbec531f6f5849a1ce187d4cb2e3b, type: 3}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.data[0].Weight
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.data[1].Weight
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.data[0].Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 75cf096727dd94c368ad2da9abc187ea, type: 2}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidVariants.Array.data[1].Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 07184c7cbaf1b4fc49ae5d5c0b740012, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

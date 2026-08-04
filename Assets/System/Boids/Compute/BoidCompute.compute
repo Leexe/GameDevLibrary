@@ -36,6 +36,11 @@ float boundsWeight;
 void UpdateBoids(uint3 id : SV_DispatchThreadID)
 {
     uint myIndex = id.x;
+    if (myIndex >= numBoids)
+    {
+        return;
+    }
+
     BoidData myBoid = boidsBuffer[myIndex];
 
     float3 separationForce = float3(0, 0, 0);

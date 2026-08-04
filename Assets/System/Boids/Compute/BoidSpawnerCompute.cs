@@ -1,17 +1,31 @@
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public struct BoidData
-{
-	public Vector3 Position;
-	public Vector3 Velocity;
-	public Vector3 Forward;
-	public Vector3 Up;
-	public float MaxSpeed;
-}
-
 public class BoidSpawnerCompute : MonoBehaviour
 {
+	public struct BoidData
+	{
+		public Vector3 Position;
+		public Vector3 Velocity;
+		public Vector3 Forward;
+		public Vector3 Up;
+		public float MaxSpeed;
+	}
+
+	[System.Serializable]
+	public class BoidVariantWeight
+	{
+		public Mesh Mesh;
+		public Material Material;
+		
+		[Min(1)]
+		public int Weight = 1;
+
+		// Internal state
+		internal int Count;
+		internal ComputeBuffer ArgsBuffer;
+	}
 	#region Fields
 
 	[Title("References")]
@@ -20,10 +34,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 	[Title("Rendering")]
 	[SerializeField]
-	private Mesh _boidMesh;
-
-	[SerializeField]
-	private Material _boidMaterial;
+	private List<BoidVariantWeight> _boidVariants = new();
 
 	[Title("Spawn")]
 	[SerializeField]
@@ -98,7 +109,6 @@ public class BoidSpawnerCompute : MonoBehaviour
 	private float _flockBoundsInnerRatio = 0.85f;
 
 	private ComputeBuffer _boidBuffer;
-	private ComputeBuffer _argsBuffer;
 	private int _kernelIndex;
 
 	// Cached Named Properties
@@ -158,17 +168,47 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 		UpdateComputeShaderProperties();
 
-		// Set Up Args Buffer
-		uint[] args =
+		InitializeVariants();
+	}
+
+	private void InitializeVariants()
+	{
+		// Calculate variant counts based on weights
+		int totalWeight = 0;
+		foreach (var variant in _boidVariants)
 		{
-			_boidMesh.GetIndexCount(0), // Indices per mesh
-			(uint)_boidCount, // How many meshes to draw
-			_boidMesh.GetIndexStart(0), // Where does the mesh start
-			_boidMesh.GetBaseVertex(0), // Starting point of vertex array
-			0,
-		};
-		_argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-		_argsBuffer.SetData(args);
+			totalWeight += variant.Weight;
+		}
+
+		int boidsAllocated = 0;
+		for (int i = 0; i < _boidVariants.Count; i++)
+		{
+			var variant = _boidVariants[i];
+			if (i == _boidVariants.Count - 1)
+			{
+				variant.Count = _boidCount - boidsAllocated;
+			}
+			else
+			{
+				variant.Count = Mathf.RoundToInt((float)variant.Weight / totalWeight * _boidCount);
+				boidsAllocated += variant.Count;
+			}
+		}
+
+		// Set Up Args Buffers per variant
+		foreach (var variant in _boidVariants)
+		{
+			uint[] args =
+			{
+				variant.Mesh.GetIndexCount(0), // Indices per mesh
+				(uint)variant.Count, // How many meshes to draw
+				variant.Mesh.GetIndexStart(0), // Where does the mesh start
+				variant.Mesh.GetBaseVertex(0), // Starting point of vertex array
+				0,
+			};
+			variant.ArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+			variant.ArgsBuffer.SetData(args);
+		}
 	}
 
 	private void Update()
@@ -177,14 +217,22 @@ public class BoidSpawnerCompute : MonoBehaviour
 		int threadGroups = Mathf.CeilToInt(_boidCount / 64f);
 		_boidComputeShader.Dispatch(_kernelIndex, threadGroups, 1, 1);
 
-		_boidMaterial.SetBuffer(BoidsBuffer, _boidBuffer);
-		Graphics.DrawMeshInstancedIndirect(
-			_boidMesh,
-			0,
-			_boidMaterial,
-			new Bounds(Vector3.zero, Vector3.one * 1000f),
-			_argsBuffer
-		);
+		int currentOffset = 0;
+		foreach (var variant in _boidVariants)
+		{
+			variant.Material.SetBuffer(BoidsBuffer, _boidBuffer);
+			variant.Material.SetInt("_InstanceOffset", currentOffset);
+
+			Graphics.DrawMeshInstancedIndirect(
+				variant.Mesh,
+				0,
+				variant.Material,
+				new Bounds(Vector3.zero, Vector3.one * 1000f),
+				variant.ArgsBuffer
+			);
+
+			currentOffset += variant.Count;
+		}
 	}
 
 	private void OnValidate()
@@ -216,7 +264,10 @@ public class BoidSpawnerCompute : MonoBehaviour
 		_boidComputeShader.SetFloat(BoundsInnerRatio, _flockBoundsInnerRatio);
 		_boidComputeShader.SetFloat(BoundsWeight, _boundsWeight);
 
-		_boidMaterial.SetFloat(BoidScale, _boidScale);
+		foreach (var variant in _boidVariants)
+		{
+			variant.Material.SetFloat(BoidScale, _boidScale);
+		}
 	}
 
 	private void OnDestroy()
@@ -226,9 +277,15 @@ public class BoidSpawnerCompute : MonoBehaviour
 			_boidBuffer.Release();
 		}
 
-		if (_argsBuffer != null)
+		if (_boidVariants != null)
 		{
-			_argsBuffer.Release();
+			foreach (var variant in _boidVariants)
+			{
+				if (variant.ArgsBuffer != null)
+				{
+					variant.ArgsBuffer.Release();
+				}
+			}
 		}
 	}
 
