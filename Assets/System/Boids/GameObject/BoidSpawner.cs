@@ -1,10 +1,12 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class BoidSpawner : MonoBehaviour
 {
-	[System.Serializable]
+	[Serializable]
 	public struct BoidPrefabWeight
 	{
 		public GameObject Prefab;
@@ -15,11 +17,11 @@ public class BoidSpawner : MonoBehaviour
 
 	#region Fields
 
-	[Header("Prefabs")]
+	[Title("Prefabs")]
 	[SerializeField]
 	private List<BoidPrefabWeight> _boidPrefabs;
 
-	[Header("Spawn")]
+	[Title("Spawn")]
 	[SerializeField]
 	[Min(1)]
 	private int _boidCount = 60;
@@ -31,13 +33,6 @@ public class BoidSpawner : MonoBehaviour
 	[Min(0.1f)]
 	private float _boidScale = 0.5f;
 
-	[Header("Movement")]
-	[SerializeField]
-	private float _baseSpeed = 7f;
-
-	[SerializeField]
-	private float _speedVariance = 1.5f;
-
 	[SerializeField]
 	private Vector3 _flockBoundsSize = new(60f, 30f, 60f);
 
@@ -48,11 +43,11 @@ public class BoidSpawner : MonoBehaviour
 	[Range(0f, 1f)]
 	private float _flockBoundsInnerRatio = 0.85f;
 
-	[Header("Grid")]
+	[Title("Grid")]
 	[SerializeField]
 	private float _cellSize = 4.5f;
 
-	[Header("Debug")]
+	[Title("Debug")]
 	[SerializeField]
 	private bool _enableOnStart;
 
@@ -175,7 +170,6 @@ public class BoidSpawner : MonoBehaviour
 		BoidAgent boidAgent = boidGameObject.GetComponent<BoidAgent>();
 		boidAgent.ConfigureBoidSpawnerReference(this);
 		boidAgent.ConfigureBounds(transform.position, _flockBoundsSize, _flockBoundsInnerRatio);
-		boidAgent.ConfigureSpeed(_baseSpeed + Random.Range(-_speedVariance, _speedVariance));
 
 		return boidAgent;
 	}

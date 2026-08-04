@@ -244,17 +244,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b12c57ff18441b482d2b8ba6f5a8243, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidAgent
-  _maxSpeed: 5
-  _accelerationForce: 25
-  _rotationalSharpness: 25
+  _baseSpeed: 4
+  _speedVariance: 2
+  _accelerationForce: 8
+  _rotationalSharpness: 4
   _bankMultiplier: 0.75
-  _seperationDistance: 1.75
-  _alignmentDistance: 3.5
-  _cohesionDistance: 4
-  _seperationWeight: 4
+  _seperationDistance: 2.5
+  _alignmentDistance: 3
+  _cohesionDistance: 4.5
+  _seperationWeight: 3
   _alignmentWeight: 2.5
-  _cohesionWeight: 1.5
-  _boundsWeight: 2.5
+  _cohesionWeight: 1
+  _boundsWeight: 5
   _obstacleWeight: 10
   _avoidObstacles: 1
   _obstacleMask:

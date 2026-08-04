@@ -9,7 +9,10 @@ public class BoidAgent : MonoBehaviour
 	[Title("Movement")]
 	[SerializeField]
 	[Min(0.1f)]
-	private float _maxSpeed = 7f;
+	private float _baseSpeed = 7f;
+
+	[SerializeField]
+	private float _speedVariance = 1.5f;
 
 	[SerializeField]
 	[Min(0.1f)]
@@ -72,10 +75,6 @@ public class BoidAgent : MonoBehaviour
 	[Min(0.5f)]
 	private float _obstacleLookAhead = 3.5f;
 
-	[SerializeField]
-	[Min(0.1f)]
-	private float _floorClearance = 0.8f;
-
 	private Rigidbody _rb;
 	private readonly List<BoidAgent> _neighbors = new(32);
 
@@ -89,6 +88,7 @@ public class BoidAgent : MonoBehaviour
 	private float _alignmentDistanceSqr;
 	private float _cohesionDistanceSqr;
 	private float _neighborScanRadius;
+	private float _currentMaxSpeed;
 
 	#endregion
 
@@ -112,9 +112,12 @@ public class BoidAgent : MonoBehaviour
 	{
 		Position = transform.position;
 		Forward = transform.forward;
+		
+		_currentMaxSpeed = Mathf.Max(0.1f, _baseSpeed + Random.Range(-_speedVariance, _speedVariance));
+		
 		if (_rb.linearVelocity.sqrMagnitude < 0.01f)
 		{
-			_rb.linearVelocity = Random.onUnitSphere * _maxSpeed;
+			_rb.linearVelocity = Random.onUnitSphere * _currentMaxSpeed;
 		}
 	}
 
@@ -137,7 +140,7 @@ public class BoidAgent : MonoBehaviour
 
 		Vector3 acceleration = steering.normalized * _accelerationForce;
 		Vector3 nextVelocity = _rb.linearVelocity + (acceleration * Time.fixedDeltaTime);
-		_rb.linearVelocity = Vector3.ClampMagnitude(nextVelocity, _maxSpeed);
+		_rb.linearVelocity = Vector3.ClampMagnitude(nextVelocity, _currentMaxSpeed);
 		if (_rb.linearVelocity.sqrMagnitude > 0.1f)
 		{
 			Vector3 velocityDir = _rb.linearVelocity.normalized;
@@ -295,22 +298,6 @@ public class BoidAgent : MonoBehaviour
 			avoidance += awayFromHit;
 		}
 
-		// Floor Avoidance
-		if (
-			Physics.Raycast(
-				position,
-				Vector3.down,
-				out RaycastHit floorHit,
-				_floorClearance,
-				_obstacleMask,
-				QueryTriggerInteraction.Ignore
-			)
-		)
-		{
-			float floorStrength = Mathf.InverseLerp(_floorClearance, 0f, floorHit.distance);
-			avoidance = Vector3.up * floorStrength;
-		}
-
 		return avoidance.normalized;
 	}
 
@@ -320,11 +307,6 @@ public class BoidAgent : MonoBehaviour
 		_boundsSize = size;
 		_boundsInnerRatio = innerRatio;
 		_useBounds = enabled;
-	}
-
-	public void ConfigureSpeed(float speed)
-	{
-		_maxSpeed = Mathf.Max(speed, 0.1f);
 	}
 
 	public void ConfigureBoidSpawnerReference(BoidSpawner spawner)

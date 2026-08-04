@@ -49,12 +49,10 @@ MonoBehaviour:
     Weight: 10
   - Prefab: {fileID: 4283689763499998187, guid: a66d881f859905946b576f884ab3fcc6, type: 3}
     Weight: 90
-  _boidCount: 200
+  _boidCount: 250
   _spawnBoundaries: {x: 7, y: 3, z: 7}
-  _boidScale: 1.5
-  _baseSpeed: 7
-  _speedVariance: 1.5
-  _flockBoundsSize: {x: 40, y: 30, z: 40}
+  _boidScale: 1
+  _flockBoundsSize: {x: 40, y: 20, z: 40}
   _flockBoundsInnerRatio: 0.8
   _cellSize: 4.5
   _enableOnStart: 1

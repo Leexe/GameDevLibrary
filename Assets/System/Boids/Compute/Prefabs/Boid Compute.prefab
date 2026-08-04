@@ -16,7 +16,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8998039310747617
 Transform:
   m_ObjectHideFlags: 0
@@ -45,9 +45,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidSpawnerCompute
   _boidComputeShader: {fileID: 7200000, guid: 5e6dc4c067c424799a8a867461d798e9, type: 3}
-  _boidMesh: {fileID: -4441828831550524064, guid: 21dcbec531f6f5849a1ce187d4cb2e3b, type: 3}
-  _boidMaterial: {fileID: 2100000, guid: 07184c7cbaf1b4fc49ae5d5c0b740012, type: 2}
-  _boidCount: 1000
+  _boidVariants:
+  - Mesh: {fileID: -4441828831550524064, guid: 21dcbec531f6f5849a1ce187d4cb2e3b, type: 3}
+    Material: {fileID: 2100000, guid: 75cf096727dd94c368ad2da9abc187ea, type: 2}
+    Weight: 10
+  - Mesh: {fileID: -4441828831550524064, guid: 21dcbec531f6f5849a1ce187d4cb2e3b, type: 3}
+    Material: {fileID: 2100000, guid: 07184c7cbaf1b4fc49ae5d5c0b740012, type: 2}
+    Weight: 90
+  _boidCount: 2000
   _spawnBoundaries: {x: 14, y: 6, z: 14}
   _boidScale: 0.2
   _baseSpeed: 4.5
@@ -62,5 +67,5 @@ MonoBehaviour:
   _alignmentWeight: 2.5
   _cohesionWeight: 1
   _boundsWeight: 5
-  _flockBoundsSize: {x: 60, y: 30, z: 60}
+  _flockBoundsSize: {x: 60, y: 25, z: 60}
   _flockBoundsInnerRatio: 0.85
