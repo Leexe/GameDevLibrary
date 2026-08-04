@@ -90,6 +90,8 @@ public class BoidAgent : MonoBehaviour
 	#region Methods
 
 	public Vector3 Velocity => _rb ? _rb.linearVelocity : Vector3.zero;
+	public Vector3 Position { get; private set; }
+	public Vector3 Forward { get; private set; }
 
 	protected void Awake()
 	{
@@ -103,6 +105,8 @@ public class BoidAgent : MonoBehaviour
 
 	protected void Start()
 	{
+		Position = transform.position;
+		Forward = transform.forward;
 		if (_rb.linearVelocity.sqrMagnitude < 0.01f)
 		{
 			_rb.linearVelocity = Random.onUnitSphere * _maxSpeed;
@@ -111,6 +115,9 @@ public class BoidAgent : MonoBehaviour
 
 	protected void FixedUpdate()
 	{
+		Position = transform.position;
+		Forward = transform.forward;
+
 		FindNeighbors();
 
 		Vector3 steering =
@@ -120,7 +127,7 @@ public class BoidAgent : MonoBehaviour
 
 		if (steering.magnitude < 0.0001f)
 		{
-			steering = transform.forward;
+			steering = Forward;
 		}
 
 		Vector3 acceleration = steering.normalized * _accelerationForce;
@@ -154,12 +161,12 @@ public class BoidAgent : MonoBehaviour
 		int alignmentCount = 0;
 		int cohesionCount = 0;
 
-		Vector3 position = transform.position;
+		Vector3 position = Position;
 
 		for (int i = 0; i < _neighbors.Count; i++)
 		{
 			BoidAgent neighbor = _neighbors[i];
-			Vector3 otherPosition = neighbor.transform.position;
+			Vector3 otherPosition = neighbor.Position;
 			Vector3 toOther = position - otherPosition;
 			float sqrDistance = toOther.sqrMagnitude;
 
@@ -198,7 +205,7 @@ public class BoidAgent : MonoBehaviour
 		}
 		else
 		{
-			finalSteering += transform.forward * _alignmentWeight;
+			finalSteering += Forward * _alignmentWeight;
 		}
 
 		if (cohesionCount > 0)
@@ -216,11 +223,11 @@ public class BoidAgent : MonoBehaviour
 			return Vector3.zero;
 		}
 
-		Vector3 offset = transform.position - _boundsCenter;
+		Vector3 offset = Position - _boundsCenter;
 		float distance = offset.magnitude;
 
 		float strength = Mathf.InverseLerp(_innerBoundsRadius, _boundsRadius, distance);
-		return (_boundsCenter - transform.position).normalized * strength;
+		return (_boundsCenter - Position).normalized * strength;
 	}
 
 	protected Vector3 ComputeObstacleAvoidance()
@@ -237,7 +244,7 @@ public class BoidAgent : MonoBehaviour
 		}
 
 		Vector3 direction = velocity.normalized;
-		Vector3 position = transform.position;
+		Vector3 position = Position;
 		Vector3 avoidance = Vector3.zero;
 
 		// Look Avoidance

@@ -74,7 +74,7 @@ public class BoidSpawner : MonoBehaviour
 		{
 			BoidAgent boid = _spawnBoids[i];
 
-			Vector3 pos = boid.transform.position;
+			Vector3 pos = boid.Position;
 			Vector3Int cellCoord = new Vector3Int(
 				Mathf.FloorToInt(pos.x / _cellSize),
 				Mathf.FloorToInt(pos.y / _cellSize),
@@ -150,7 +150,7 @@ public class BoidSpawner : MonoBehaviour
 	{
 		results.Clear();
 		float scanRadiusSqr = scanRadius * scanRadius;
-		Vector3 pos = agent.transform.position;
+		Vector3 pos = agent.Position;
 
 		Vector3Int centerCell = new Vector3Int(
 			Mathf.FloorToInt(pos.x / _cellSize),
@@ -176,7 +176,7 @@ public class BoidSpawner : MonoBehaviour
 								continue;
 							}
 
-							if ((otherBoid.transform.position - pos).sqrMagnitude <= scanRadiusSqr)
+							if ((otherBoid.Position - pos).sqrMagnitude <= scanRadiusSqr)
 							{
 								results.Add(otherBoid);
 							}
