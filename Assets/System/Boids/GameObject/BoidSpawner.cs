@@ -8,7 +8,7 @@ public class BoidSpawner : MonoBehaviour
 
 	[Header("Prefabs")]
 	[SerializeField]
-	private GameObject _boidPrefab;
+	private List<GameObject> _boidPrefabs;
 
 	[Header("Spawn")]
 	[SerializeField]
@@ -133,7 +133,8 @@ public class BoidSpawner : MonoBehaviour
 	{
 		// Spawn Boid
 		Vector3 spawnPosition = transform.position + GetRandomSpawnOffset();
-		GameObject boidGameObject = Instantiate(_boidPrefab, spawnPosition, Quaternion.identity, _runtimeRoot);
+		GameObject randomPrefab = _boidPrefabs[Random.Range(0, _boidPrefabs.Count)];
+		GameObject boidGameObject = Instantiate(randomPrefab, spawnPosition, Quaternion.identity, _runtimeRoot);
 		boidGameObject.name = $"Boid_{index:000}";
 		boidGameObject.transform.SetParent(_runtimeRoot.transform, false);
 		boidGameObject.transform.localScale = Vector3.one * _boidScale;
