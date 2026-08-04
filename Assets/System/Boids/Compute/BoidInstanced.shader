@@ -42,7 +42,6 @@ Shader "Custom/BoidInstancedURP"
     void setup() { }
 
     /// Transforms an object-space position and normal into world space
-    /// using the boid's orientation basis from the compute buffer.
     void GetBoidPositionAndNormalWS(
         float4 positionOS, float3 normalOS, uint instanceID,
         out float3 positionWS, out float3 normalWS)
@@ -50,7 +49,6 @@ Shader "Custom/BoidInstancedURP"
     #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
         BoidData boid = boidsBuffer[instanceID + _InstanceOffset];
 
-        // Build Orthonormal Basis
         float3 forward = normalize(boid.forward);
         float3 up = normalize(boid.up);
         float3 right = normalize(cross(up, forward));
@@ -67,7 +65,6 @@ Shader "Custom/BoidInstancedURP"
         float3 rotatedPosOS = mul(localRotation, positionOS.xyz);
         float3 rotatedNormalOS = mul(localRotation, normalOS);
 
-        // Transform to World Space
         positionWS = rotatedPosOS.x * right   * _BoidScale
                    + rotatedPosOS.y * up      * _BoidScale
                    + rotatedPosOS.z * forward * _BoidScale
@@ -79,6 +76,35 @@ Shader "Custom/BoidInstancedURP"
     #else
         positionWS = TransformObjectToWorld(positionOS.xyz);
         normalWS   = TransformObjectToWorldNormal(normalOS);
+    #endif
+    }
+
+    void GetBoidPositionWS(float4 positionOS, uint instanceID, out float3 positionWS)
+    {
+    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+        BoidData boid = boidsBuffer[instanceID + _InstanceOffset];
+
+        float3 forward = normalize(boid.forward);
+        float3 up = normalize(boid.up);
+        float3 right = normalize(cross(up, forward));
+        up = cross(forward, right);
+   
+        // Rotation Offset
+        float3 rad = _RotationOffset.xyz * DEG2RAD;
+        float3 s, c;
+        sincos(rad, s, c);
+        float3x3 rX = float3x3(1, 0, 0, 0, c.x, -s.x, 0, s.x, c.x);
+        float3x3 rY = float3x3(c.y, 0, s.y, 0, 1, 0, -s.y, 0, c.y);
+        float3x3 rZ = float3x3(c.z, -s.z, 0, s.z, c.z, 0, 0, 0, 1);
+        float3x3 localRotation = mul(rY, mul(rX, rZ));
+        float3 rotatedPosOS = mul(localRotation, positionOS.xyz);
+
+        positionWS = rotatedPosOS.x * right   * _BoidScale
+                   + rotatedPosOS.y * up      * _BoidScale
+                   + rotatedPosOS.z * forward * _BoidScale
+                   + boid.position;
+    #else
+        positionWS = TransformObjectToWorld(positionOS.xyz);
     #endif
     }
 
@@ -166,14 +192,10 @@ Shader "Custom/BoidInstancedURP"
                 SurfaceData surfaceData = (SurfaceData)0;
                 surfaceData.albedo = albedo;
                 surfaceData.metallic = _Metallic;
-                surfaceData.specular = half3(0, 0, 0);
                 surfaceData.smoothness = _Smoothness;
-                surfaceData.normalTS = half3(0, 0, 1);
-                surfaceData.emission = half3(0, 0, 0);
-                surfaceData.occlusion = 1.0;
                 surfaceData.alpha = alpha;
-                surfaceData.clearCoatMask = 0;
-                surfaceData.clearCoatSmoothness = 0;
+                surfaceData.normalTS = half3(0, 0, 1);
+                surfaceData.occlusion = 1.0;
 
                 InputData inputData = (InputData)0;
                 inputData.positionWS = input.positionWS;
@@ -187,7 +209,6 @@ Shader "Custom/BoidInstancedURP"
                 #endif
 
                 inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
-                inputData.vertexLighting = half3(0, 0, 0);
                 inputData.bakedGI = SampleSHPixel(input.ambient, inputData.normalWS);
                 inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
                 inputData.shadowMask = half4(1, 1, 1, 1);
@@ -285,7 +306,6 @@ Shader "Custom/BoidInstancedURP"
             struct Meshdata
             {
                 float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
                 uint instanceID : SV_InstanceID;
             };
 
@@ -301,8 +321,8 @@ Shader "Custom/BoidInstancedURP"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-                float3 positionWS, normalWS;
-                GetBoidPositionAndNormalWS(input.positionOS, input.normalOS, input.instanceID, positionWS, normalWS);
+                float3 positionWS;
+                GetBoidPositionWS(input.positionOS, input.instanceID, positionWS);
 
                 output.positionCS = TransformWorldToHClip(positionWS);
                 return output;
