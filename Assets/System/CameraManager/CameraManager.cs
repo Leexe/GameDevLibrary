@@ -93,6 +93,10 @@ public class CameraManager : MonoSingleton<CameraManager>
 		_shakeSequence.Stop();
 		_shakeTween.Stop();
 
+		if (!_perlin)
+		{
+			return;
+		}
 		_shakeTween = Tween.Custom(_perlin.AmplitudeGain, 0f, dur, val => _perlin.AmplitudeGain = val);
 	}
 
