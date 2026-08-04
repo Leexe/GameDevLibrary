@@ -196,7 +196,7 @@ public class BoidAgent : MonoBehaviour
 
 		if (separationCount > 0)
 		{
-			finalSteering += (separationForce / separationCount) * _seperationWeight;
+			finalSteering += separationForce / separationCount * _seperationWeight;
 		}
 
 		if (alignmentCount > 0)

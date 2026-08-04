@@ -97,19 +97,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidAgent
   _maxSpeed: 7
   _accelerationForce: 18
-  _rotationalSharpness: 10
-  _seperationDistance: 1.5
+  _rotationalSharpness: 20
+  _seperationDistance: 2
   _alignmentDistance: 3.5
   _cohesionDistance: 4.5
-  _seperationWeight: 1.6
+  _seperationWeight: 2
   _alignmentWeight: 1
   _cohesionWeight: 1.2
   _boundsWeight: 2.5
-  _obstacleWeight: 3
-  _neighborMask:
-    serializedVersion: 2
-    m_Bits: 512
-  _maxNeighborColliders: 128
+  _obstacleWeight: 5
   _avoidObstacles: 1
   _obstacleMask:
     serializedVersion: 2

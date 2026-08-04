@@ -2918,6 +2918,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6543037766470470481, guid: be1f558b039e44021909b9d6f8e26747, type: 3}
+      propertyPath: _boidCount
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 6543037766470470481, guid: be1f558b039e44021909b9d6f8e26747, type: 3}
       propertyPath: _flockBoundsRadius
       value: 20
       objectReference: {fileID: 0}
