@@ -149,23 +149,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		_boidComputeShader.SetBuffer(_kernelIndex, BoidsBuffer, _boidBuffer);
 		_boidComputeShader.SetInt(NumBoids, _boidCount);
 
-		_boidComputeShader.SetFloat(AccelerationForce, _accelerationForce);
-		_boidComputeShader.SetFloat(RotationalSharpness, _rotationalSharpness);
-
-		_boidComputeShader.SetFloat(SeparationDistanceSqr, _seperationDistance * _seperationDistance);
-		_boidComputeShader.SetFloat(AlignmentDistanceSqr, _alignmentDistance * _alignmentDistance);
-		_boidComputeShader.SetFloat(CohesionDistanceSqr, _cohesionDistance * _cohesionDistance);
-
-		_boidComputeShader.SetFloat(SeparationWeight, _seperationWeight);
-		_boidComputeShader.SetFloat(AlignmentWeight, _alignmentWeight);
-		_boidComputeShader.SetFloat(CohesionWeight, _cohesionWeight);
-
-		_boidComputeShader.SetVector(BoundsCenter, transform.position);
-		_boidComputeShader.SetVector(BoundsSize, _flockBoundsSize);
-		_boidComputeShader.SetFloat(BoundsInnerRatio, _flockBoundsInnerRatio);
-		_boidComputeShader.SetFloat(BoundsWeight, _boundsWeight);
-
-		_boidMaterial.SetFloat(BoidScale, _boidScale);
+		UpdateComputeShaderProperties();
 
 		// Set Up Args Buffer
 		uint[] args =
@@ -194,6 +178,37 @@ public class BoidSpawnerCompute : MonoBehaviour
 			new Bounds(Vector3.zero, Vector3.one * 1000f),
 			_argsBuffer
 		);
+	}
+
+	private void OnValidate()
+	{
+		if (!Application.isPlaying)
+		{
+			return;
+		}
+
+		UpdateComputeShaderProperties();
+	}
+
+	private void UpdateComputeShaderProperties()
+	{
+		_boidComputeShader.SetFloat(AccelerationForce, _accelerationForce);
+		_boidComputeShader.SetFloat(RotationalSharpness, _rotationalSharpness);
+
+		_boidComputeShader.SetFloat(SeparationDistanceSqr, _seperationDistance * _seperationDistance);
+		_boidComputeShader.SetFloat(AlignmentDistanceSqr, _alignmentDistance * _alignmentDistance);
+		_boidComputeShader.SetFloat(CohesionDistanceSqr, _cohesionDistance * _cohesionDistance);
+
+		_boidComputeShader.SetFloat(SeparationWeight, _seperationWeight);
+		_boidComputeShader.SetFloat(AlignmentWeight, _alignmentWeight);
+		_boidComputeShader.SetFloat(CohesionWeight, _cohesionWeight);
+
+		_boidComputeShader.SetVector(BoundsCenter, transform.position);
+		_boidComputeShader.SetVector(BoundsSize, _flockBoundsSize);
+		_boidComputeShader.SetFloat(BoundsInnerRatio, _flockBoundsInnerRatio);
+		_boidComputeShader.SetFloat(BoundsWeight, _boundsWeight);
+
+		_boidMaterial.SetFloat(BoidScale, _boidScale);
 	}
 
 	private void OnDestroy()
