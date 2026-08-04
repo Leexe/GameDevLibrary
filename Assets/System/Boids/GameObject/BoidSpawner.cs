@@ -65,7 +65,7 @@ public class BoidSpawner : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		foreach (var cell in _spatialGrid.Values)
+		foreach (List<BoidAgent> cell in _spatialGrid.Values)
 		{
 			cell.Clear();
 		}
@@ -75,7 +75,7 @@ public class BoidSpawner : MonoBehaviour
 			BoidAgent boid = _spawnBoids[i];
 
 			Vector3 pos = boid.Position;
-			Vector3Int cellCoord = new Vector3Int(
+			var cellCoord = new Vector3Int(
 				Mathf.FloorToInt(pos.x / _cellSize),
 				Mathf.FloorToInt(pos.y / _cellSize),
 				Mathf.FloorToInt(pos.z / _cellSize)
@@ -86,6 +86,7 @@ public class BoidSpawner : MonoBehaviour
 				cellList = new List<BoidAgent>();
 				_spatialGrid[cellCoord] = cellList;
 			}
+
 			cellList.Add(boid);
 		}
 	}
@@ -152,7 +153,7 @@ public class BoidSpawner : MonoBehaviour
 		float scanRadiusSqr = scanRadius * scanRadius;
 		Vector3 pos = agent.Position;
 
-		Vector3Int centerCell = new Vector3Int(
+		var centerCell = new Vector3Int(
 			Mathf.FloorToInt(pos.x / _cellSize),
 			Mathf.FloorToInt(pos.y / _cellSize),
 			Mathf.FloorToInt(pos.z / _cellSize)

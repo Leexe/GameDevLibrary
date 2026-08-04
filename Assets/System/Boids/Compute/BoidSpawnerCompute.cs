@@ -1,27 +1,30 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public struct BoidData
 {
 	public Vector3 Position;
 	public Vector3 Velocity;
+	public Vector3 Forward;
+	public float MaxSpeed;
 }
 
 public class BoidSpawnerCompute : MonoBehaviour
 {
 	#region Fields
 
-	[Header("References")]
+	[Title("References")]
 	[SerializeField]
 	private ComputeShader _boidComputeShader;
 
-	[Header("Rendering")]
+	[Title("Rendering")]
 	[SerializeField]
 	private Mesh _boidMesh;
 
 	[SerializeField]
 	private Material _boidMaterial;
 
-	[Header("Spawn")]
+	[Title("Spawn")]
 	[SerializeField]
 	[Min(1)]
 	private int _boidCount = 60;
@@ -29,12 +32,26 @@ public class BoidSpawnerCompute : MonoBehaviour
 	[SerializeField]
 	private Vector3 _spawnBoundaries = new(14f, 6f, 14f);
 
-	[Header("Movement")]
 	[SerializeField]
 	[Min(0.1f)]
-	private float _maxSpeed = 7f;
+	private float _boidScale = 0.5f;
 
-	[Header("Behavior Distances")]
+	[Title("Movement")]
+	[SerializeField]
+	private float _baseSpeed = 7f;
+
+	[SerializeField]
+	private float _speedVariance = 1.5f;
+
+	[SerializeField]
+	[Min(0.1f)]
+	private float _accelerationForce = 18f;
+
+	[SerializeField]
+	[Min(0.1f)]
+	private float _rotationalSharpness = 10f;
+
+	[Title("Behavior Distances")]
 	[SerializeField]
 	[Min(0.1f)]
 	private float _seperationDistance = 1.5f;
@@ -47,7 +64,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	[Min(0.1f)]
 	private float _cohesionDistance = 4.5f;
 
-	[Header("Behavior Weights")]
+	[Title("Behavior Weights")]
 	[SerializeField]
 	[Min(0f)]
 	private float _seperationWeight = 1.6f;
@@ -60,6 +77,21 @@ public class BoidSpawnerCompute : MonoBehaviour
 	[Min(0f)]
 	private float _cohesionWeight = 1.2f;
 
+	[SerializeField]
+	[Min(0f)]
+	private float _boundsWeight = 2.5f;
+
+	[Title("Boundaries")]
+	[SerializeField]
+	private Vector3 _flockBoundsSize = new(60f, 30f, 60f);
+
+	[SerializeField]
+	[Tooltip(
+		"The normalized ratio of the flock bounds size at which boids begin softly steering back toward the center."
+	)]
+	[Range(0f, 1f)]
+	private float _flockBoundsInnerRatio = 0.85f;
+
 	private ComputeBuffer _boidBuffer;
 	private ComputeBuffer _argsBuffer;
 	private int _kernelIndex;
@@ -68,7 +100,6 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 	private static readonly int BoidsBuffer = Shader.PropertyToID("boidsBuffer");
 	private static readonly int NumBoids = Shader.PropertyToID("numBoids");
-	private static readonly int MaxSpeed = Shader.PropertyToID("maxSpeed");
 	private static readonly int SeparationDistanceSqr = Shader.PropertyToID("separationDistanceSqr");
 	private static readonly int AlignmentDistanceSqr = Shader.PropertyToID("alignmentDistanceSqr");
 	private static readonly int CohesionDistanceSqr = Shader.PropertyToID("cohesionDistanceSqr");
@@ -76,6 +107,12 @@ public class BoidSpawnerCompute : MonoBehaviour
 	private static readonly int AlignmentWeight = Shader.PropertyToID("alignmentWeight");
 	private static readonly int CohesionWeight = Shader.PropertyToID("cohesionWeight");
 	private static readonly int DeltaTime = Shader.PropertyToID("deltaTime");
+	private static readonly int AccelerationForce = Shader.PropertyToID("accelerationForce");
+	private static readonly int RotationalSharpness = Shader.PropertyToID("rotationalSharpness");
+	private static readonly int BoundsSize = Shader.PropertyToID("boundsSize");
+	private static readonly int BoundsInnerRatio = Shader.PropertyToID("boundsInnerRatio");
+	private static readonly int BoundsWeight = Shader.PropertyToID("boundsWeight");
+	private static readonly int BoundsCenter = Shader.PropertyToID("boundsCenter");
 
 	#endregion
 
@@ -87,16 +124,20 @@ public class BoidSpawnerCompute : MonoBehaviour
 		var boidsArray = new BoidData[_boidCount];
 		for (int i = 0; i < _boidCount; i++)
 		{
+			Vector3 velocity = Random.onUnitSphere;
 			boidsArray[i] = new BoidData
 			{
 				Position = transform.position + GetRandomSpawnOffset(),
-				Velocity = Random.onUnitSphere,
+				Velocity = velocity,
+				Forward = velocity,
+				MaxSpeed = Mathf.Max(0.1f, _baseSpeed + Random.Range(-_speedVariance, _speedVariance)),
 			};
 		}
 
 		// Create Compute Buffer
-		// Float = 4 Bytes, Float3 = 12 Bytes, 2 * Float3 = 24 Bytes
-		_boidBuffer = new ComputeBuffer(_boidCount, 24);
+		// Float = 4 Bytes, Float3 = 12 Bytes.
+		// Position(12) + Velocity(12) + Forward(12) + MaxSpeed(4) = 40 Bytes
+		_boidBuffer = new ComputeBuffer(_boidCount, 40);
 
 		// Send Data to GPU
 		_boidBuffer.SetData(boidsArray);
@@ -106,22 +147,18 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 		_boidComputeShader.SetBuffer(_kernelIndex, BoidsBuffer, _boidBuffer);
 		_boidComputeShader.SetInt(NumBoids, _boidCount);
-		_boidComputeShader.SetFloat(MaxSpeed, _maxSpeed);
 
-		_boidComputeShader.SetFloat(SeparationDistanceSqr, _seperationDistance * _seperationDistance);
-		_boidComputeShader.SetFloat(AlignmentDistanceSqr, _alignmentDistance * _alignmentDistance);
-		_boidComputeShader.SetFloat(CohesionDistanceSqr, _cohesionDistance * _cohesionDistance);
-
-		_boidComputeShader.SetFloat(SeparationWeight, _seperationWeight);
-		_boidComputeShader.SetFloat(AlignmentWeight, _alignmentWeight);
-		_boidComputeShader.SetFloat(CohesionWeight, _cohesionWeight);
+		UpdateComputeShaderProperties();
 
 		// Set Up Args Buffer
-		uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
-		args[0] = _boidMesh.GetIndexCount(0); // Indicies per mesh
-		args[1] = (uint)_boidCount; // How many meshes to draw
-		args[2] = _boidMesh.GetIndexStart(0); // Where does the mesh start
-		args[3] = _boidMesh.GetBaseVertex(0); // Starting point of vertex array
+		uint[] args =
+		{
+			_boidMesh.GetIndexCount(0), // Indices per mesh
+			(uint)_boidCount, // How many meshes to draw
+			_boidMesh.GetIndexStart(0), // Where does the mesh start
+			_boidMesh.GetBaseVertex(0), // Starting point of vertex array
+			0,
+		};
 		_argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 		_argsBuffer.SetData(args);
 	}
@@ -137,9 +174,40 @@ public class BoidSpawnerCompute : MonoBehaviour
 			_boidMesh,
 			0,
 			_boidMaterial,
-			new Bounds(Vector3.zero, Vector3.one * 1000f), // Ensure they don't get culled
+			new Bounds(Vector3.zero, Vector3.one * 1000f),
 			_argsBuffer
 		);
+	}
+
+	private void OnValidate()
+	{
+		if (!Application.isPlaying)
+		{
+			return;
+		}
+
+		UpdateComputeShaderProperties();
+	}
+
+	private void UpdateComputeShaderProperties()
+	{
+		_boidComputeShader.SetFloat(AccelerationForce, _accelerationForce);
+		_boidComputeShader.SetFloat(RotationalSharpness, _rotationalSharpness);
+
+		_boidComputeShader.SetFloat(SeparationDistanceSqr, _seperationDistance * _seperationDistance);
+		_boidComputeShader.SetFloat(AlignmentDistanceSqr, _alignmentDistance * _alignmentDistance);
+		_boidComputeShader.SetFloat(CohesionDistanceSqr, _cohesionDistance * _cohesionDistance);
+
+		_boidComputeShader.SetFloat(SeparationWeight, _seperationWeight);
+		_boidComputeShader.SetFloat(AlignmentWeight, _alignmentWeight);
+		_boidComputeShader.SetFloat(CohesionWeight, _cohesionWeight);
+
+		_boidComputeShader.SetVector(BoundsCenter, transform.position);
+		_boidComputeShader.SetVector(BoundsSize, _flockBoundsSize);
+		_boidComputeShader.SetFloat(BoundsInnerRatio, _flockBoundsInnerRatio);
+		_boidComputeShader.SetFloat(BoundsWeight, _boundsWeight);
+
+		_boidMaterial.SetFloat("_BoidScale", _boidScale);
 	}
 
 	private void OnDestroy()
@@ -162,6 +230,18 @@ public class BoidSpawnerCompute : MonoBehaviour
 			Random.Range(-_spawnBoundaries.y, _spawnBoundaries.y),
 			Random.Range(-_spawnBoundaries.z, _spawnBoundaries.z)
 		);
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+		Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
+		Gizmos.DrawWireCube(transform.position, _spawnBoundaries * 2f);
+
+		Gizmos.color = new Color(0f, 0f, 1f, 0.5f);
+		Gizmos.DrawWireCube(transform.position, _flockBoundsSize);
+
+		Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
+		Gizmos.DrawWireCube(transform.position, _flockBoundsSize * _flockBoundsInnerRatio);
 	}
 
 	#endregion

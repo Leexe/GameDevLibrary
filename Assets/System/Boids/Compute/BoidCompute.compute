@@ -4,13 +4,16 @@ struct BoidData
 {
     float3 position;
     float3 velocity;
+    float3 forward;
+    float maxSpeed;
 };
 
 RWStructuredBuffer<BoidData> boidsBuffer;
 
 uint numBoids;
 float deltaTime;
-float maxSpeed;
+float accelerationForce;
+float rotationalSharpness;
 
 float separationDistanceSqr;
 float alignmentDistanceSqr;
@@ -19,6 +22,11 @@ float cohesionDistanceSqr;
 float separationWeight;
 float alignmentWeight;
 float cohesionWeight;
+
+float3 boundsCenter;
+float3 boundsSize;
+float boundsInnerRatio;
+float boundsWeight;
 
 [numthreads(64, 1, 1)]
 void UpdateBoids(uint3 id : SV_DispatchThreadID)
@@ -76,7 +84,7 @@ void UpdateBoids(uint3 id : SV_DispatchThreadID)
 
     if (alignmentCount > 0)
     {
-        finalSteering += normalize(averageVelocity / alignmentCount) * alignmentWeight;
+        finalSteering += normalize(averageVelocity) * alignmentWeight;
     }
 
     if (cohesionCount > 0)
@@ -84,11 +92,30 @@ void UpdateBoids(uint3 id : SV_DispatchThreadID)
         finalSteering += normalize(center / cohesionCount - myBoid.position) * cohesionWeight;
     }
 
-    myBoid.velocity += finalSteering * deltaTime;
-    float speed = length(myBoid.velocity);
-    if (speed > maxSpeed)
+    // Cubic Bounds Steer
+    float3 extents = boundsSize * 0.5;
+    float3 innerExtents = extents * boundsInnerRatio;
+    float3 offsetBounds = myBoid.position - boundsCenter;
+    
+    float3 boundStrength = saturate((abs(offsetBounds) - innerExtents) / max(extents - innerExtents, 0.0001));
+    finalSteering += -sign(offsetBounds) * boundStrength * boundsWeight;
+
+    if (length(finalSteering) < 0.0001)
     {
-        myBoid.velocity = (myBoid.velocity / speed) * maxSpeed;
+        finalSteering = myBoid.forward;
+    }
+
+    float3 acceleration = normalize(finalSteering) * accelerationForce;
+    float3 nextVelocity = myBoid.velocity + (acceleration * deltaTime);
+
+    float speed = length(nextVelocity);
+    myBoid.velocity = speed > myBoid.maxSpeed ? (nextVelocity / speed) * myBoid.maxSpeed : nextVelocity;
+
+    float currentSpeed = min(speed, myBoid.maxSpeed);
+    if (currentSpeed > 0.1)
+    {
+        float3 targetForward = myBoid.velocity / currentSpeed;
+        myBoid.forward = normalize(lerp(myBoid.forward, targetForward, deltaTime * rotationalSharpness));
     }
 
     myBoid.position += myBoid.velocity * deltaTime;

@@ -3,6 +3,7 @@ Shader "Custom/BoidInstancedURP"
     Properties
     {
         _BaseColor ("Base Color", Color) = (0.2, 0.6, 1.0, 1)
+        _BoidScale ("Boid Scale", Float) = 0.5
     }
     SubShader
     {
@@ -44,12 +45,15 @@ Shader "Custom/BoidInstancedURP"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseColor;
+                float _BoidScale;
             CBUFFER_END
 
             struct BoidData
             {
                 float3 position;
                 float3 velocity;
+                float3 forward;
+                float maxSpeed;
             };
 
             StructuredBuffer<BoidData> boidsBuffer;
@@ -66,8 +70,8 @@ Shader "Custom/BoidInstancedURP"
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 BoidData boid = boidsBuffer[input.instanceID];
 
-                // Build a rotation matrix so the boid faces its velocity
-                float3 forward = normalize(boid.velocity);
+                // Build a rotation matrix so the boid faces its forward vector
+                float3 forward = normalize(boid.forward);
                 float3 up = float3(0, 1, 0);
                 
                 if (abs(forward.y) > 0.999) 
@@ -80,9 +84,9 @@ Shader "Custom/BoidInstancedURP"
 
                 // Create a custom Object-to-World Transformation Matrix
                 float4x4 objectToWorld = float4x4(
-                    right.x, up.x, forward.x, boid.position.x,
-                    right.y, up.y, forward.y, boid.position.y,
-                    right.z, up.z, forward.z, boid.position.z,
+                    right.x * _BoidScale, up.x * _BoidScale, forward.x * _BoidScale, boid.position.x,
+                    right.y * _BoidScale, up.y * _BoidScale, forward.y * _BoidScale, boid.position.y,
+                    right.z * _BoidScale, up.z * _BoidScale, forward.z * _BoidScale, boid.position.z,
                     0,       0,    0,         1
                 );
 
