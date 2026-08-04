@@ -3139,6 +3139,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Boid Compute
       objectReference: {fileID: 0}
+    - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
+      propertyPath: _boidCount
+      value: 2000
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
