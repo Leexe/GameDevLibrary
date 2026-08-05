@@ -32,7 +32,6 @@ public partial class MyCharacterController
 				_applyInitialVertDrag = false;
 			}
 
-			Vector3 targetVelocityVector = Vector3.zero;
 			// Check if the player is on stable ground i.e. not on a slope or in the air
 			if (_motor.GroundingStatus.IsStableOnGround)
 			{
@@ -40,7 +39,7 @@ public partial class MyCharacterController
 				var inputRight = Vector3.Cross(_inputVector, _motor.CharacterUp);
 				Vector3 reorientedInputVector =
 					Vector3.Cross(_motor.GroundingStatus.GroundNormal, inputRight).normalized * _inputVector.magnitude;
-				targetVelocityVector = reorientedInputVector * _baseMovespeed;
+				Vector3 targetVelocityVector = reorientedInputVector * _baseMovespeed;
 
 				if (MovementState == MovementStates.Sliding)
 				{
@@ -82,7 +81,6 @@ public partial class MyCharacterController
 			// If the player is in the air or on a slope
 			else
 			{
-
 				// Add air movement if the player is inputting in the air
 				if (_inputVector.sqrMagnitude > 0f)
 				{
@@ -114,14 +112,14 @@ public partial class MyCharacterController
 						accel *= _airRotationMult;
 					}
 
-					Vector3 currentHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
+					var currentHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
 					float previousHorSpeed = currentHorizontal.magnitude;
 
 					currentVelocity = Accelerate(currentVelocity, wishDir, wishSpeed, accel, deltaTime);
 
 					if (!_allowAirStrafing)
 					{
-						Vector3 newHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
+						var newHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
 						float cap = Mathf.Max(previousHorSpeed, wishSpeed);
 						if (newHorizontal.magnitude > cap)
 						{
