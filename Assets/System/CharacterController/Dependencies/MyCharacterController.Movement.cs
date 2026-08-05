@@ -82,12 +82,12 @@ public partial class MyCharacterController
 			// If the player is in the air or on a slope
 			else
 			{
-				float airControlRate = _airControlRate;
 
 				// Add air movement if the player is inputting in the air
 				if (_inputVector.sqrMagnitude > 0f)
 				{
-					targetVelocityVector = _inputVector * _baseMovespeed * _airBaseSpeedMult;
+					Vector3 wishDir = _inputVector.normalized;
+					float wishSpeed = _baseMovespeed * _airBaseSpeedMult;
 
 					// Preventing climbing on unstable ground while in the air
 					if (_motor.GroundingStatus.FoundAnyGround)
@@ -98,55 +98,37 @@ public partial class MyCharacterController
 								_motor.CharacterUp
 							)
 							.normalized;
-						targetVelocityVector = Vector3.ProjectOnPlane(
-							targetVelocityVector,
-							perpendicularObstructionNormal
-						);
+						wishDir = Vector3.ProjectOnPlane(wishDir, perpendicularObstructionNormal).normalized;
 					}
 
 					// If the player is tangent to a wall, lock their movement against the wall
 					if (_tangentialMovementOnWall)
 					{
-						targetVelocityVector = ClosestWallForward * (_wallRunVelocityExitThreshold - 1f);
+						wishDir = ClosestWallForward;
+						wishSpeed = _wallRunVelocityExitThreshold - 1f;
 					}
 
-					// Restrict air rotation
+					float accel = _movementAcceleration;
 					if (RestrictAirRotation)
 					{
-						airControlRate *= _airRotationMult;
+						accel *= _airRotationMult;
 					}
-				}
 
-				// Turn or Accelerate the Player
-				var horizontalVelocity = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
-				if (targetVelocityVector.magnitude < horizontalVelocity.magnitude)
-				{
-					// If any component of the target velocity vector is along the current horizontal velocity, remove it
-					if (Vector3.Dot(targetVelocityVector, horizontalVelocity.normalized) > 0f)
+					Vector3 currentHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
+					float previousHorSpeed = currentHorizontal.magnitude;
+
+					currentVelocity = Accelerate(currentVelocity, wishDir, wishSpeed, accel, deltaTime);
+
+					if (!_allowAirStrafing)
 					{
-						targetVelocityVector =
-							targetVelocityVector
-							- (
-								horizontalVelocity.normalized
-								* Vector3.Dot(targetVelocityVector, horizontalVelocity.normalized)
-							);
+						Vector3 newHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);
+						float cap = Mathf.Max(previousHorSpeed, wishSpeed);
+						if (newHorizontal.magnitude > cap)
+						{
+							newHorizontal = newHorizontal.normalized * cap;
+							currentVelocity = newHorizontal + Vector3.Project(currentVelocity, _motor.CharacterUp);
+						}
 					}
-
-					currentVelocity += targetVelocityVector * (deltaTime * airControlRate * 0.75f);
-					// Decelerate Player
-					var horizontalCurrentVector = Vector3.ProjectOnPlane(currentVelocity, _gravity);
-					currentVelocity =
-						Vector3.Lerp(
-							horizontalCurrentVector,
-							horizontalCurrentVector.normalized * targetVelocityVector.magnitude,
-							_movementDeceleration * deltaTime
-						) + Vector3.Project(currentVelocity, _gravity);
-				}
-				else
-				{
-					horizontalVelocity += targetVelocityVector * (deltaTime * _movementAcceleration);
-					horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, targetVelocityVector.magnitude);
-					currentVelocity = new Vector3(horizontalVelocity.x, currentVelocity.y, horizontalVelocity.z);
 				}
 
 				// Add gravity to the gravity

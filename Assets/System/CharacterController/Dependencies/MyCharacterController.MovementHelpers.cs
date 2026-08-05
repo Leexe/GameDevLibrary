@@ -308,5 +308,23 @@ public partial class MyCharacterController
 		_bouncePadTaken = false;
 	}
 
+	private Vector3 Accelerate(Vector3 currentVelocity, Vector3 wishDir, float wishSpeed, float accel, float deltaTime)
+	{
+		float currentSpeed = Vector3.Dot(currentVelocity, wishDir);
+		float addSpeed = wishSpeed - currentSpeed;
+		if (addSpeed <= 0)
+		{
+			return currentVelocity;
+		}
+
+		float accelSpeed = accel * deltaTime * wishSpeed;
+		if (accelSpeed > addSpeed)
+		{
+			accelSpeed = addSpeed;
+		}
+
+		return currentVelocity + accelSpeed * wishDir;
+	}
+
 	#endregion
 }

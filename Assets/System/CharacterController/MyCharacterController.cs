@@ -69,24 +69,19 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	[TabGroup("Settings", "Movement")]
 	[Header("Air Movement")]
+	[Tooltip("Allow the player to build speed infinitely by air strafing. If disabled, speed is strictly clamped.")]
+	[SerializeField]
+	private bool _allowAirStrafing = true;
+
+	[TabGroup("Settings", "Movement")]
 	[Tooltip("How fast the player moves while in the air relative to their base movespeed")]
 	[SerializeField]
 	private float _airBaseSpeedMult = 1f;
 
 	[TabGroup("Settings", "Movement")]
-	[Tooltip("How fast the player accelerates up to air base speed")]
+	[Tooltip("How fast the player accelerates up to air base speed and changes direction in the air")]
 	[SerializeField]
 	private float _airAcceleration = 7f;
-
-	[TabGroup("Settings", "Movement")]
-	[Tooltip("How fast the player decelerates up to air base speed")]
-	[SerializeField]
-	private float _airDeceleration = 0.5f;
-
-	[TabGroup("Settings", "Movement")]
-	[Tooltip("How easily the player is able to change direction in the air")]
-	[SerializeField]
-	private float _airControlRate = 5f;
 
 	[TabGroup("Settings", "Movement")]
 	[Tooltip("Air drag")]

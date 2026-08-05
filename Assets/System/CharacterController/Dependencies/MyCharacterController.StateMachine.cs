@@ -406,7 +406,6 @@ public partial class MyCharacterController
 			{
 				_movementMult = 1f;
 				_movementAcceleration = _airAcceleration;
-				_movementDeceleration = _airDeceleration;
 				_movementDecelerationToStop = _stableDecelerationToStop;
 				_gravity = _baseGravity;
 				break;
