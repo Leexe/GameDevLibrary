@@ -208,8 +208,7 @@ public partial class MyCharacterController
 					AddVelocityInPlayerInputDirection(_dashForce);
 				}
 
-				ZeroMovement();
-				_dashEnterVelocity = CurrentHorVelocity.magnitude + _dashForce;
+				_dashEnterVelocity = (CurrentHorVelocity + (_inputVector.normalized * _dashForce)).magnitude;
 				_dashCooldownTimer = _dashCooldown;
 				GetAirDashes++;
 				_restrictAirMovementTimer = 0f;
@@ -237,8 +236,7 @@ public partial class MyCharacterController
 					AddVelocityInPlayerInputDirection(_dashForce);
 				}
 
-				ZeroMovement();
-				_dashEnterVelocity = CurrentHorVelocity.magnitude + _dashForce;
+				_dashEnterVelocity = (CurrentHorVelocity + (_inputVector.normalized * _dashForce)).magnitude;
 				_dashCooldownTimer = _dashCooldown;
 				_restrictAirMovementTimer = 0f;
 				OnGroundDash?.Invoke();
@@ -266,6 +264,7 @@ public partial class MyCharacterController
 				_dashCooldownTimer = _downwardsDashStun;
 				_timeSinceDownwardsDashRequested = _downwardsDashBuffer + 1f;
 				_downwardsDashCount++;
+				_restrictAirMovementTimer = 0f;
 				OnDownwardsDash?.Invoke();
 				break;
 			}
@@ -320,7 +319,7 @@ public partial class MyCharacterController
 				_gravityEnabled = false;
 				_tangentialMovementOnWall = true;
 				_restrictAirMovementTimer = 0f;
-				OnWallRunStart?.Invoke(_isCloseToRightWall);
+				OnWallRunStart?.Invoke(IsWallOnRight);
 				break;
 			}
 			case MovementStates.GroundJump:
@@ -344,6 +343,7 @@ public partial class MyCharacterController
 				_jumpCooldownTimer = _jumpCooldown;
 				_jumpedThisFrame = true;
 				_timeSinceJumpAllowed = _coyoteTime + 0.1f;
+				_restrictAirMovementTimer = 0f;
 				OnGroundJump?.Invoke();
 				break;
 			}
@@ -371,6 +371,7 @@ public partial class MyCharacterController
 				GetJumps--;
 				_jumpCooldownTimer = _jumpCooldown;
 				_jumpedThisFrame = true;
+				_restrictAirMovementTimer = 0f;
 				OnAirJump?.Invoke();
 				break;
 			}
@@ -384,14 +385,19 @@ public partial class MyCharacterController
 				_motor.ForceUnground();
 
 				// Add velocity to jump
-				Vector3 newHorVelocityDirection =
-					(ClosestWallNormal.normalized * _wallJumpForceDirectionNormal)
-					+ (ClosestWallForward * _wallJumpForceDirectionForwards);
-				ChangeVelocityDirection(newHorVelocityDirection);
-				AddVelocity(
-					(_wallJumpAdditionalForce * newHorVelocityDirection.normalized)
-						+ (_motor.CharacterUp * _wallJumpForceUpwards)
-				);
+				Vector3 wallJumpForce =
+					(ClosestWallNormal.normalized * _wallJumpForceNormal)
+					+ (ClosestWallForward * _wallJumpForceForwards)
+					+ (_motor.CharacterUp * _wallJumpForceUpwards);
+
+				// Kill inward velocity
+				float velocityIntoWall = Vector3.Dot(CurrentVelocity, ClosestWallNormal.normalized);
+				if (velocityIntoWall < 0f)
+				{
+					AddVelocity(-ClosestWallNormal.normalized * velocityIntoWall);
+				}
+
+				AddVelocity(wallJumpForce);
 				// Reset air jumps
 				ResetAirJumps();
 
@@ -529,7 +535,8 @@ public partial class MyCharacterController
 			}
 			// Wall Run, if the player is close to wall, they are not crouching, they are inputting, is falling, and are fast enough along the tangent of the wall
 			else if (
-				(_isCloseToLeftWall || _isCloseToRightWall)
+				_isCloseToWall
+				&& (IsWallOnRight || IsWallOnLeft)
 				&& !_crouchDown
 				&& _inputVector != Vector3.zero
 				&& IsFalling

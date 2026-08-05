@@ -224,35 +224,60 @@ public partial class MyCharacterController
 
 	private void HandleCheckForWall()
 	{
-		_isCloseToRightWall = Physics.Raycast(
-			_motor.transform.position,
-			_motor.CharacterRight,
-			out _rightWallHit,
-			_wallCheckDistance,
+		_isCloseToWall = false;
+		Vector3 pos = _motor.transform.position;
+		Vector3 up = _motor.CharacterUp;
+
+		Vector3 p1 = pos + (up * _defaultCapsuleRadius);
+		Vector3 p2 = pos + (up * (_capsuleHeight - _defaultCapsuleRadius));
+		Vector3 center = pos + (up * (_capsuleHeight / 2f));
+
+		int hitCount = Physics.OverlapCapsuleNonAlloc(
+			p1,
+			p2,
+			_defaultCapsuleRadius + _wallCheckDistance,
+			_probedColliders,
 			_wallLayers
 		);
-		_isCloseToLeftWall = Physics.Raycast(
-			_motor.transform.position,
-			-_motor.CharacterRight,
-			out _leftWallHit,
-			_wallCheckDistance,
-			_wallLayers
-		);
-		_isCloseToFrontWall = Physics.Raycast(
-			_motor.transform.position,
-			_motor.CharacterForward,
-			out _frontWallHit,
-			_wallCheckDistance,
-			_wallLayers
-		);
-		_isCloseToBackWall = Physics.Raycast(
-			_motor.transform.position,
-			-_motor.CharacterForward,
-			out _backWallHit,
-			_wallCheckDistance,
-			_wallLayers
-		);
-		_isCloseToWall = _isCloseToRightWall || _isCloseToLeftWall || _isCloseToFrontWall || _isCloseToBackWall;
+
+		float closestDist = float.MaxValue;
+		for (int i = 0; i < hitCount; i++)
+		{
+			Collider col = _probedColliders[i];
+			if (col.isTrigger)
+			{
+				continue;
+			}
+
+			Vector3 closestPoint = Physics.ClosestPoint(center, col, col.transform.position, col.transform.rotation);
+
+			float distanceToWall = Vector3.Distance(center, closestPoint);
+			if (distanceToWall >= closestDist)
+			{
+				continue;
+			}
+
+			Vector3 dirToWall = (closestPoint - center).normalized;
+			if (dirToWall == Vector3.zero)
+			{
+				dirToWall = _motor.CharacterForward;
+			}
+
+			if (
+				Physics.Raycast(
+					center,
+					dirToWall,
+					out RaycastHit hit,
+					_defaultCapsuleRadius + _wallCheckDistance + 1f,
+					_wallLayers
+				)
+			)
+			{
+				closestDist = hit.distance;
+				_closestWallHit = hit;
+				_isCloseToWall = true;
+			}
+		}
 	}
 
 	private void HandleCapsuleSize()

@@ -109,7 +109,7 @@ public partial class MyCharacterController
 					float accel = _movementAcceleration;
 					if (RestrictAirRotation)
 					{
-						accel *= _airRotationMult;
+						accel *= _airRotationRestrictionMult;
 					}
 
 					var currentHorizontal = Vector3.ProjectOnPlane(currentVelocity, _motor.CharacterUp);

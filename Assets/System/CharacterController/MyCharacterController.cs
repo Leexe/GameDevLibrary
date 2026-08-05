@@ -391,30 +391,22 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private bool _allowWallJump = true;
 
 	[TabGroup("Settings", "Wall")]
-	[Tooltip("The direction of the new velocity vector along the normal of the wall")]
-	[Range(0f, 1f)]
+	[Tooltip("The force applied along the normal of the wall when wall jumping")]
 	[ShowIf("_allowWallJump")]
 	[SerializeField]
-	private float _wallJumpForceDirectionNormal = 0.5f;
+	private float _wallJumpForceNormal = 10f;
 
 	[TabGroup("Settings", "Wall")]
-	[Tooltip("The direction of the new velocity vector along the wall's forward direction")]
-	[Range(0f, 1f)]
+	[Tooltip("The force applied along the wall's forward direction when wall jumping")]
 	[ShowIf("_allowWallJump")]
 	[SerializeField]
-	private float _wallJumpForceDirectionForwards = 0.5f;
+	private float _wallJumpForceForwards = 5f;
 
 	[TabGroup("Settings", "Wall")]
-	[Tooltip("The force of the new velocity vector upwards")]
+	[Tooltip("The vertical force applied when jumping off a wall")]
 	[ShowIf("_allowWallJump")]
 	[SerializeField]
-	private float _wallJumpForceUpwards = 0.5f;
-
-	[TabGroup("Settings", "Wall")]
-	[Tooltip("How much force is added to the wall jump")]
-	[ShowIf("_allowWallJump")]
-	[SerializeField]
-	private float _wallJumpAdditionalForce = 2f;
+	private float _wallJumpForceUpwards = 10f;
 
 	[TabGroup("Settings", "Wall")]
 	[Tooltip("How long it takes for the player to be able to wall jump again")]
@@ -433,7 +425,7 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	[Range(0f, 1f)]
 	[ShowIf("_allowWallJump")]
 	[SerializeField]
-	private float _airRotationMult = 1f;
+	private float _airRotationRestrictionMult = 0.1f;
 
 	[TabGroup("Settings", "Stamina")]
 	[Header("Stamina")]
@@ -576,7 +568,6 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private float _distanceFromGround;
 	private int _downwardsDashCount;
 	private bool _dragEnabled = true;
-	private RaycastHit _frontWallHit;
 	private Vector3 _gravity;
 	private bool _gravityEnabled = true;
 
@@ -585,12 +576,8 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private Vector3 _inputVector = Vector3.zero;
 	private float _internalHorVelocityMult;
 	private Vector3 _internalVelocityAdd = Vector3.zero;
-	private bool _isCloseToBackWall;
-	private bool _isCloseToFrontWall;
-	private bool _isCloseToLeftWall;
-
 	// Wall Check
-	private bool _isCloseToRightWall;
+	private RaycastHit _closestWallHit;
 
 	// Wall Jumping
 	private bool _isCloseToWall;
@@ -598,7 +585,6 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private bool _jumpedThisFrame;
 
 	// Jumping
-	private RaycastHit _leftWallHit;
 	private bool _lockVerticalVelocity;
 
 	// Look & Input Vectors
@@ -613,7 +599,6 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private bool _noMovementInput;
 	private Vector3 _rawInputMovement;
 	private float _restrictAirMovementTimer;
-	private RaycastHit _rightWallHit;
 	private float _slideSpeedMultTimer;
 
 	// Sliding
@@ -647,12 +632,10 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	private bool CanSprint => _sprintTimer >= _timeTilSprint;
 	private bool RestrictAirRotation => _restrictAirMovementTimer > 0f;
-	private Vector3 ClosestWallRightLeftNormal => _isCloseToRightWall ? _rightWallHit.normal : _leftWallHit.normal;
-	private Vector3 ClosestWallFrontBackNormal => _isCloseToFrontWall ? _frontWallHit.normal : _backWallHit.normal;
-
-	private Vector3 ClosestWallNormal =>
-		_isCloseToRightWall || _isCloseToLeftWall ? ClosestWallRightLeftNormal : ClosestWallFrontBackNormal;
-
+	
+	private bool IsWallOnRight => Vector3.Dot(_closestWallHit.normal, _motor.CharacterRight) < -0.3f;
+	private bool IsWallOnLeft => Vector3.Dot(_closestWallHit.normal, _motor.CharacterRight) > 0.3f;
+	private Vector3 ClosestWallNormal => _closestWallHit.normal;
 	private Vector3 ClosestWallForward =>
 		Vector3.Dot(CurrentHorVelocity, Vector3.Cross(ClosestWallNormal, _motor.CharacterUp)) > 0
 			? Vector3.Cross(ClosestWallNormal, _motor.CharacterUp).normalized
