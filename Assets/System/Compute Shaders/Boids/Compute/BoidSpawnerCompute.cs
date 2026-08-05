@@ -18,7 +18,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	{
 		public Mesh Mesh;
 		public Material Material;
-		
+
 		[Min(1)]
 		public int Weight = 1;
 
@@ -26,6 +26,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		internal int Count;
 		internal ComputeBuffer ArgsBuffer;
 	}
+
 	#region Fields
 
 	[Title("References")]
@@ -70,7 +71,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	[Title("Behavior Distances")]
 	[SerializeField]
 	[Min(0.1f)]
-	private float _seperationDistance = 1.5f;
+	private float _separationDistance = 1.5f;
 
 	[SerializeField]
 	[Min(0.1f)]
@@ -83,7 +84,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	[Title("Behavior Weights")]
 	[SerializeField]
 	[Min(0f)]
-	private float _seperationWeight = 1.6f;
+	private float _separationWeight = 1.6f;
 
 	[SerializeField]
 	[Min(0f)]
@@ -139,7 +140,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 	private void Start()
 	{
-		// Initalize Array
+		// Initialize Array
 		var boidsArray = new BoidData[_boidCount];
 		for (int i = 0; i < _boidCount; i++)
 		{
@@ -179,7 +180,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	{
 		// Calculate variant counts based on weights
 		int totalWeight = 0;
-		foreach (var variant in _boidVariants)
+		foreach (BoidVariantWeight variant in _boidVariants)
 		{
 			totalWeight += variant.Weight;
 		}
@@ -187,7 +188,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		int boidsAllocated = 0;
 		for (int i = 0; i < _boidVariants.Count; i++)
 		{
-			var variant = _boidVariants[i];
+			BoidVariantWeight variant = _boidVariants[i];
 			if (i == _boidVariants.Count - 1)
 			{
 				variant.Count = _boidCount - boidsAllocated;
@@ -200,7 +201,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		}
 
 		// Set Up Args Buffers per variant
-		foreach (var variant in _boidVariants)
+		foreach (BoidVariantWeight variant in _boidVariants)
 		{
 			uint[] args =
 			{
@@ -222,7 +223,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		_boidComputeShader.Dispatch(_kernelIndex, threadGroups, 1, 1);
 
 		int currentOffset = 0;
-		foreach (var variant in _boidVariants)
+		foreach (BoidVariantWeight variant in _boidVariants)
 		{
 			variant.Material.SetBuffer(TransformBuffer, _transformBuffer);
 			variant.Material.SetInt("_InstanceOffset", currentOffset);
@@ -255,11 +256,11 @@ public class BoidSpawnerCompute : MonoBehaviour
 		_boidComputeShader.SetFloat(RotationalSharpness, _rotationalSharpness);
 		_boidComputeShader.SetFloat(BankMultiplier, _bankMultiplier);
 
-		_boidComputeShader.SetFloat(SeparationDistanceSqr, _seperationDistance * _seperationDistance);
+		_boidComputeShader.SetFloat(SeparationDistanceSqr, _separationDistance * _separationDistance);
 		_boidComputeShader.SetFloat(AlignmentDistanceSqr, _alignmentDistance * _alignmentDistance);
 		_boidComputeShader.SetFloat(CohesionDistanceSqr, _cohesionDistance * _cohesionDistance);
 
-		_boidComputeShader.SetFloat(SeparationWeight, _seperationWeight);
+		_boidComputeShader.SetFloat(SeparationWeight, _separationWeight);
 		_boidComputeShader.SetFloat(AlignmentWeight, _alignmentWeight);
 		_boidComputeShader.SetFloat(CohesionWeight, _cohesionWeight);
 
@@ -285,7 +286,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 		if (_boidVariants != null)
 		{
-			foreach (var variant in _boidVariants)
+			foreach (BoidVariantWeight variant in _boidVariants)
 			{
 				if (variant.ArgsBuffer != null)
 				{
