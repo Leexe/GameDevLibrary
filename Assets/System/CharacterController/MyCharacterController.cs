@@ -22,6 +22,11 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	[TabGroup("Settings", "Movement")]
 	[Header("Stable Movement")]
+	[Tooltip("If true, preserves momentum through smooth turning arcs. If false, instantly snaps velocity direction towards movement keys (classic FPS feel).")]
+	[SerializeField]
+	private bool _toggleMomentumBasedMovement = false;
+
+	[TabGroup("Settings", "Movement")]
 	[Tooltip("The player's base movespeed")]
 	[SerializeField]
 	private float _baseMovespeed = 8f;
@@ -32,12 +37,12 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private float _stableAcceleration = 15f;
 
 	[TabGroup("Settings", "Movement")]
-	[Tooltip("How fast the player decelerate to a certain speed when inputting")]
+	[Tooltip("How fast the player decelerates to a certain speed when inputting")]
 	[SerializeField]
 	private float _stableDeceleration = 1.2f;
 
 	[TabGroup("Settings", "Movement")]
-	[Tooltip("How fast the player decelerate while on stable ground and not inputting")]
+	[Tooltip("How fast the player decelerates while on stable ground and not inputting")]
 	[SerializeField]
 	private float _stableDecelerationToStop = 15f;
 
@@ -576,6 +581,7 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 	private Vector3 _inputVector = Vector3.zero;
 	private float _internalHorVelocityMult;
 	private Vector3 _internalVelocityAdd = Vector3.zero;
+
 	// Wall Check
 	private RaycastHit _closestWallHit;
 
@@ -632,7 +638,7 @@ public partial class MyCharacterController : MonoBehaviour, ICharacterController
 
 	private bool CanSprint => _sprintTimer >= _timeTilSprint;
 	private bool RestrictAirRotation => _restrictAirMovementTimer > 0f;
-	
+
 	private bool IsWallOnRight => Vector3.Dot(_closestWallHit.normal, _motor.CharacterRight) < -0.3f;
 	private bool IsWallOnLeft => Vector3.Dot(_closestWallHit.normal, _motor.CharacterRight) > 0.3f;
 	private Vector3 ClosestWallNormal => _closestWallHit.normal;

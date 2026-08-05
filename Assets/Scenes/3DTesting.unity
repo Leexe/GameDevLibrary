@@ -971,10 +971,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MyCharacterController
   _motor: {fileID: 748385068}
   _meshRoot: {fileID: 915196686}
-  _baseMovespeed: 8
-  _stableAcceleration: 15
-  _stableDeceleration: 1.2
-  _stableDecelerationToStop: 15
+  _toggleMomentumBasedMovement: 1
+  _baseMovespeed: 7
+  _stableAcceleration: 12
+  _stableDeceleration: 4
+  _stableDecelerationToStop: 10
   _sprintSpeedMult: 1
   _sprintAcceleration: 3
   _timeTilSprint: 0.01

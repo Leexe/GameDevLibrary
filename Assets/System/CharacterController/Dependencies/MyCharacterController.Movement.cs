@@ -44,38 +44,53 @@ public partial class MyCharacterController
 				if (MovementState == MovementStates.Sliding)
 				{
 					targetVelocityVector = HandleSliding(currentVelocity, targetVelocityVector, deltaTime);
-				}
-
-				// If the player is inputting and is faster than the sprint movespeed, slow down their velocity slower than usual
-				if (_inputVector != Vector3.zero && CurrentHorVelocity.magnitude >= _sprintSpeedMult * _baseMovespeed)
-				{
-					Vector3 turnVector =
-						Quaternion.FromToRotation(currentVelocity, targetVelocityVector) * currentVelocity;
 					currentVelocity = Vector3.Lerp(
-						turnVector,
-						targetVelocityVector * _movementMult,
-						_movementDeceleration * deltaTime
-					);
-				}
-				// Otherwise, speed up their movement
-				else if (_inputVector != Vector3.zero)
-				{
-					Vector3 turnVector =
-						Quaternion.FromToRotation(currentVelocity, targetVelocityVector) * currentVelocity;
-					currentVelocity = Vector3.Lerp(
-						turnVector,
+						currentVelocity,
 						targetVelocityVector * _movementMult,
 						1 - Mathf.Exp(-_movementAcceleration * deltaTime)
 					);
 				}
-				// If not inputting and not sliding, apply deacceleration
 				else
 				{
-					currentVelocity = Vector3.Lerp(
-						currentVelocity,
-						targetVelocityVector * _movementMult,
-						1 - Mathf.Exp(-_movementDecelerationToStop * deltaTime)
-					);
+					// If the player is inputting
+					if (_inputVector != Vector3.zero)
+					{
+						Vector3 turnVector = currentVelocity;
+						if (!_toggleMomentumBasedMovement)
+						{
+							turnVector = Quaternion.FromToRotation(currentVelocity, targetVelocityVector) * currentVelocity;
+						}
+
+						// If player is moving faster than standard sprint speed, drag them down slowly to preserve momentum
+						if (CurrentHorVelocity.magnitude >= _sprintSpeedMult * _baseMovespeed)
+						{
+							currentVelocity = Vector3.Lerp(
+								turnVector,
+								targetVelocityVector * _movementMult,
+								!_toggleMomentumBasedMovement 
+									? _movementDeceleration * deltaTime 
+									: 1 - Mathf.Exp(-_movementDeceleration * deltaTime)
+							);
+						}
+						// Otherwise, use standard acceleration
+						else
+						{
+							currentVelocity = Vector3.Lerp(
+								turnVector,
+								targetVelocityVector * _movementMult,
+								1 - Mathf.Exp(-_movementAcceleration * deltaTime)
+							);
+						}
+					}
+					// If not inputting, stop moving
+					else
+					{
+						currentVelocity = Vector3.Lerp(
+							currentVelocity,
+							Vector3.zero,
+							1 - Mathf.Exp(-_movementDecelerationToStop * deltaTime)
+						);
+					}
 				}
 			}
 			// If the player is in the air or on a slope
