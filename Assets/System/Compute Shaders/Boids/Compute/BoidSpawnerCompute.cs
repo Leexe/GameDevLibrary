@@ -113,6 +113,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 	private ComputeBuffer _boidBuffer;
 	private ComputeBuffer _transformBuffer;
+	private Bounds _bounds;
 	private int _kernelIndex;
 
 	// Cached Named Properties
@@ -143,6 +144,8 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 	private void Start()
 	{
+		_bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
+
 		// Initialize Array
 		var boidsArray = new BoidData[_boidCount];
 		for (int i = 0; i < _boidCount; i++)
@@ -233,7 +236,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 				variant.Mesh,
 				0,
 				variant.Material,
-				new Bounds(Vector3.zero, Vector3.one * 1000f),
+				_bounds,
 				variant.ArgsBuffer
 			);
 
