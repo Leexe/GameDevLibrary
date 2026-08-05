@@ -1,0 +1,51 @@
+#pragma kernel InstantiateGrass
+
+#define TWOPI 6.2831853
+
+struct GrassData
+{
+    float3 position;
+    float rotationY;
+    float2 scale;
+};
+
+RWStructuredBuffer<GrassData> grassBuffer;
+
+uint numGrass;
+float3 boundsSize;
+float2 baseGrassSize;
+float2 grassSizeVariance;
+
+uint pcg_hash(uint input)
+{
+    uint state = input * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+float hash(uint input)
+{
+    return saturate(float(pcg_hash(input)) / 4294967295.0);
+}
+
+[numthreads(64, 1, 1)]
+void InstantiateGrass(uint3 id : SV_DispatchThreadID)
+{
+    uint myIndex = id.x;
+    if (myIndex >= numGrass)
+    {
+        return;
+    }
+
+    // Generate Random Position
+    float posX = hash(myIndex) * boundsSize.x;
+    float posY = 0;
+    float posZ = hash(myIndex + 1337) * boundsSize.z;
+    grassBuffer[myIndex].position = float3(posX, posY, posZ);
+
+    // Generate Random Rotation
+    grassBuffer[myIndex].rotationY = TWOPI * hash(myIndex * 3);
+
+    // Generate Random Scale
+    grassBuffer[myIndex].scale = baseGrassSize + hash(myIndex * 5) * grassSizeVariance;
+}

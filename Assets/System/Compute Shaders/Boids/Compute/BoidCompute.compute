@@ -107,7 +107,7 @@ void UpdateBoids(uint3 id : SV_DispatchThreadID)
     float3 extents = boundsSize * 0.5;
     float3 innerExtents = extents * boundsInnerRatio;
     float3 offsetBounds = myBoid.position - boundsCenter;
-    
+
     float3 boundStrength = saturate((abs(offsetBounds) - innerExtents) / max(extents - innerExtents, 0.0001));
     finalSteering += -sign(offsetBounds) * boundStrength * boundsWeight;
 
@@ -126,14 +126,14 @@ void UpdateBoids(uint3 id : SV_DispatchThreadID)
     if (currentSpeed > 0.1)
     {
         float3 targetForward = myBoid.velocity / currentSpeed;
-        
+
         float3 globalUp = float3(0, 1, 0);
         float3 right = normalize(cross(globalUp, targetForward));
         float lateralAcc = dot(acceleration, right);
-        
+
         float rollAngle = lateralAcc * bankMultiplier * DEG2RAD;
         float3 targetUp = normalize(globalUp * cos(rollAngle) + right * sin(rollAngle));
-        
+
         myBoid.forward = normalize(lerp(myBoid.forward, targetForward, deltaTime * rotationalSharpness));
         myBoid.up = normalize(lerp(myBoid.up, targetUp, deltaTime * rotationalSharpness));
     }

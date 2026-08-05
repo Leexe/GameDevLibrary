@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class BoidSpawnerCompute : MonoBehaviour
 {
@@ -13,7 +15,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		public float MaxSpeed;
 	}
 
-	[System.Serializable]
+	[Serializable]
 	public class BoidVariantWeight
 	{
 		public Mesh Mesh;
@@ -22,9 +24,9 @@ public class BoidSpawnerCompute : MonoBehaviour
 		[Min(1)]
 		public int Weight = 1;
 
-		// Internal state
-		internal int Count;
 		internal ComputeBuffer ArgsBuffer;
+
+		internal int Count;
 	}
 
 	#region Fields
@@ -133,6 +135,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 	private static readonly int BoundsCenter = Shader.PropertyToID("boundsCenter");
 	private static readonly int BoidScale = Shader.PropertyToID("boidScale");
 	private static readonly int BankMultiplier = Shader.PropertyToID("bankMultiplier");
+	private static readonly int InstanceOffset = Shader.PropertyToID("_InstanceOffset");
 
 	#endregion
 
@@ -156,8 +159,6 @@ public class BoidSpawnerCompute : MonoBehaviour
 		}
 
 		// Create Compute Buffer
-		// Float = 4 Bytes, Float3 = 12 Bytes.
-		// Position(12) + Velocity(12) + Forward(12) + Up(12) + MaxSpeed(4) = 52 Bytes
 		_boidBuffer = new ComputeBuffer(_boidCount, 52);
 		_transformBuffer = new ComputeBuffer(_boidCount, 64);
 
@@ -226,7 +227,7 @@ public class BoidSpawnerCompute : MonoBehaviour
 		foreach (BoidVariantWeight variant in _boidVariants)
 		{
 			variant.Material.SetBuffer(TransformBuffer, _transformBuffer);
-			variant.Material.SetInt("_InstanceOffset", currentOffset);
+			variant.Material.SetInt(InstanceOffset, currentOffset);
 
 			Graphics.DrawMeshInstancedIndirect(
 				variant.Mesh,
@@ -274,24 +275,15 @@ public class BoidSpawnerCompute : MonoBehaviour
 
 	private void OnDestroy()
 	{
-		if (_boidBuffer != null)
-		{
-			_boidBuffer.Release();
-		}
+		_boidBuffer?.Release();
 
-		if (_transformBuffer != null)
-		{
-			_transformBuffer.Release();
-		}
+		_transformBuffer?.Release();
 
 		if (_boidVariants != null)
 		{
 			foreach (BoidVariantWeight variant in _boidVariants)
 			{
-				if (variant.ArgsBuffer != null)
-				{
-					variant.ArgsBuffer.Release();
-				}
+				variant.ArgsBuffer?.Release();
 			}
 		}
 	}
