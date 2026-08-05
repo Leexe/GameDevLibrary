@@ -1,0 +1,3 @@
+# this folder is used for local plugins, not to be committed to the repo.
+*
+!.gitignore
