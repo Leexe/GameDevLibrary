@@ -41,17 +41,20 @@ public class CameraManager : MonoSingleton<CameraManager>
 	[SerializeField]
 	private float _shakeResetDuration = 0.3f;
 
+	private readonly Vector4[] _frustumPlanesVec4 = new Vector4[6];
+
 	private CinemachineInputAxisController _cinemachineInputAxisController;
 
 	private Sequence _focusSequence;
 	private Plane[] _frustumPlanes;
-	private Vector4[] _frustumPlanesVec4 = new Vector4[6];
 	private Vector3 _initialCameraLocalPos;
 	private Sequence _shakeSequence;
 	private Tween _shakeTween;
 
 	public float CameraSensitivity { get; private set; }
+	public Vector3 CameraPosition => MainCameraGameObject.transform.position;
 	public Plane[] FrustumPlanes => _frustumPlanes ?? UpdateFrustumPlanes();
+
 	public Vector4[] FrustumPlanesVec4
 	{
 		get
@@ -60,6 +63,7 @@ public class CameraManager : MonoSingleton<CameraManager>
 			{
 				UpdateFrustumPlanesVec4();
 			}
+
 			return _frustumPlanesVec4;
 		}
 	}

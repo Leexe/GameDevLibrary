@@ -9,14 +9,17 @@ struct GrassData
     float2 scale;
 };
 
-RWStructuredBuffer<GrassData> grassBuffer;
-
+// Input
 uint numGrass;
 float3 boundsSize;
 float2 baseGrassSize;
 float2 grassSizeVariance;
 float spawnHeight;
 float3 boundsCenter;
+
+// Output
+RWStructuredBuffer<GrassData> grassBuffer;
+
 
 uint pcg_hash(uint input)
 {
@@ -50,4 +53,54 @@ void InstantiateGrass(uint3 id : SV_DispatchThreadID)
 
     // Generate Random Scale
     grassBuffer[myIndex].scale = baseGrassSize + hash(myIndex * 5) * grassSizeVariance;
+}
+
+#pragma kernel CullGrass
+
+// Input
+float3 cameraPosition;
+float maxRenderDistance;
+float4 frustumPlanes[6];
+
+// Output
+AppendStructuredBuffer<GrassData> visibleGrassBuffer;
+
+[numthreads(64, 1, 1)]
+void CullGrass(uint3 id: SV_DispatchThreadID)
+{
+    uint myIndex = id.x;
+    if (myIndex >= numGrass)
+    {
+        return;
+    }
+
+    GrassData grass = grassBuffer[myIndex];
+
+    // Distance Culling
+    float dist = distance(grass.position, cameraPosition);
+    if (dist > maxRenderDistance)
+    {
+        return;
+    }
+
+    // Frustum Culling
+    float boundRadius = max(grass.scale.x, grass.scale.y);
+    bool isVisible = true;
+
+    for (int i = 0; i < 6; i++)
+    {
+        float distanceFromPlane = dot(frustumPlanes[i].xyz, grass.position) + frustumPlanes[i].w;
+
+        if (distanceFromPlane < -boundRadius)
+        {
+            isVisible = false;
+            break;
+        }
+    }
+
+    // Append
+    if (isVisible)
+    {
+        visibleGrassBuffer.Append(grass);
+    }
 }
