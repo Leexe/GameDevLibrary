@@ -189,6 +189,179 @@ Shader "Custom/GrassInstance"
             }
             ENDHLSL
         }
+
+        // Pass 2 — ShadowCaster: writes to the shadow map
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma vertex   vert
+            #pragma fragment frag
+            #pragma multi_compile_instancing
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+            #pragma instancing_options procedural:setup
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+
+            struct Meshdata
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                uint instanceID : SV_InstanceID;
+            };
+
+            struct Interpolators
+            {
+                float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            float3 _LightDirection;
+
+            Interpolators vert(Meshdata input)
+            {
+                Interpolators output = (Interpolators)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+                float3 positionWS, normalWS;
+                GetGrassPositionAndNormalWS(input.positionOS, input.normalOS, input.instanceID, positionWS, normalWS);
+
+                // Apply shadow bias
+                output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+
+                // Clamp to near clip plane
+                #if UNITY_REVERSED_Z
+                    output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                #else
+                    output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                #endif
+
+                return output;
+            }
+
+            half4 frag(Interpolators input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                return 0;
+            }
+
+            ENDHLSL
+        }
+
+        // Pass 3 — DepthOnly: depth prepass for Depth Priming optimization
+        Pass
+        {
+            Name "DepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+
+            ZWrite On
+            ColorMask R
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma vertex   vert
+            #pragma fragment frag
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:setup
+
+            struct Meshdata
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL; // Need normal for GetGrassPositionAndNormalWS
+                uint instanceID : SV_InstanceID;
+            };
+
+            struct Interpolators
+            {
+                float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            Interpolators vert(Meshdata input)
+            {
+                Interpolators output = (Interpolators)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+                float3 positionWS, normalWS;
+                GetGrassPositionAndNormalWS(input.positionOS, input.normalOS, input.instanceID, positionWS, normalWS);
+
+                output.positionCS = TransformWorldToHClip(positionWS);
+                return output;
+            }
+
+            half4 frag(Interpolators input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                return 0;
+            }
+
+            ENDHLSL
+        }
+
+        // Pass 4 — DepthNormals: encodes normals for SSAO
+        Pass
+        {
+            Name "DepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma vertex   vert
+            #pragma fragment frag
+            #pragma multi_compile_instancing
+            #pragma instancing_options procedural:setup
+
+            struct Meshdata
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                uint instanceID : SV_InstanceID;
+            };
+
+            struct Interpolators
+            {
+                float4 positionCS : SV_POSITION;
+                float3 normalWS : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            Interpolators vert(Meshdata input)
+            {
+                Interpolators output = (Interpolators)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+                float3 positionWS, normalWS;
+                GetGrassPositionAndNormalWS(input.positionOS, input.normalOS, input.instanceID, positionWS, normalWS);
+
+                output.positionCS = TransformWorldToHClip(positionWS);
+                output.normalWS  = normalWS;
+                return output;
+            }
+
+            float4 frag(Interpolators input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                float3 normalWS = normalize(input.normalWS);
+                return float4(normalWS * 0.5 + 0.5, 0.0);
+            }
+
+            ENDHLSL
+        }
     }
     FallBack "Diffuse"
 }
