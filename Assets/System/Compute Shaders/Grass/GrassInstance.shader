@@ -86,7 +86,7 @@ Shader "Custom/GrassInstance"
         }
         LOD 300
 
-        // Pass 1 — ForwardLit: PBR lighting, shadows, fog, ambient GI
+        // Pass 1: Renders the actual color, PBR lighting, shadows, fog, and ambient GI to the screen
         Pass
         {
             Name "ForwardLit"
@@ -190,11 +190,14 @@ Shader "Custom/GrassInstance"
             ENDHLSL
         }
 
-        // Pass 2 — ShadowCaster: writes to the shadow map
+        // Pass 2: Renders object depth from the light's perspective into the Shadow Map
         Pass
         {
             Name "ShadowCaster"
-            Tags { "LightMode" = "ShadowCaster" }
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
 
             ZWrite On
             ZTest LEqual
@@ -202,7 +205,6 @@ Shader "Custom/GrassInstance"
             Cull Off
 
             HLSLPROGRAM
-
             #pragma vertex   vert
             #pragma fragment frag
             #pragma multi_compile_instancing
@@ -240,9 +242,9 @@ Shader "Custom/GrassInstance"
 
                 // Clamp to near clip plane
                 #if UNITY_REVERSED_Z
-                    output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
                 #else
-                    output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
                 #endif
 
                 return output;
@@ -253,22 +255,23 @@ Shader "Custom/GrassInstance"
                 UNITY_SETUP_INSTANCE_ID(input);
                 return 0;
             }
-
             ENDHLSL
         }
 
-        // Pass 3 — DepthOnly: depth prepass for Depth Priming optimization
+        // Pass 3: Renders depth to the Camera Depth Texture for Depth Priming, Depth of Field, and Fog
         Pass
         {
             Name "DepthOnly"
-            Tags { "LightMode" = "DepthOnly" }
+            Tags
+            {
+                "LightMode" = "DepthOnly"
+            }
 
             ZWrite On
             ColorMask R
             Cull Off
 
             HLSLPROGRAM
-
             #pragma vertex   vert
             #pragma fragment frag
             #pragma multi_compile_instancing
@@ -305,21 +308,22 @@ Shader "Custom/GrassInstance"
                 UNITY_SETUP_INSTANCE_ID(input);
                 return 0;
             }
-
             ENDHLSL
         }
 
-        // Pass 4 — DepthNormals: encodes normals for SSAO
+        // Pass 4: Renders depth and normals to the Camera Normals Texture for SSAO
         Pass
         {
             Name "DepthNormals"
-            Tags { "LightMode" = "DepthNormals" }
+            Tags
+            {
+                "LightMode" = "DepthNormals"
+            }
 
             ZWrite On
             Cull Off
 
             HLSLPROGRAM
-
             #pragma vertex   vert
             #pragma fragment frag
             #pragma multi_compile_instancing
@@ -349,7 +353,7 @@ Shader "Custom/GrassInstance"
                 GetGrassPositionAndNormalWS(input.positionOS, input.normalOS, input.instanceID, positionWS, normalWS);
 
                 output.positionCS = TransformWorldToHClip(positionWS);
-                output.normalWS  = normalWS;
+                output.normalWS = normalWS;
                 return output;
             }
 
@@ -359,7 +363,6 @@ Shader "Custom/GrassInstance"
                 float3 normalWS = normalize(input.normalWS);
                 return float4(normalWS * 0.5 + 0.5, 0.0);
             }
-
             ENDHLSL
         }
     }
