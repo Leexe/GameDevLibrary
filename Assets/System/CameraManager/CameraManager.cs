@@ -44,14 +44,34 @@ public class CameraManager : MonoSingleton<CameraManager>
 	private CinemachineInputAxisController _cinemachineInputAxisController;
 
 	private Sequence _focusSequence;
+	private Plane[] _frustumPlanes;
+	private Vector4[] _frustumPlanesVec4 = new Vector4[6];
 	private Vector3 _initialCameraLocalPos;
 	private Sequence _shakeSequence;
 	private Tween _shakeTween;
+
 	public float CameraSensitivity { get; private set; }
+	public Plane[] FrustumPlanes => _frustumPlanes ?? UpdateFrustumPlanes();
+	public Vector4[] FrustumPlanesVec4
+	{
+		get
+		{
+			if (_frustumPlanes == null)
+			{
+				UpdateFrustumPlanesVec4();
+			}
+			return _frustumPlanesVec4;
+		}
+	}
 
 	private void Start()
 	{
 		_initialCameraLocalPos = MainCameraGameObject.transform.localPosition;
+	}
+
+	private void LateUpdate()
+	{
+		_frustumPlanes = null;
 	}
 
 	private void OnDisable()
@@ -97,6 +117,7 @@ public class CameraManager : MonoSingleton<CameraManager>
 		{
 			return;
 		}
+
 		_shakeTween = Tween.Custom(_perlin.AmplitudeGain, 0f, dur, val => _perlin.AmplitudeGain = val);
 	}
 
@@ -210,5 +231,27 @@ public class CameraManager : MonoSingleton<CameraManager>
 		{
 			_inputAxisController.enabled = true;
 		}
+	}
+
+	private Plane[] UpdateFrustumPlanes()
+	{
+		_frustumPlanes ??= GeometryUtility.CalculateFrustumPlanes(Camera.main);
+		return _frustumPlanes;
+	}
+
+	private Vector4[] UpdateFrustumPlanesVec4()
+	{
+		UpdateFrustumPlanes();
+		for (int i = 0; i < 6; i++)
+		{
+			_frustumPlanesVec4[i] = new Vector4(
+				_frustumPlanes[i].normal.x,
+				_frustumPlanes[i].normal.y,
+				_frustumPlanes[i].normal.z,
+				_frustumPlanes[i].distance
+			);
+		}
+
+		return _frustumPlanesVec4;
 	}
 }

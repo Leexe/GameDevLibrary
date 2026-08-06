@@ -44,10 +44,13 @@ public class GrassSpawnerCompute : MonoBehaviour
 	private Vector2 _boundsSize2D = new(100, 100);
 
 	[SerializeField]
+	private float _spawnHeight;
+
+	[SerializeField]
 	private Vector2 _baseGrassSize = new(0.1f, 0.5f);
 
 	[SerializeField]
-	private Vector2 _grassSizeVariance = new(0.05f, 0 / 2f);
+	private Vector2 _grassSizeVariance = new(0.05f, 0.1f);
 
 	private ComputeBuffer _grassBuffer;
 	private Bounds _bounds;
@@ -60,6 +63,8 @@ public class GrassSpawnerCompute : MonoBehaviour
 	private static readonly int BaseGrassSize = Shader.PropertyToID("baseGrassSize");
 	private static readonly int GrassSizeVariance = Shader.PropertyToID("grassSizeVariance");
 	private static readonly int GrassBuffer = Shader.PropertyToID("grassBuffer");
+	private static readonly int SpawnHeight = Shader.PropertyToID("spawnHeight");
+	private static readonly int BoundsCenter = Shader.PropertyToID("boundsCenter");
 
 	#endregion
 
@@ -141,6 +146,19 @@ public class GrassSpawnerCompute : MonoBehaviour
 		}
 	}
 
+	private void OnValidate()
+	{
+		if (!Application.isPlaying || _grassBuffer == null || _grassComputeShader == null)
+		{
+			return;
+		}
+
+		UpdateComputeShaderProperties();
+
+		int threadGroups = Mathf.CeilToInt(_grassBuffer.count / 64f);
+		_grassComputeShader.Dispatch(_kernelIndex, threadGroups, 1, 1);
+	}
+
 	private void UpdateShaderProperties()
 	{
 		foreach (GrassVariant variant in _grassVariants)
@@ -152,10 +170,20 @@ public class GrassSpawnerCompute : MonoBehaviour
 	private void UpdateComputeShaderProperties()
 	{
 		_grassComputeShader.SetInt(NumGrass, _grassCount);
+		_grassComputeShader.SetVector(BoundsCenter, transform.position);
 		_grassComputeShader.SetVector(BoundsSize, new Vector4(_boundsSize2D.x, 0, _boundsSize2D.y, 0));
 		_grassComputeShader.SetVector(BaseGrassSize, _baseGrassSize);
 		_grassComputeShader.SetVector(GrassSizeVariance, _grassSizeVariance);
 		_grassComputeShader.SetBuffer(_kernelIndex, GrassBuffer, _grassBuffer);
+		_grassComputeShader.SetFloat(SpawnHeight, _spawnHeight);
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+		Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
+		Vector3 center = transform.position + new Vector3(0f, _spawnHeight, 0f);
+		var size = new Vector3(_boundsSize2D.x, 0.1f, _boundsSize2D.y);
+		Gizmos.DrawWireCube(center, size);
 	}
 
 	#endregion
