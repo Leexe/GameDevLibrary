@@ -27,6 +27,9 @@ public class GrassSpawnerCompute : MonoBehaviour
 	[SerializeField]
 	private float _maxRenderDistance = 100;
 
+	[SerializeField]
+	private UnityEngine.Rendering.ShadowCastingMode _shadowMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
 	[Title("Spawn Data")]
 	[SerializeField]
 	[Min(0)]
@@ -115,7 +118,7 @@ public class GrassSpawnerCompute : MonoBehaviour
 		ComputeBuffer.CopyCount(_visibleGrassBuffer, _argsBuffer, 4);
 
 		// Render Out Grass
-		Graphics.DrawMeshInstancedIndirect(_mesh, 0, _material, _bounds, _argsBuffer);
+		Graphics.DrawMeshInstancedIndirect(_mesh, 0, _material, _bounds, _argsBuffer, 0, null, _shadowMode);
 	}
 
 	private void OnValidate()
@@ -147,7 +150,7 @@ public class GrassSpawnerCompute : MonoBehaviour
 		_grassComputeShader.SetFloat(MaxRenderDistance, _maxRenderDistance);
 
 		_grassComputeShader.SetBuffer(_initKernel, GrassBuffer, _grassBuffer);
-		
+
 		_grassComputeShader.SetBuffer(_cullKernel, GrassBuffer, _grassBuffer);
 		_grassComputeShader.SetBuffer(_cullKernel, VisibleGrassBuffer, _visibleGrassBuffer);
 	}
