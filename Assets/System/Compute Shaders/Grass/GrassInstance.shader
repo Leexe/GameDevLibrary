@@ -3,6 +3,7 @@ Shader "Custom/GrassInstance"
     Properties
     {
         _BaseColor ("Base Color", Color) = (1,1,1,1)
+        _Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _MainTex ("Texture", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
@@ -16,6 +17,7 @@ Shader "Custom/GrassInstance"
     CBUFFER_START(UnityPerMaterial)
         float4 _BaseColor;
         float4 _MainTex_ST;
+        float _Cutoff;
         float _Metallic;
         float _Smoothness;
         int _InstanceOffset;
@@ -81,12 +83,13 @@ Shader "Custom/GrassInstance"
     {
         Tags
         {
-            "RenderType"="Opaque"
+            "RenderType"="TransparentCutout"
+            "Queue"="AlphaTest"
             "RenderPipeline" = "UniversalPipeline"
         }
         LOD 300
 
-        // Pass 1: Renders the actual color, PBR lighting, shadows, fog, and ambient GI to the screen
+        // Pass 1: PBR lighting, shadows, fog, ambient GI
         Pass
         {
             Name "ForwardLit"
@@ -158,6 +161,7 @@ Shader "Custom/GrassInstance"
                 half4 textColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 half3 albedo = _BaseColor.rgb * textColor.rgb;
                 half alpha = _BaseColor.a * textColor.a;
+                clip(alpha - _Cutoff);
 
                 SurfaceData surfaceData = (SurfaceData)0;
                 surfaceData.albedo = albedo;
@@ -190,7 +194,7 @@ Shader "Custom/GrassInstance"
             ENDHLSL
         }
 
-        // Pass 2: Renders object depth from the light's perspective into the Shadow Map
+        // Pass 2: Writes to the shadow map
         Pass
         {
             Name "ShadowCaster"
@@ -217,12 +221,14 @@ Shader "Custom/GrassInstance"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
                 uint instanceID : SV_InstanceID;
             };
 
             struct Interpolators
             {
                 float4 positionCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -240,6 +246,9 @@ Shader "Custom/GrassInstance"
                 // Apply shadow bias
                 output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
+                // Pass UV Data
+                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+
                 // Clamp to near clip plane
                 #if UNITY_REVERSED_Z
                 output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
@@ -253,12 +262,14 @@ Shader "Custom/GrassInstance"
             half4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
+                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a * _BaseColor.a;
+                clip(alpha - _Cutoff);
                 return 0;
             }
             ENDHLSL
         }
 
-        // Pass 3: Renders depth to the Camera Depth Texture for Depth Priming, Depth of Field, and Fog
+        // Pass 3: Write to Depth Map
         Pass
         {
             Name "DepthOnly"
@@ -281,12 +292,14 @@ Shader "Custom/GrassInstance"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL; // Need normal for GetGrassPositionAndNormalWS
+                float2 uv : TEXCOORD0;
                 uint instanceID : SV_InstanceID;
             };
 
             struct Interpolators
             {
                 float4 positionCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -300,18 +313,21 @@ Shader "Custom/GrassInstance"
                 GetGrassPositionAndNormalWS(input.positionOS, input.normalOS, input.instanceID, positionWS, normalWS);
 
                 output.positionCS = TransformWorldToHClip(positionWS);
+                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
                 return output;
             }
 
             half4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
+                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a * _BaseColor.a;
+                clip(alpha - _Cutoff);
                 return 0;
             }
             ENDHLSL
         }
 
-        // Pass 4: Renders depth and normals to the Camera Normals Texture for SSAO
+        // Pass 4: Encodes Normals
         Pass
         {
             Name "DepthNormals"
@@ -333,6 +349,7 @@ Shader "Custom/GrassInstance"
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
                 uint instanceID : SV_InstanceID;
             };
 
@@ -340,6 +357,7 @@ Shader "Custom/GrassInstance"
             {
                 float4 positionCS : SV_POSITION;
                 float3 normalWS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -354,12 +372,15 @@ Shader "Custom/GrassInstance"
 
                 output.positionCS = TransformWorldToHClip(positionWS);
                 output.normalWS = normalWS;
+                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
                 return output;
             }
 
             float4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
+                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a * _BaseColor.a;
+                clip(alpha - _Cutoff);
                 float3 normalWS = normalize(input.normalWS);
                 return float4(normalWS * 0.5 + 0.5, 0.0);
             }

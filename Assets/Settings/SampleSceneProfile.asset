@@ -183,7 +183,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value:
       serializedVersion: 2
-      m_Bits: 65
+      m_Bits: 1217
   maskDrawingMode:
     m_OverrideState: 1
     m_Value: 0
@@ -230,11 +230,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
   useNoiseOffsets:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   noiseScale:
     m_OverrideState: 1
-    m_Value: 460
+    m_Value: 346
   noiseOffset:
     m_OverrideState: 1
     m_Value: 0

@@ -44,7 +44,7 @@ void InstantiateGrass(uint3 id : SV_DispatchThreadID)
 
     // Generate Random Position
     float posX = (hash(myIndex) - 0.5) * boundsSize.x + boundsCenter.x;
-    float posY = spawnHeight + boundsCenter.y;
+    float posY = spawnHeight + baseGrassSize.y + boundsCenter.y;
     float posZ = (hash(myIndex + 1337) - 0.5) * boundsSize.z + boundsCenter.z;
     grassBuffer[myIndex].position = float3(posX, posY, posZ);
 
