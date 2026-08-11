@@ -3090,32 +3090,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
-      propertyPath: _mesh
-      value: 
-      objectReference: {fileID: 8254687373856176130, guid: 9a063bc03a2c0428dae8e3e2d1b2fbd0, type: 3}
-    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
-      propertyPath: _material
-      value: 
-      objectReference: {fileID: 2100000, guid: 70b5bad969a6c419da57e5a3cb4f3b4b, type: 2}
-    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _grassCount
-      value: 10000
-      objectReference: {fileID: 0}
-    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
-      propertyPath: _boundsSize2D.x
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
-      propertyPath: _boundsSize2D.y
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
-      propertyPath: _baseGrassSize.x
-      value: 0.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
-      propertyPath: _baseGrassSize.y
-      value: 0.4
+      value: 20000
       objectReference: {fileID: 0}
     - target: {fileID: 8012219735178546656, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: m_Name
