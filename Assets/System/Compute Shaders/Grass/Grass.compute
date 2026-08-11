@@ -1,4 +1,4 @@
-#pragma kernel InstantiateGrass
+#pragma kernel CullGrass
 
 #define TWOPI 6.2831853
 
@@ -10,16 +10,21 @@ struct GrassData
 };
 
 // Input
-uint numGrass;
+uint columns;
+uint rows;
+float2 grassSpacing;
 float3 boundsSize;
+float3 boundsCenter;
 float2 baseGrassSize;
 float2 grassSizeVariance;
 float spawnHeight;
-float3 boundsCenter;
+float randomOffset;
+float3 cameraPosition;
+float maxRenderDistance;
+float4 frustumPlanes[6];
 
 // Output
-RWStructuredBuffer<GrassData> grassBuffer;
-
+AppendStructuredBuffer<GrassData> visibleGrassBuffer;
 
 uint pcg_hash(uint input)
 {
@@ -34,73 +39,56 @@ float hash(uint input)
 }
 
 [numthreads(64, 1, 1)]
-void InstantiateGrass(uint3 id : SV_DispatchThreadID)
+void CullGrass(uint3 id : SV_DispatchThreadID)
 {
     uint myIndex = id.x;
-    if (myIndex >= numGrass)
+    if (myIndex >= columns * rows)
     {
         return;
     }
 
-    // Generate Random Position
-    float posX = (hash(myIndex) - 0.5) * boundsSize.x + boundsCenter.x;
+    // Calculate Grid Position
+    uint gridX = myIndex % columns;
+    uint gridY = myIndex / columns;
+
+    float cellCenterX = boundsCenter.x - boundsSize.x * 0.5 + (float(gridX) + 0.5) * grassSpacing.x;
+    float cellCenterZ = boundsCenter.z - boundsSize.z * 0.5 + (float(gridY) + 0.5) * grassSpacing.y;
+
+    // Add Random Offset
+    float offsetX = (hash(myIndex) - 0.5) * grassSpacing.x * randomOffset;
+    float offsetZ = (hash(myIndex + 1337) - 0.5) * grassSpacing.y * randomOffset;
+
+    float posX = cellCenterX + offsetX;
     float posY = spawnHeight + baseGrassSize.y + boundsCenter.y;
-    float posZ = (hash(myIndex + 1337) - 0.5) * boundsSize.z + boundsCenter.z;
-    grassBuffer[myIndex].position = float3(posX, posY, posZ);
+    float posZ = cellCenterZ + offsetZ;
 
-    // Generate Random Rotation
-    grassBuffer[myIndex].rotationY = TWOPI * hash(myIndex * 3);
-
-    // Generate Random Scale
-    grassBuffer[myIndex].scale = baseGrassSize + hash(myIndex * 5) * grassSizeVariance;
-}
-
-#pragma kernel CullGrass
-
-// Input
-float3 cameraPosition;
-float maxRenderDistance;
-float4 frustumPlanes[6];
-
-// Output
-AppendStructuredBuffer<GrassData> visibleGrassBuffer;
-
-[numthreads(64, 1, 1)]
-void CullGrass(uint3 id: SV_DispatchThreadID)
-{
-    uint myIndex = id.x;
-    if (myIndex >= numGrass)
-    {
-        return;
-    }
-
-    GrassData grass = grassBuffer[myIndex];
+    float3 pos = float3(posX, posY, posZ);
 
     // Distance Culling
-    float dist = distance(grass.position, cameraPosition);
+    float dist = distance(pos, cameraPosition);
     if (dist > maxRenderDistance)
     {
         return;
     }
 
     // Frustum Culling
-    float boundRadius = max(grass.scale.x, grass.scale.y);
-    bool isVisible = true;
+    float boundRadius = max(baseGrassSize.x + grassSizeVariance.x, baseGrassSize.y + grassSizeVariance.y);
 
     for (int i = 0; i < 6; i++)
     {
-        float distanceFromPlane = dot(frustumPlanes[i].xyz, grass.position) + frustumPlanes[i].w;
+        float distanceFromPlane = dot(frustumPlanes[i].xyz, pos) + frustumPlanes[i].w;
 
         if (distanceFromPlane < -boundRadius)
         {
-            isVisible = false;
-            break;
+            return;
         }
     }
 
     // Append
-    if (isVisible)
-    {
-        visibleGrassBuffer.Append(grass);
-    }
+    GrassData grass;
+    grass.position = pos;
+    grass.rotationY = TWOPI * hash(myIndex * 3);
+    grass.scale = baseGrassSize + hash(myIndex * 5) * grassSizeVariance;
+
+    visibleGrassBuffer.Append(grass);
 }
