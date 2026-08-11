@@ -45,12 +45,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GrassSpawnerCompute
   _grassComputeShader: {fileID: 7200000, guid: f06ff75b9d53478e807fa5d3ff8c1a44, type: 3}
-  _mesh: {fileID: 8254687373856176130, guid: 9a063bc03a2c0428dae8e3e2d1b2fbd0, type: 3}
-  _material: {fileID: 2100000, guid: 70b5bad969a6c419da57e5a3cb4f3b4b, type: 2}
-  _maxRenderDistance: 100
-  _shadowMode: 0
-  _grassCount: 10000
+  _grassVariants:
+  - Mesh: {fileID: -462981019419857548, guid: aa5c1f917e8854e6c9d2c4cc5f1c0e3e, type: 3}
+    Material: {fileID: 2100000, guid: 70b5bad969a6c419da57e5a3cb4f3b4b, type: 2}
+    Weight: 1
+  _grassCount: 2000
   _boundsSize2D: {x: 100, y: 100}
   _spawnHeight: 0
-  _baseGrassSize: {x: 0.4, y: 0.4}
+  _baseGrassSize: {x: 0.1, y: 0.5}
   _grassSizeVariance: {x: 0.05, y: 0.1}

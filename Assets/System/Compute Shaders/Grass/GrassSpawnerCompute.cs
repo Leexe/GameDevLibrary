@@ -33,7 +33,7 @@ public class GrassSpawnerCompute : MonoBehaviour
 	[Title("Spawn Data")]
 	[SerializeField]
 	[Min(0)]
-	private Vector2 _grassSpacing = new(1f, 1f);
+	private int _grassCount = 1000;
 
 	[SerializeField]
 	private Vector2 _boundsSize2D = new(100, 100);
@@ -47,6 +47,7 @@ public class GrassSpawnerCompute : MonoBehaviour
 	[SerializeField]
 	private Vector2 _grassSizeVariance = new(0.05f, 0.1f);
 
+	private ComputeBuffer _grassBuffer;
 	private ComputeBuffer _visibleGrassBuffer;
 	private ComputeBuffer _argsBuffer;
 	private Bounds _bounds;
@@ -76,6 +77,7 @@ public class GrassSpawnerCompute : MonoBehaviour
 		_cullKernel = _grassComputeShader.FindKernel("CullGrass");
 		_bounds = new Bounds(Vector3.zero, Vector3.one * 1000f);
 
+		_grassBuffer = new ComputeBuffer(_grassCount, 24);
 		_visibleGrassBuffer = new ComputeBuffer(_grassCount, 24, ComputeBufferType.Append);
 
 		uint[] args = new uint[5]
@@ -98,6 +100,7 @@ public class GrassSpawnerCompute : MonoBehaviour
 
 	private void OnDestroy()
 	{
+		_grassBuffer?.Release();
 		_visibleGrassBuffer?.Release();
 		_argsBuffer?.Release();
 	}
@@ -120,13 +123,14 @@ public class GrassSpawnerCompute : MonoBehaviour
 
 	private void OnValidate()
 	{
-		if (!Application.isPlaying || _grassComputeShader == null)
+		if (!Application.isPlaying || _grassBuffer == null || _grassComputeShader == null)
 		{
 			return;
 		}
 
 		UpdateComputeShaderProperties();
 
+		int threadGroups = Mathf.CeilToInt(_grassBuffer.count / 64f);
 		_grassComputeShader.Dispatch(_initKernel, threadGroups, 1, 1);
 	}
 
@@ -137,13 +141,17 @@ public class GrassSpawnerCompute : MonoBehaviour
 
 	private void UpdateComputeShaderProperties()
 	{
-		_grassComputeShader.SetVector(GrassSpacing, _grassSpacing);
+		_grassComputeShader.SetInt(NumGrass, _grassCount);
 		_grassComputeShader.SetVector(BoundsCenter, transform.position);
 		_grassComputeShader.SetVector(BoundsSize, new Vector4(_boundsSize2D.x, 0, _boundsSize2D.y, 0));
 		_grassComputeShader.SetVector(BaseGrassSize, _baseGrassSize);
 		_grassComputeShader.SetVector(GrassSizeVariance, _grassSizeVariance);
 		_grassComputeShader.SetFloat(SpawnHeight, _spawnHeight);
 		_grassComputeShader.SetFloat(MaxRenderDistance, _maxRenderDistance);
+
+		_grassComputeShader.SetBuffer(_initKernel, GrassBuffer, _grassBuffer);
+
+		_grassComputeShader.SetBuffer(_cullKernel, GrassBuffer, _grassBuffer);
 		_grassComputeShader.SetBuffer(_cullKernel, VisibleGrassBuffer, _visibleGrassBuffer);
 	}
 
