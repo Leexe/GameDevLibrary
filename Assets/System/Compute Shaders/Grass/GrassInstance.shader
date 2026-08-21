@@ -2,10 +2,11 @@ Shader "Custom/GrassInstance"
 {
     Properties
     {
-        _BaseColor ("Base Color", Color) = (1,1,1,1)
+        _TopColor ("Top Color", Color) = (1,1,1,1)
+        _BottomColor ("Bottom Color", Color) = (1,1,1,1)
         _Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _MainTex ("Texture", 2D) = "white" {}
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
+        _Smoothness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
         _WindSpeed ("Wind Speed", Float) = 1
         _WindStrength ("Wind Strength", Float) = 1
@@ -15,7 +16,8 @@ Shader "Custom/GrassInstance"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
     CBUFFER_START(UnityPerMaterial)
-        float4 _BaseColor;
+        float4 _TopColor;
+        float4 _BottomColor;
         float4 _MainTex_ST;
         float _Cutoff;
         float _Metallic;
@@ -159,8 +161,8 @@ Shader "Custom/GrassInstance"
                 UNITY_SETUP_INSTANCE_ID(input);
 
                 half4 textColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                half3 albedo = _BaseColor.rgb * textColor.rgb;
-                half alpha = _BaseColor.a * textColor.a;
+                half3 albedo = lerp(_BottomColor.rgb, _TopColor.rgb, input.uv.y) * textColor.rgb;
+                half alpha = lerp(_BottomColor.a, _TopColor.a, input.uv.y) * textColor.a;
                 clip(alpha - _Cutoff);
 
                 SurfaceData surfaceData = (SurfaceData)0;
@@ -262,7 +264,7 @@ Shader "Custom/GrassInstance"
             half4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a * _BaseColor.a;
+                half alpha = lerp(_BottomColor.a, _TopColor.a, input.uv.y) * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a;
                 clip(alpha - _Cutoff);
                 return 0;
             }
@@ -320,7 +322,7 @@ Shader "Custom/GrassInstance"
             half4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a * _BaseColor.a;
+                half alpha = lerp(_BottomColor.a, _TopColor.a, input.uv.y) * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a;
                 clip(alpha - _Cutoff);
                 return 0;
             }
@@ -379,7 +381,7 @@ Shader "Custom/GrassInstance"
             float4 frag(Interpolators input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                half alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a * _BaseColor.a;
+                half alpha = lerp(_BottomColor.a, _TopColor.a, input.uv.y) * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv).a;
                 clip(alpha - _Cutoff);
                 float3 normalWS = normalize(input.normalWS);
                 return float4(normalWS * 0.5 + 0.5, 0.0);

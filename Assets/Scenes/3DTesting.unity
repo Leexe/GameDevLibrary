@@ -3092,7 +3092,7 @@ PrefabInstance:
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _mesh
       value: 
-      objectReference: {fileID: 8254687373856176130, guid: 762cac6a2c7ab43bc94e0764f48c163c, type: 3}
+      objectReference: {fileID: 8254687373856176130, guid: 16417925d35324ca28888ed6ac1f9f8b, type: 3}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _material
       value: 
@@ -3103,23 +3103,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _randomOffset
-      value: 0.4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _boundsSize2D.x
-      value: 100
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _boundsSize2D.y
-      value: 100
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _grassSpacing.x
-      value: 0.2
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _grassSpacing.y
-      value: 0.2
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _baseGrassSize.x
@@ -3127,6 +3127,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _baseGrassSize.y
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
+      propertyPath: _grassSizeVariance.x
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
+      propertyPath: _grassSizeVariance.y
       value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 8012219735178546656, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}

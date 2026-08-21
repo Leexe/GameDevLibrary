@@ -48,7 +48,6 @@ public class GrassSpawnerCompute : MonoBehaviour
 	private Vector2 _grassSizeVariance = new(0.05f, 0.1f);
 
 	[SerializeField]
-	[Range(0f, 1f)]
 	private float _randomOffset = 1f;
 
 	private ComputeBuffer _visibleGrassBuffer;
