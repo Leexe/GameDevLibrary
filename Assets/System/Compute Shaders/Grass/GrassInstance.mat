@@ -27,16 +27,25 @@ Material:
         m_Texture: {fileID: 2800000, guid: 40c8b2b4bd6034748b5d47a6cd2a8296, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _WorldColorRamp:
+        m_Texture: {fileID: 2800000, guid: 73b0b2e787c654227845ff231c5eab5d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WorldTex:
+        m_Texture: {fileID: 2800000, guid: efc1324f6160840a9a4c26231cc2d304, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Cutoff: 0.5
     - _Glossiness: 0.5
     - _Metallic: 0.1
+    - _Smoothness: 0.5
     - _WindSpeed: 1
     - _WindStrength: 0.15
     m_Colors:
     - _BaseColor: {r: 0, g: 0.5660378, b: 0.097287744, a: 1}
-    - _BottomColor: {r: 0, g: 0.4245283, b: 0.248101, a: 1}
-    - _TopColor: {r: 0, g: 0.5754717, b: 0.3394082, a: 1}
+    - _BottomColor: {r: 0.019357419, g: 0.2735849, b: 0.16765676, a: 1}
+    - _TopColor: {r: 0, g: 0.8584906, b: 0.19747455, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -3092,7 +3092,7 @@ PrefabInstance:
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _mesh
       value: 
-      objectReference: {fileID: 8254687373856176130, guid: 16417925d35324ca28888ed6ac1f9f8b, type: 3}
+      objectReference: {fileID: 5389778189489885304, guid: 2331b9c4348314fcea4cb8aaee47b785, type: 3}
     - target: {fileID: 5907071417796914170, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: _material
       value: 
@@ -3140,6 +3140,10 @@ PrefabInstance:
     - target: {fileID: 8012219735178546656, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
       propertyPath: m_Name
       value: Grass Compute
+      objectReference: {fileID: 0}
+    - target: {fileID: 8012219735178546656, guid: bd9a7808e5891468b93fadfb21214d01, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3361,7 +3365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3645159781332728018, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5472948179576805083, guid: e40a9701fd6ac46238286bd9e3460dd1, type: 3}
       propertyPath: _boidCount
