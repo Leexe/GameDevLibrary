@@ -26,9 +26,9 @@ Shader "Unlit/DirectionalBillboard"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #define PI 3.14159265
 
             #include "UnityCG.cginc"
+            #include "Assets/Shaders/Utility/Math.hlsl"
 
             struct Meshdata
             {
@@ -70,7 +70,7 @@ Shader "Unlit/DirectionalBillboard"
                 rad -= objectRad;
 
                 // Map the radians to a [0.0 to 1.0] circle percentage.
-                float anglePercent = frac(rad / (2.0 * PI));
+                float anglePercent = frac(rad / TWO_PI);
 
                 // Get frameID from angle
                 int frameID = floor((anglePercent * _TotalFrames) + 0.5) % _TotalFrames;

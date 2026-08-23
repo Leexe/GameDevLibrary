@@ -99,9 +99,9 @@ Shader "Skybox/StarryBackground"
             #pragma shader_feature USE_SUN_SOURCE_DIR
 
             #include "UnityCG.cginc"
+            #include "Assets/Shaders/Utility/Math.hlsl"
             #include "Assets/Shaders/Utility/Fbm.hlsl"
             #include "Assets/Shaders/Utility/Dithering.hlsl"
-            #include "Assets/Shaders/Utility/keijiro/SimplexNoise2D.hlsl"
 
             struct MeshData
             {
@@ -219,7 +219,7 @@ Shader "Skybox/StarryBackground"
                 // 6) Make stars twinkle
                 float3 twinkleCell = floor(dir * _StarGrid);
                 float twinklePhase = hash31(twinkleCell + float3(77.7, 33.3, 55.5));
-                float twinkle = sin(_Time.y * _StarFlicker + twinklePhase * UNITY_TWO_PI) * 0.5 + 0.5;
+                float twinkle = sin(_Time.y * _StarFlicker + twinklePhase * TWO_PI) * 0.5 + 0.5;
                 
                 // 7) Star Colors
                 float colorHash = hash31(starGridCell + float3(99.9, 11.1, 22.2));
