@@ -32,6 +32,6 @@ Material:
     - _DitherSpread: 0.3
     - _DitherStrength: 0.061
     m_Colors:
-    - _PixelSize: {r: 3, g: 3, b: 0, a: 0}
+    - _PixelSize: {r: 2, g: 2, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
