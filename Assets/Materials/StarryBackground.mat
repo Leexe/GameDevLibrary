@@ -29,7 +29,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _FogColorRamp:
-        m_Texture: {fileID: 2800000, guid: a4edfa5854cdec34b98b1c55f0562bdd, type: 3}
+        m_Texture: {fileID: 2800000, guid: b0b901f2a7f3b48f99a87ed5495f6366, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MoonTex:
@@ -42,24 +42,24 @@ Material:
     - _EnableFog: 1
     - _EnableMoon: 1
     - _EnableStars: 1
-    - _FogDitherSpread: 0.05
-    - _FogPixelResolution: 300
-    - _FogScale: 1
-    - _FogScrollSpeedX: 0.01
-    - _FogScrollSpeedY: 0.01
-    - _FogSpeed: 0.02
-    - _GalaxyBandIntensity: 0.9
-    - _GalaxyBandPitch: 0
-    - _GalaxyBandWidth: 1.5
+    - _FogDitherSpread: 0.274
+    - _FogPixelResolution: 2048
+    - _FogScale: 2
+    - _FogScrollSpeedX: 0.002
+    - _FogScrollSpeedY: -0.002
+    - _FogSpeed: 0.015
+    - _GalaxyBandIntensity: 0.8
+    - _GalaxyBandPitch: -0.15
+    - _GalaxyBandWidth: 0.52
     - _MoonGlow: 0.3
     - _MoonGlowSize: 2
     - _MoonSize: 0.08
-    - _StarColorSaturation: 0.5
-    - _StarFlicker: 3
-    - _StarGrid: 700
-    - _StarOpacity: 1
-    - _StarPixelResolution: 300
-    - _StarProbability: 0.158
+    - _StarColorSaturation: 1
+    - _StarFlicker: 2
+    - _StarGrid: 140
+    - _StarOpacity: 0.4
+    - _StarPixelResolution: 2048
+    - _StarProbability: 0.1
     - _StarSize: 0.3
     - _Use8x8Dither: 1
     - _UseSunSourceDir: 1

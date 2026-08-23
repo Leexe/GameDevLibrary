@@ -99,7 +99,9 @@ Shader "Skybox/StarryBackground"
             #pragma shader_feature USE_SUN_SOURCE_DIR
 
             #include "UnityCG.cginc"
-            #include "Assets/Shaders/Utility/Common.hlsl"
+            #include "Assets/Shaders/Utility/Math.hlsl"
+            #include "Assets/Shaders/Utility/Dithering.hlsl"
+            #include "Assets/Shaders/Utility/Fbm.hlsl"
 
             struct MeshData
             {
@@ -161,24 +163,26 @@ Shader "Skybox/StarryBackground"
 
                 // Dithering
 #ifdef USE_8X8_DITHER
-                float fogNoise = DitherCentered8x8(screenPos, _FogDitherSpread);
+                float dither = DitherCentered8x8(screenPos, _FogDitherSpread);
 #else
-                float fogNoise = DitherCentered4x4(screenPos, _FogDitherSpread);
+                float dither = DitherCentered4x4(screenPos, _FogDitherSpread);
 #endif
 
                 // FBM Fog
-                float offset = FBM3D(fogPixelDir * _FogScale + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
-                fogNoise += FBM3D(fogPixelDir + offset + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
+                float offset = fbm(fogPixelDir * _FogScale + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
+                float rawNoise = fbm(fogPixelDir + offset + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
+                float fogNoise = saturate(rawNoise + dither);
                 
                 // Galaxy Band
                 float s = sin(_GalaxyBandPitch);
                 float c = cos(_GalaxyBandPitch);
                 float tiltedY = dir.y * c - dir.x * s;
                 float band = 1.0 - smoothstep(0.0, _GalaxyBandWidth, abs(tiltedY));
-                fogNoise = lerp(fogNoise, fogNoise * (band * 3.0), _GalaxyBandIntensity);
+                float galaxyFade = lerp(1.0, band, _GalaxyBandIntensity);
 
                 // Sample Color From Color Ramp
-                return UNITY_SAMPLE_TEX2D(_FogColorRamp, float2(fogNoise, 0.5)).rgb;
+                float3 fogColor = UNITY_SAMPLE_TEX2D(_FogColorRamp, float2(fogNoise, 0.5)).rgb;
+                return fogColor * galaxyFade;
             }
 
             float3 CalculateStars(float3 dir)
@@ -190,12 +194,12 @@ Shader "Skybox/StarryBackground"
                 float3 starLocal3D = frac(starPixelDir * _StarGrid) - 0.5;
                 
                 // 2) Random value per cell
-                float randomStar = Hash13(starGridCell);
+                float randomStar = FbmHash31(starGridCell);
                 
                 // 3) Offset the center of the star within each cell
-                float oX = Hash13(starGridCell + float3(13.5, 0.0, 7.3)) * 0.8 - 0.4;
-                float oY = Hash13(starGridCell + float3(0.0, 42.7, 3.1)) * 0.8 - 0.4;
-                float oZ = Hash13(starGridCell + float3(5.2, 0.0, 91.4)) * 0.8 - 0.4;
+                float oX = FbmHash31(starGridCell + float3(13.5, 0.0, 7.3)) * 0.8 - 0.4;
+                float oY = FbmHash31(starGridCell + float3(0.0, 42.7, 3.1)) * 0.8 - 0.4;
+                float oZ = FbmHash31(starGridCell + float3(5.2, 0.0, 91.4)) * 0.8 - 0.4;
                 
                 // 4) Get local position relative to the offset star center
                 float3 starOffset = starLocal3D - float3(oX, oY, oZ);
@@ -206,11 +210,11 @@ Shader "Skybox/StarryBackground"
                 
                 // 6) Make stars twinkle
                 float3 twinkleCell = floor(dir * _StarGrid);
-                float twinklePhase = Hash13(twinkleCell + float3(77.7, 33.3, 55.5));
+                float twinklePhase = FbmHash31(twinkleCell + float3(77.7, 33.3, 55.5));
                 float twinkle = sin(_Time.y * _StarFlicker + twinklePhase * TWO_PI) * 0.5 + 0.5;
                 
                 // 7) Star Colors
-                float colorHash = Hash13(starGridCell + float3(99.9, 11.1, 22.2));
+                float colorHash = FbmHash31(starGridCell + float3(99.9, 11.1, 22.2));
                 float3 white = float3(1.0, 1.0, 1.0);
                 float3 baseStarColor = lerp(_StarColor1.rgb, _StarColor2.rgb, colorHash);
                 float3 finalStarColor = lerp(white, baseStarColor, _StarColorSaturation);

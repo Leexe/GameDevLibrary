@@ -27,10 +27,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _BayerMatrix: 2
-    - _ColorDepth: 8
+    - _ColorDepth: 10
     - _DitherDarken: 0
-    - _DitherSpread: 0.04
-    - _DitherStrength: 1
+    - _DitherSpread: 0.3
+    - _DitherStrength: 0.061
     m_Colors:
     - _PixelSize: {r: 3, g: 3, b: 0, a: 0}
   m_BuildTextureStacks: []
