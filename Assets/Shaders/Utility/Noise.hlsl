@@ -173,48 +173,61 @@ float GradientNoise2D(float2 p)
     return lerp(lerp(va, vb, u.x), lerp(vc, vd, u.x), u.y);
 }
 
-// Simplex Noise - https://github.com/ashima/webgl-noise
+// Simplex Noise - https://www.shadertoy.com/view/Msf3WH
 
-static float3 SimplexNoiseGrad2D(float2 v)
+float SimplexNoise2D(float2 p)
 {
-    const float C1 = (3.0 - sqrt(3.0)) / 6.0;
-    const float C2 = (sqrt(3.0) - 1.0) / 2.0;
+    const float K1 = 0.366025404; // (sqrt(3.0) - 1.0) / 2.0;
+    const float K2 = 0.211324865; // (3.0 - sqrt(3.0)) / 6.0;
 
-    float2 i  = floor(v + dot(v, C2));
-    float2 x0 = v - i + dot(i, C1);
+    float2 i = floor(p + (p.x + p.y) * K1);
+    float2 a = p - i + (i.x + i.y) * K2;
+    float m = step(a.y, a.x);
+    float2 o = float2(m, 1.0 - m);
+    float2 b = a - o + K2;
+    float2 c = a - 1.0 + 2.0 * K2;
 
-    float2 i1 = (x0.x > x0.y) ? float2(1.0, 0.0) : float2(0.0, 1.0);
-    float2 x1 = x0 + C1 - i1;
-    float2 x2 = x0 + C1 * 2.0 - 1.0;
+    float2 ga = Hash22(i + 0.0) * 2.0 - 1.0;
+    float2 gb = Hash22(i + o) * 2.0 - 1.0;
+    float2 gc = Hash22(i + 1.0) * 2.0 - 1.0;
 
-    float2 p0 = Hash22(i);
-    float2 p1 = Hash22(i + i1);
-    float2 p2 = Hash22(i + 1.0);
+    float3 h = max(0.5 - float3(dot(a, a), dot(b, b), dot(c, c)), 0.0);
+    float3 h2 = h * h;
+    float3 h4 = h2 * h2;
 
-    float3 phi = float3(p0.x, p1.x, p2.x) * TWO_PI;
-    float2 g0 = float2(cos(phi.x), sin(phi.x));
-    float2 g1 = float2(cos(phi.y), sin(phi.y));
-    float2 g2 = float2(cos(phi.z), sin(phi.z));
-
-    float3 m  = float3(dot(x0, x0), dot(x1, x1), dot(x2, x2));
-    float3 px = float3(dot(g0, x0), dot(g1, x1), dot(g2, x2));
-
-    m = max(0.5 - m, 0.0);
-    float3 m3 = m * m * m;
-    float3 m4 = m * m3;
-
-    float3 temp = -8.0 * m3 * px;
-    float2 grad = m4.x * g0 + temp.x * x0 +
-                  m4.y * g1 + temp.y * x1 +
-                  m4.z * g2 + temp.z * x2;
-
-    float noise = dot(m4, px);
-    return float3(grad, 70.0 * noise);
+    float3 n = h4 * float3(dot(a, ga), dot(b, gb), dot(c, gc));
+    return 70.0 * dot(n, float3(1.0, 1.0, 1.0));
 }
 
-float SimplexNoise2D(float2 v)
+// Simplex Noise Derivatives - https://www.shadertoy.com/view/XdXGW8
+
+static float3 SimplexNoiseGrad2D(float2 p)
 {
-    return SimplexNoiseGrad2D(v).z;
+    const float K1 = 0.366025404; // (sqrt(3.0) - 1.0) / 2.0;
+    const float K2 = 0.211324865; // (3.0 - sqrt(3.0)) / 6.0;
+
+    float2 i = floor(p + (p.x + p.y) * K1);
+    float2 a = p - i + (i.x + i.y) * K2;
+    float m = step(a.y, a.x);
+    float2 o = float2(m, 1.0 - m);
+    float2 b = a - o + K2;
+    float2 c = a - 1.0 + 2.0 * K2;
+
+    float2 ga = Hash22(i + 0.0) * 2.0 - 1.0;
+    float2 gb = Hash22(i + o) * 2.0 - 1.0;
+    float2 gc = Hash22(i + 1.0) * 2.0 - 1.0;
+
+    float3 va = float3(dot(a, ga), dot(b, gb), dot(c, gc));
+    float3 d = max(0.5 - float3(dot(a, a), dot(b, b), dot(c, c)), 0.0);
+    float3 d2 = d * d;
+    float3 d4 = d2 * d2;
+
+    float3 n = d4 * va;
+
+    float2 deriv = -8.0 * (d2.x * d.x * va.x * a + d2.y * d.y * va.y * b + d2.z * d.z * va.z * c) +
+                   d4.x * ga + d4.y * gb + d4.z * gc;
+
+    return float3(70.0 * deriv, 70.0 * dot(n, float3(1.0, 1.0, 1.0)));
 }
 
 // Voronoi Noise - https://iquilezles.org/articles/voronoise/
@@ -282,82 +295,27 @@ float FBM3D(float3 p, int octaves, float lacunarity = 2.0, float gain = 0.5)
     return value;
 }
 
-// Curl Noise - Robert Bridson (SIGGRAPH 2007)
+// Curl Noise
 
-float3 CurlNoise(float3 p, float step = 0.01)
+float2 CurlNoise2D(float2 p)
 {
-    float3 dx = float3(step, 0.0, 0.0);
-    float3 dy = float3(0.0, step, 0.0);
-    float3 dz = float3(0.0, 0.0, step);
-
-    float n1 = ValueNoise2D((p + dy).xy);
-    float n2 = ValueNoise2D((p - dy).xy);
-    float n3 = ValueNoise2D((p + dz).yz);
-    float n4 = ValueNoise2D((p - dz).yz);
-    float n5 = ValueNoise2D((p + dx).zx);
-    float n6 = ValueNoise2D((p - dx).zx);
-
-    float x = (n1 - n2) - (n3 - n4);
-    float y = (n5 - n6) - (n1 - n2);
-    float z = (n3 - n4) - (n5 - n6);
-
-    return normalize(float3(x, y, z) / (2.0 * step + EPSILON));
+    float3 g = SimplexNoiseGrad2D(p);
+    return float2(g.y, -g.x);
 }
 
-// Shader Graph Custom Function Wrappers
-
-void ValueNoise2D_float(float2 UV, out float Out) { Out = ValueNoise2D(UV); }
-void ValueNoise2D_half(half2 UV, out half Out)   { Out = (half)ValueNoise2D((float2)UV); }
-
-void ValueNoise3D_float(float3 Position, out float Out) { Out = ValueNoise3D(Position); }
-void ValueNoise3D_half(half3 Position, out half Out)   { Out = (half)ValueNoise3D((float3)Position); }
-
-void GradientNoise2D_float(float2 UV, out float Out) { Out = GradientNoise2D(UV); }
-void GradientNoise2D_half(half2 UV, out half Out)   { Out = (half)GradientNoise2D((float2)UV); }
-
-void SimplexNoise2D_float(float2 UV, out float Out) { Out = SimplexNoise2D(UV); }
-void SimplexNoise2D_half(half2 UV, out half Out)   { Out = (half)SimplexNoise2D((float2)UV); }
-
-void Voronoi_float(float2 UV, float AngleOffset, out float F1, out float F2, out float2 CellID)
+float3 CurlNoise3D(float3 p)
 {
-    float4 v = Voronoi(UV, AngleOffset);
-    F1 = v.x;
-    F2 = v.y;
-    CellID = v.zw;
-}
-void Voronoi_half(half2 UV, half AngleOffset, out half F1, out half F2, out half2 CellID)
-{
-    float4 v = Voronoi((float2)UV, (float)AngleOffset);
-    F1 = (half)v.x;
-    F2 = (half)v.y;
-    CellID = (half2)v.zw;
-}
+    float3 g_yz = SimplexNoiseGrad2D(p.yz);
+    float3 g_zx = SimplexNoiseGrad2D(p.zx);
+    float3 g_xy = SimplexNoiseGrad2D(p.xy);
 
-void FBM2D_float(float2 UV, int Octaves, float Lacunarity, float Gain, out float Out)
-{
-    Out = FBM2D(UV, Octaves, Lacunarity, Gain);
-}
-void FBM2D_half(half2 UV, int Octaves, half Lacunarity, half Gain, out half Out)
-{
-    Out = (half)FBM2D((float2)UV, Octaves, (float)Lacunarity, (float)Gain);
-}
+    float3 curl = float3(
+        g_xy.y - g_zx.x,
+        g_yz.y - g_xy.x,
+        g_zx.y - g_yz.x
+    );
 
-void FBM3D_float(float3 Position, int Octaves, float Lacunarity, float Gain, out float Out)
-{
-    Out = FBM3D(Position, Octaves, Lacunarity, Gain);
-}
-void FBM3D_half(half3 Position, int Octaves, half Lacunarity, half Gain, out half Out)
-{
-    Out = (half)FBM3D((float3)Position, Octaves, (float)Lacunarity, (float)Gain);
-}
-
-void CurlNoise_float(float3 Position, float Step, out float3 Out)
-{
-    Out = CurlNoise(Position, Step);
-}
-void CurlNoise_half(half3 Position, half Step, out half3 Out)
-{
-    Out = (half3)CurlNoise((float3)Position, (float)Step);
+    return normalize(curl);
 }
 
 #endif

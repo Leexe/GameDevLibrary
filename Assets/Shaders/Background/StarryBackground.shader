@@ -99,9 +99,7 @@ Shader "Skybox/StarryBackground"
             #pragma shader_feature USE_SUN_SOURCE_DIR
 
             #include "UnityCG.cginc"
-            #include "Assets/Shaders/Utility/Math.hlsl"
-            #include "Assets/Shaders/Utility/Fbm.hlsl"
-            #include "Assets/Shaders/Utility/Dithering.hlsl"
+            #include "Assets/Shaders/Utility/Common.hlsl"
 
             struct MeshData
             {
@@ -153,13 +151,6 @@ Shader "Skybox/StarryBackground"
                 return o;
             }
 
-            float hash31(float3 p)
-            {
-                p = frac(p * float3(443.897, 441.423, 437.195));
-                p += dot(p, p.yzx + 19.19);
-                return frac((p.x + p.y) * p.z);
-            }
-
             float3 CalculateFog(float3 dir, float2 screenPos)
             {
                 float3 fogDir = dir;
@@ -169,18 +160,15 @@ Shader "Skybox/StarryBackground"
                 float3 fogPixelDir = floor(fogDir * _FogPixelResolution) / _FogPixelResolution;
 
                 // Dithering
-                uint ditherX = (uint)screenPos.x;
-                uint ditherY = (uint)screenPos.y;
 #ifdef USE_8X8_DITHER
-                float dither = bayerMatrix8x8[(ditherX % 8) + (ditherY % 8) * 8];
+                float fogNoise = DitherCentered8x8(screenPos, _FogDitherSpread);
 #else
-                float dither = bayerMatrix4x4[(ditherX % 4) + (ditherY % 4) * 4];
+                float fogNoise = DitherCentered4x4(screenPos, _FogDitherSpread);
 #endif
-                float fogNoise = (dither - 0.5) * _FogDitherSpread;
 
                 // FBM Fog
-                float offset = fbm(fogPixelDir * _FogScale + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
-                fogNoise += fbm(fogPixelDir + offset + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
+                float offset = FBM3D(fogPixelDir * _FogScale + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
+                fogNoise += FBM3D(fogPixelDir + offset + float3(0, 0, _Time.y * _FogSpeed), _Octaves);
                 
                 // Galaxy Band
                 float s = sin(_GalaxyBandPitch);
@@ -202,12 +190,12 @@ Shader "Skybox/StarryBackground"
                 float3 starLocal3D = frac(starPixelDir * _StarGrid) - 0.5;
                 
                 // 2) Random value per cell
-                float randomStar = hash31(starGridCell);
+                float randomStar = Hash13(starGridCell);
                 
                 // 3) Offset the center of the star within each cell
-                float oX = hash31(starGridCell + float3(13.5, 0.0, 7.3)) * 0.8 - 0.4;
-                float oY = hash31(starGridCell + float3(0.0, 42.7, 3.1)) * 0.8 - 0.4;
-                float oZ = hash31(starGridCell + float3(5.2, 0.0, 91.4)) * 0.8 - 0.4;
+                float oX = Hash13(starGridCell + float3(13.5, 0.0, 7.3)) * 0.8 - 0.4;
+                float oY = Hash13(starGridCell + float3(0.0, 42.7, 3.1)) * 0.8 - 0.4;
+                float oZ = Hash13(starGridCell + float3(5.2, 0.0, 91.4)) * 0.8 - 0.4;
                 
                 // 4) Get local position relative to the offset star center
                 float3 starOffset = starLocal3D - float3(oX, oY, oZ);
@@ -218,11 +206,11 @@ Shader "Skybox/StarryBackground"
                 
                 // 6) Make stars twinkle
                 float3 twinkleCell = floor(dir * _StarGrid);
-                float twinklePhase = hash31(twinkleCell + float3(77.7, 33.3, 55.5));
+                float twinklePhase = Hash13(twinkleCell + float3(77.7, 33.3, 55.5));
                 float twinkle = sin(_Time.y * _StarFlicker + twinklePhase * TWO_PI) * 0.5 + 0.5;
                 
                 // 7) Star Colors
-                float colorHash = hash31(starGridCell + float3(99.9, 11.1, 22.2));
+                float colorHash = Hash13(starGridCell + float3(99.9, 11.1, 22.2));
                 float3 white = float3(1.0, 1.0, 1.0);
                 float3 baseStarColor = lerp(_StarColor1.rgb, _StarColor2.rgb, colorHash);
                 float3 finalStarColor = lerp(white, baseStarColor, _StarColorSaturation);

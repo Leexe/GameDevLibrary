@@ -60,15 +60,13 @@ Shader "Fullscreen/RetroShader"
                 col.rgb = LinearToSRGB(col.rgb);
                 
                 // Dithering
+                float2 ditherPos = pixelUV * gridSize;
 #if defined(_BAYERMATRIX_2X2)
-                int2 ditherCoord = int2(pixelUV * gridSize) % 2;
-                float dither = (bayerMatrix2x2[ditherCoord.x + ditherCoord.y * 2] - 0.5) * _DitherSpread;
+                float dither = DitherCentered2x2(ditherPos, _DitherSpread);
 #elif defined(_BAYERMATRIX_4X4)
-                int2 ditherCoord = int2(pixelUV * gridSize) % 4;
-                float dither = (bayerMatrix4x4[ditherCoord.x + ditherCoord.y * 4] - 0.5) * _DitherSpread;
+                float dither = DitherCentered4x4(ditherPos, _DitherSpread);
 #else
-                int2 ditherCoord = int2(pixelUV * gridSize) % 8;
-                float dither = (bayerMatrix8x8[ditherCoord.x + ditherCoord.y * 8] - 0.5) * _DitherSpread;
+                float dither = DitherCentered8x8(ditherPos, _DitherSpread);
 #endif
                 col.rgb += dither * _DitherStrength - _DitherDarken;
 

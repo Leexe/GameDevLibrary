@@ -57,7 +57,8 @@ float DitherCentered8x8(float2 screenPos, float spread = 1.0)
     return (Dither8x8(screenPos) - 0.5) * spread;
 }
 
-// Credit: https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
+// https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
+
 float InterleavedGradientNoise(float2 screenPos)
 {
     return frac(52.9829189 * frac(dot(screenPos, float2(0.06711056, 0.00583715))));
