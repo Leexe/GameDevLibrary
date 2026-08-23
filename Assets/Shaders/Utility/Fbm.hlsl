@@ -1,6 +1,8 @@
 #ifndef FBM_HLSL
 #define FBM_HLSL
 
+// Legacy (Used in StarryBackground)
+
 float FbmHash21(float2 p)
 {
     p = frac(p * float2(443.897, 441.423));
