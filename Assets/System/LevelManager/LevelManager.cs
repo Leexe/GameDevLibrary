@@ -166,6 +166,6 @@ public class LevelManager : PersistentMonoSingleton<LevelManager>
 	/// <param name="sceneName">Scene Name To Switch To</param>
 	public void SwitchScenes(SceneNames sceneName)
 	{
-		SceneManager.LoadScene((int)sceneName);
+		SceneManager.LoadSceneAsync((int)sceneName);
 	}
 }
