@@ -4,7 +4,10 @@ using UnityEditor;
 using UnityEditor.Build;
 
 namespace Ink.UnityIntegration {
-    // This class adds define symbols for the ink runtime and editor. Handy for conditional compilation.
+    /// <summary>
+    /// Manages the INK_RUNTIME and INK_EDITOR scripting define symbols, handy for conditional compilation.
+    /// Adds them for the active build target (and re-adds them when the active build target changes).
+    /// </summary>
     public class InkDefineSymbols : IActiveBuildTargetChanged {
         public const string inkRuntimeDefine = "INK_RUNTIME";
         public const string inkEditorDefine = "INK_EDITOR";
@@ -17,17 +20,17 @@ namespace Ink.UnityIntegration {
             AddGlobalDefine();
         }
 			
-        // Adds the default define symbols to the active build target if they're not already present. 
+        /// <summary>Adds the ink define symbols to the active build target if they're not already present.</summary>
         public static void AddGlobalDefine() {
             Add(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), inkDefines);
         }
 
-        // Removes the default define symbols from the active build target if they're present. 
+        /// <summary>Removes the ink define symbols from the active build target if they're present.</summary>
         public static void RemoveGlobalDefine() {
             Remove(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), inkDefines);
         }
 			
-        // Checks if all the default define symbols are present. 
+        /// <summary>Returns true if the ink define symbols are present.</summary>
         public static bool HasGlobalDefines() {
             return Exists(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget), inkDefines);
         }
@@ -35,24 +38,32 @@ namespace Ink.UnityIntegration {
 			
         static void Add(BuildTargetGroup buildTargetGroup, params string[] defines) {
             var allDefines = new List<string>();
-            string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            string definesStr = GetDefines(buildTargetGroup);
             allDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
             allDefines.AddRange(defines.Except(allDefines));
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), allDefines.ToArray()));
+            SetDefines(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), allDefines.ToArray()));
         }
 				
 				
         static void Remove(BuildTargetGroup buildTargetGroup, params string[] defines) {
-            string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            string definesStr = GetDefines(buildTargetGroup);
             var existingDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
             var newDefines = existingDefines.Except(defines);
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), newDefines.ToArray()));
+            SetDefines(buildTargetGroup, string.Join(DEFINE_SEPARATOR.ToString(), newDefines.ToArray()));
         }
 
         static bool Exists(BuildTargetGroup buildTargetGroup, params string[] defines) {
-            string definesStr = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
+            string definesStr = GetDefines(BuildTargetGroup.Standalone);
             var existingDefines = definesStr.Split(DEFINE_SEPARATOR).ToList();
             return existingDefines.Contains("INK_RUNTIME") && existingDefines.Contains("INK_EDITOR");
+        }
+
+        static string GetDefines(BuildTargetGroup buildTargetGroup) {
+            return PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup));
+        }
+
+        static void SetDefines(BuildTargetGroup buildTargetGroup, string defines) {
+            PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup), defines);
         }
         
         // This code works but it throws errors that can't be caught for non-installed build target groups. Instead I've switched to adding them when the active build target changes 

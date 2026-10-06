@@ -9,6 +9,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 184204
   packageName: Selection History
-  packageVersion: 1.0.1
-  assetPath: Assets/SelectionHistory/changelog.md
-  uploadId: 743203
+  packageVersion: 1.0.3
+  assetPath: Assets/Plugins/SelectionHistory/changelog.md
+  uploadId: 999004

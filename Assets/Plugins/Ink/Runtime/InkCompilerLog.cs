@@ -3,6 +3,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Ink.UnityIntegration
 {
+	/// <summary>A single compiler diagnostic (error, warning or TODO) parsed from the ink compiler output.</summary>
     [System.Serializable]
 	public class InkCompilerLog {
 		public Ink.ErrorType type;
@@ -15,12 +16,6 @@ namespace Ink.UnityIntegration
 			this.content = content;
 			this.relativeFilePath = relativeFilePath;
 			this.lineNumber = lineNumber;
-		}
-
-		public string GetAbsoluteFilePath (InkFile masterInkFile) {
-			Debug.Log(masterInkFile.absoluteFolderPath);
-			Debug.Log(relativeFilePath);
-			return System.IO.Path.Combine(masterInkFile.absoluteFolderPath, relativeFilePath);
 		}
 
 		public static bool TryParse (string rawLog, out InkCompilerLog log) {

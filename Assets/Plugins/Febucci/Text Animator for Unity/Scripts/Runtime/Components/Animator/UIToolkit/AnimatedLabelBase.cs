@@ -5,7 +5,7 @@
 // - WEBSITE: https://www.textanimatorforgames.com/
 // =======================================================
 
-#if UNITY_2023_2_OR_NEWER
+﻿#if UNITY_2023_2_OR_NEWER
 #define CAN_USE_UXML_DECORATORS
 #endif
 
@@ -406,6 +406,28 @@ namespace Febucci.TextAnimatorForUnity.UIToolkit
             lastTime = currentTime;
             animator.Animate(delta);
         }
+
+
+        /// <summary>
+        /// Returns true if text animator is currently paused
+        /// </summary>
+        public bool IsAnimationPaused
+            => animator.isAnimationPaused;
+
+
+        /// <summary>
+        /// Resumes animation starting from pause point
+        /// </summary>
+        public void PauseAnimation()
+            => animator.PauseAnimation();
+
+
+        /// <summary>
+        /// Pauses animation and freezes current char's status
+        /// </summary>
+        public void ResumeAnimation()
+            => animator.ResumeAnimation();
+
 
         public void SetTextToSource(string text)
         {

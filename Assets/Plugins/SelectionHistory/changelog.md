@@ -1,4 +1,10 @@
-﻿1.0.2
+﻿1.0.3
+Asset is now a formal UPM package. Updating requires first deleting it from the Assets folder.
+
+Changed:
+- Updated up to Unity 6.7 (obsolete code warnings)
+
+1.0.2
 
 Changed:
 - Selection is now also recorded when the Selection History window is not visible.

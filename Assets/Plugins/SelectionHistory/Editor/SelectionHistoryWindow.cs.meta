@@ -13,6 +13,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 184204
   packageName: Selection History
-  packageVersion: 1.0.1
-  assetPath: Assets/SelectionHistory/Editor/SelectionHistoryWindow.cs
-  uploadId: 743203
+  packageVersion: 1.0.3
+  assetPath: Assets/Plugins/SelectionHistory/Editor/SelectionHistoryWindow.cs
+  uploadId: 999004
